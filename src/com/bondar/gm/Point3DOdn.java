@@ -29,8 +29,9 @@ public class Point3DOdn {
 	this(p2d.getX(), p2d.getY(), 0);
     }
     // multiply
-    public void multiply(Matrix other) {
+    public Point3DOdn multiply(Matrix other) {
 	vector = vector.multiply(other);
+	return this;
     }
     // set
     public void setX(double x) {
@@ -63,5 +64,9 @@ public class Point3DOdn {
     
     public double getZ() {
 	return vector.getAt(0, 2);
+    }
+    
+    public Point3DOdn getCopy() {
+	return new Point3DOdn(getX(), getY(), getZ());
     }
 }

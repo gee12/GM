@@ -41,6 +41,10 @@ public class Triangle3D implements Serializable {
 	setTriangle(tria.v1, tria.v2, tria.v3, col);
     }
     // set
+    public void setTriangle(Point3DOdn p1, Point3DOdn p2, Point3DOdn p3) {
+	setTriangle(p1, p2, p3, this.color);
+    }
+    
     public void setTriangle(Point3DOdn p1, Point3DOdn p2, Point3DOdn p3, Color col) {
 	if (p1 == null || p2 == null || p3 == null) {
 	    throw new IllegalArgumentException();
