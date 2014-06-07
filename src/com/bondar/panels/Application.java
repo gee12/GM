@@ -70,6 +70,10 @@ public abstract class Application extends JFrame {
     public int getSliderValue(String sliderName) {
 	return optionsPanel.getSliderValue(sliderName);
     }
+    
+    public void setListeners(RadioGroupListener listener) {
+	optionsPanel.setListeners(listener);
+    }
 
     protected abstract void paint(GraphicSystem g);
 }

@@ -1,17 +1,16 @@
 package com.bondar.tasks;
 
 import com.bondar.panels.Application;
-import com.bondar.panels.GroupPanel;
 import com.bondar.gm.*;
+import com.bondar.panels.RadioGroupListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.Timer;
 
 /**
@@ -19,13 +18,13 @@ import javax.swing.Timer;
  *
  * @author bondar
  */
-public class Lab5678 extends Application {
+public class Lab5678 extends Application implements RadioGroupListener {
 
-    private static final double DISP_STEP = 0.1;
-    private static final double ANGLE_UP = Math.toRadians(7);
-    private static final double ANGLE_DOWN = Math.toRadians(-7);
-    private static final double SCALE_UP = 1.05;
-    private static final double SCALE_DOWN = 0.95;
+    private static final double DISP_STEP = 0.12;
+    private static final double ANGLE_UP = Math.toRadians(6);
+    private static final double ANGLE_DOWN = Math.toRadians(-6);
+    private static final double SCALE_UP = 0.05;
+    private static final double SCALE_DOWN = -SCALE_UP;
     private static final double PERSPECT_VALUE = 0.1;
     private static final int SCREEN_WIDTH = 1100;
     private static final int SCREEN_HEIGHT = 600;
@@ -53,15 +52,12 @@ public class Lab5678 extends Application {
     private static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
 
     private ArrayList<Solid3D> models = new ArrayList<>();
-    //private Solid3D pyramid;
-    //private Solid3D cube;
-    //private boolean isFocusOnPyramid = false;
-    //private boolean isFocusOnCube = false;
     private ArrayList<Solid3D> focusedSolids = new ArrayList<>();
     private final Solid3D axis;
     private final Solid3D camera;
     private final GraphicSystem g;
-
+    private HashMap<String, String> radiosMap = new HashMap<>();
+ 
     public static void main(String[] args) {
 	new Lab5678(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
@@ -86,24 +82,27 @@ public class Lab5678 extends Application {
 	addMouseListener(new MListener());
 	addMouseWheelListener(new MWListener());
 	// добавление переключателей
-	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_CAMERA_TEXT);
+	_addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_CAMERA_TEXT);
 
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
+	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
+	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
+	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
 
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
+	_addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
+	_addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
 
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
+	_addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
+	_addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
 
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
+	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
+	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
+	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
 
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
+	_addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
+	_addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
+	
+	setListeners(this);
+	
 	// оси
 	axis = new Solid3D("Оси", new Point3DOdn[]{
 	    new Point3DOdn(-5, 0, 0),
@@ -112,7 +111,7 @@ public class Lab5678 extends Application {
 	    new Point3DOdn(0, -3.5, 0)});
 	// точка наблюдения
 	camera = new Solid3D("Камера", new Point3DOdn[]{
-	    new Point3DOdn(1, 1, 1)});
+	    new Point3DOdn(2, 2, 2)});
 	// объекты
 	initModels();
 
@@ -127,19 +126,15 @@ public class Lab5678 extends Application {
 	};
 	new Timer(500, taskPerformer).start();    
     }
+    
+    private void _addRadio(final String titleText, final String text) {
+	addRadio(titleText, text);
+	radiosMap.put(titleText, 
+		optionsPanel.getGroupPanel(titleText).getSelectedRadioText());
+    }
 
     /////////////////////////////////////////////////////////
     private void initModels() {
-	/*//pyramid = new Solid3D(new Point3DOdn[]{
-	    new Point3DOdn(0, 0, 3),
-	    new Point3DOdn(-1, -1, 0),
-	    new Point3DOdn(-1, 1, 0),
-	    new Point3DOdn(1, 1, 0),
-	    new Point3DOdn(1, -1, 0)
-	});
-	//pyramid.rotate(Math.toRadians(25), Matrix.AXIS.X);
-	//pyramid.rotate(Math.toRadians(40), Matrix.AXIS.Y);*/
-	//
 	File path = new File("models");
 	String[] objFileNames = path.list(new FileFilter(FILES_EXTENSION));
 	for (String fileName : objFileNames) {
@@ -159,29 +154,9 @@ public class Lab5678 extends Application {
 		ex.printStackTrace();
 	    }
 	}
-
-	/*try {
-	    cube = Solid3D.readFromFile("models//cube.csv");
-	} catch (Exception ex) {
-	    ex.printStackTrace();
-	    cube = new Solid3D("Куб", new Point3DOdn[]{
-		new Point3DOdn(-1, -1, 0),
-		new Point3DOdn(-1, 1, 0),
-		new Point3DOdn(1, 1, 0),
-		new Point3DOdn(1, -1, 0),
-		new Point3DOdn(-1, -1, 1),
-		new Point3DOdn(-1, 1, 1),
-		new Point3DOdn(1, 1, 1),
-		new Point3DOdn(1, -1, 1)
-	    });
-	}
-
-	Random rand = new Random();
-	int size = cube.getTriangles().length;
-	for (int i = 0; i < size; i++) {
-	    cube.getTriangles()[i].setColor(new Color(
-		    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255));
-	}*/
+	//pyramid.rotate(Math.toRadians(25), Matrix.AXIS.X);
+	//pyramid.rotate(Math.toRadians(40), Matrix.AXIS.Y);*/
+	//
 	/*cube.translate(-5, 3, 0);
 	 cube.rotate(Math.toRadians(45), Matrix.AXIS.X);
 	 cube.rotate(Math.toRadians(45), Matrix.AXIS.Y);*/
@@ -190,11 +165,7 @@ public class Lab5678 extends Application {
     /////////////////////////////////////////////////////////
     private void onOperation(double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz, double scale) {
-	GroupPanel group = optionsPanel.getGroupPanel(GROUP_TITLE_OPERATIONS_TEXT);
-	if (group == null) {
-	    return;
-	}
-	String selectedRadioText = group.getSelectedRadioText();
+	String selectedRadioText = radiosMap.get(GROUP_TITLE_OPERATIONS_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_ROTATE_TEXT:
 		onRotate(angle, axis);
@@ -205,64 +176,55 @@ public class Lab5678 extends Application {
 	    case RADIO_SCALE_TEXT:
 		onScale(scale);
 		break;
-	    case RADIO_CAMERA_TEXT:
-		onCameraTransfer(dx, dy, dz);
-		break;
 	}
     }
 
-    private void onProjection() {
-	GroupPanel group = optionsPanel.getGroupPanel(GROUP_TITLE_PROJECTION_TEXT);
-	if (group == null || !group.isChanged()) {
-	    return;
+    public void onRotate(double angle, Matrix.AXIS axis) {
+	for (Solid3D solid : focusedSolids) {
+	    solid.updateAngle(angle, axis);
 	}
-	group.setChanged(false);
-	String selectedRadioText = group.getSelectedRadioText();
+    }
+
+    public void onTransfer(double dx, double dy, double dz) {
+	for (Solid3D solid : focusedSolids) {
+	    solid.updateTransfers(dx, dy, dz);
+	}
+    }
+
+    public void onScale(double scale) {
+	for (Solid3D solid : focusedSolids) {
+	    solid.updateScale(scale);
+	}
+    }
+    
+    private void onProjection() {
+	String selectedRadioText = radiosMap.get(GROUP_TITLE_PROJECTION_TEXT);
+	boolean isNeedPerspective = false;
+	
 	switch (selectedRadioText) {
 	    case RADIO_ORTOGON_TEXT:
-		initModels();
 		break;
 	    case RADIO_CENTER_TEXT:
+		isNeedPerspective = true;
 		Point3DOdn cameraP = camera.getVertex(0);
 		// получение сферических координат камеры
 		double[] sphereCoords = GraphicSystem.getSphericalCoordinates(
 			cameraP.getX(), cameraP.getY(), cameraP.getZ());
 		//sphereCoords = new double[] {2.44, 0.61, 0.78};
-		models.get(0).perspective(cameraP.getZ(), sphereCoords[0], sphereCoords[1], sphereCoords[2]);
+		for (Solid3D solid : models) {
+		    solid.setPerspective(cameraP.getZ(), sphereCoords[0], sphereCoords[1], sphereCoords[2]);
+		}
 		break;
 	}
-	repaint();
-    }
-
-    public void onRotate(double angle, Matrix.AXIS axis) {
-	/*if (isFocusOnPyramid) {
-	 //pyramid.rotate(angle, axis);
-	 } else */	if (isFocusOnCube) {
-	    models.get(0).rotate(angle, axis);
+	for (Solid3D solid : models) {
+	    solid.setPerspective(isNeedPerspective);
 	}
     }
 
-    public void onTransfer(double dx, double dy, double dz) {
-	if (isFocusOnPyramid) {
-	    //pyramid.translate(dx, dy, dz);
-	}
-	if (isFocusOnCube) {
-	    models.get(0).translate(dx, dy, dz);
-	}
-    }
-
-    public void onScale(double scale) {
-	if (isFocusOnPyramid) {
-	    //pyramid.scale(scale, scale, scale);
-	}
-	if (isFocusOnCube) {
-	    models.get(0).scale(scale, scale, scale);
-	}
-    }
-
-    public void onCameraTransfer(double dx, double dy, double dz) {
-	camera.translate(dx, dy, dz);
-	repaint();
+    @Override
+    public void onRadioSelected(String groupTitle, String radioText) {
+	radiosMap.put(groupTitle, radioText);
+	onProjection();
     }
 
     /////////////////////////////////////////////////////////
@@ -337,32 +299,18 @@ public class Lab5678 extends Application {
 	public void mousePressed(MouseEvent me) {
 	    Point curPoint = me.getPoint();
 	    Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-	    // находим границы объекта и проверяем попадание курсора
-	    /*double[] pyramidBorders = GraphicSystem.getBorders(//pyramid.getVertexes2D());
-	    if (GraphicSystem.isPointInRect(pyramidBorders, p)) {
-		isFocusOnPyramid = true;
-	    } else {
-		isFocusOnPyramid = false;
-	    }*/
-	    //
 	    for (Solid3D solid : models) {
-		double[] borders = GraphicSystem.getBorders(solid.getVertexes2D());
+		// находим границы объекта и проверяем попадание курсора
+		double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
 		if (GraphicSystem.isPointInRect(borders, p)) {
 		    focusedSolids.add(solid);
 		}
 	    }
-	    /*double[] cubeBorders = GraphicSystem.getBorders(models.get(0).getVertexes2D());
-	    if (GraphicSystem.isPointInRect(cubeBorders, p)) {
-		isFocusOnCube = true;
-	    } else {
-		isFocusOnCube = false;
-	    }*/
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent me) {
-	    /*isFocusOnPyramid = false;
-	    isFocusOnCube = false;*/
+	    focusedSolids.clear();
 	}
 
 	@Override
@@ -383,66 +331,48 @@ public class Lab5678 extends Application {
 	int keyCode = evt.getKeyCode();
 
     }
-    
-    public void update() {
-	
-    }
-
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(GraphicSystem g) {
-	// once again not repainting
-	//if (!mousePressed || !sliderChanged) return;
-
 	g.clear();
 	g.reset();
 	g.translate(DX, DY);
-	//onProjection();
 
-	update();
-	
 	drawAxis(g, axis);
 	if (models == null) return;
-	//drawSolid(g, models.get(0), Color.BLUE);
-	//drawSolid(g, pyramid, Color.RED);
-    }
+	for (Solid3D solid : models) {
+	    drawSolid(g, solid, Color.BLACK);
+	}
+   }
 
     /////////////////////////////////////////////////////////
     private void drawAxis(GraphicSystem g, Solid3D axis) {
-	if (axis == null) {
-	    return;
-	}
-	int size = axis.getVertexes().length;
-	if (size < 4) {
+	if (axis == null || axis.getVertexes().length < 4) {
 	    return;
 	}
 	g.setColor(Color.BLACK);
 	g.line(axis.getVertex(0), axis.getVertex(1));
 	g.line(axis.getVertex(2), axis.getVertex(3));
-    }
+     }
 
     /////////////////////////////////////////////////////////
-    private String getClippingMethod() {
+    /*private String getClippingMethod() {
 	GroupPanel group = optionsPanel.getGroupPanel(GROUP_TITLE_CLIPPING_TEXT);
 	if (group == null) {
 	    return null;
 	}
 	return group.getSelectedRadioText();
-    }
+    }*/
 
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid, Color col) {
-	GroupPanel group = optionsPanel.getGroupPanel(GROUP_TITLE_VIEW_TEXT);
-	if (group == null || solid == null) {
-	    return;
-	}
 	// make transformations to solid vertexes
 	// and create DrawOrMove array for drawing
 	Point3DOdn[] vertexes = solid.makeTransformations();
 	DrawOrMove[] doms = Solid3D.createDrawOrMoves(vertexes);
-	Triangle3D[] trias = solid.setTriasFromVerts(vertexes);
+	Triangle3D[] trias = solid.setTriasFromVerts(vertexes, solid.getIndsToTrias());
 	
-	String selectedRadioText = group.getSelectedRadioText();
+	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_FACES_TEXT:
 		//fillSolid(g, solid);
@@ -455,7 +385,7 @@ public class Lab5678 extends Application {
 		drawEdges(g, doms, Color.BLACK);
 		break;
 	}
-	//repaint();
+	repaint();
     }
 
     /////////////////////////////////////////////////////////
@@ -480,7 +410,8 @@ public class Lab5678 extends Application {
 	if (g == null || trias == null) {
 	    return;
 	}
-	switch (getClippingMethod()) {
+	String selectedRadioText = radiosMap.get(GROUP_TITLE_CLIPPING_TEXT);
+	switch (selectedRadioText) {
 	    case RADIO_PAINTER_TEXT:
 		// !!! models.get(0)
 		//Triangle3D[] trias = models.get(0).getTriangles();
@@ -526,7 +457,6 @@ public class Lab5678 extends Application {
 	@Override
 	public boolean accept(File dir, String name) {
 	    return name.toLowerCase().endsWith(endWith);
-	    //return name.toLowerCase().matches(endWith);
 	}
     }
 }

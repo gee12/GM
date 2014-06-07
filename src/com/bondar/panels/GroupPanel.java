@@ -1,5 +1,6 @@
 package com.bondar.panels;
 
+import com.bondar.tasks.Lab5678;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
@@ -13,8 +14,13 @@ public class GroupPanel extends JPanel {
     private final MyButtonGroup group;
     private String selectedRadioText = "";
     private boolean isChanged = false;
+    private String titleText;
+    
+    private RadioGroupListener listener = null;
   
     public GroupPanel(final String titleText) {
+	this.titleText = titleText;
+	
 	group = new MyButtonGroup();
 	group.addActionListener(new ActionListener() {
 	    private String lastText = "";
@@ -25,10 +31,16 @@ public class GroupPanel extends JPanel {
 		else isChanged = true;
 		lastText = selectedRadioText;
 		//onRadioSelected();
+		if (listener == null) return;
+		listener.onRadioSelected(titleText, selectedRadioText);
 	    }
 	});
 	setBorder(BorderFactory.createTitledBorder(titleText));
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    }
+    
+    public void setListener(RadioGroupListener listener) {
+	this.listener = listener;
     }
     
     public void addRadio(final String radioText) {

@@ -94,6 +94,12 @@ public class OptionsPanel extends JPanel {
     public GroupPanel getGroupPanel(final String groupTitle) {
 	return groups.get(groupTitle);
     }
+    
+    public void setListeners(RadioGroupListener listener) {
+	for (GroupPanel group : groups.values()) {
+	    group.setListener(listener);
+	}
+    }
 /*
     public String getSelectedRadioText(final String groupTitle) {
 	GroupPanel group = groups.get(groupTitle);

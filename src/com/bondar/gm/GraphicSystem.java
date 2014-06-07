@@ -527,6 +527,10 @@ public class GraphicSystem {
 	return res;
     }
 
+    public static double[] getBorders(Point3DOdn[] polygon) {
+	return getBorders(Solid3D.getVertexes2D(polygon));
+    }
+    
     public static double[] getBorders(Point2D[] polygon) {
 	if (polygon == null) {
 	    return null;
