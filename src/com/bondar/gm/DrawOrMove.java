@@ -10,27 +10,31 @@ public class DrawOrMove {
 	MOVE,
 	DRAW
     }
-    private Point3DOdn p;
+    private int index;
     private Operation oper;
 
-    public DrawOrMove(Point3DOdn p, Operation oper) {
-	this.p = p;
+    public DrawOrMove(int i, Operation oper) {
+	this.index = i;
 	this.oper = oper;
     }
 
-    public Point3DOdn getPoint() {
-	return p;
+    public int getPoint() {
+	return index;
     }
 
     public Operation getOperation() {
 	return oper;
     }
     
-    public void setPoint(Point3DOdn p) {
-	this.p = p;
+    public void setPoint(int i) {
+	this.index = i;
     }
     
     public void setOperation(Operation op) {
 	this.oper = op;
+    }
+    
+    public Point3DOdn getPoint3DOdn(Point3DOdn[] points) {
+	return points[index];
     }
 }

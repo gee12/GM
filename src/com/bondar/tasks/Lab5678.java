@@ -146,6 +146,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		    solid.getTriangles()[i].setColor(new Color(
 			    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255));
 		}
+		solid.setEdgesColor(new Color(
+			    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255));
 		
 		models.add(solid);
 		addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName());
@@ -297,14 +299,28 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
 	@Override
 	public void mousePressed(MouseEvent me) {
-	    Point curPoint = me.getPoint();
-	    Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-	    for (Solid3D solid : models) {
-		// находим границы объекта и проверяем попадание курсора
-		double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
-		if (GraphicSystem.isPointInRect(borders, p)) {
-		    focusedSolids.add(solid);
-		}
+	    String selectedRadioText = radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT);
+	    switch (selectedRadioText) {
+		//
+		case RADIO_BY_MOUSE_PRESSED_TEXT:
+		    Point curPoint = me.getPoint();
+		    Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		    for (Solid3D solid : models) {
+			// находим границы объекта и проверяем попадание курсора
+			double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
+			if (GraphicSystem.isPointInRect(borders, p)) {
+			    focusedSolids.add(solid);
+			}
+			// if 
+			if (focusedSolids.isEmpty()) {
+			    focusedSolids.add(camera);
+			}
+		    }
+		    break;
+		//
+		case RADIO_BY_LIST_SELECTION_TEXT:
+		    
+			break;
 	    }
 	}
 
@@ -341,7 +357,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	drawAxis(g, axis);
 	if (models == null) return;
 	for (Solid3D solid : models) {
-	    drawSolid(g, solid, Color.BLACK);
+	    drawSolid(g, solid);
 	}
    }
 
@@ -356,46 +372,36 @@ public class Lab5678 extends Application implements RadioGroupListener {
      }
 
     /////////////////////////////////////////////////////////
-    /*private String getClippingMethod() {
-	GroupPanel group = optionsPanel.getGroupPanel(GROUP_TITLE_CLIPPING_TEXT);
-	if (group == null) {
-	    return null;
-	}
-	return group.getSelectedRadioText();
-    }*/
-
-    /////////////////////////////////////////////////////////
-    private void drawSolid(GraphicSystem g, Solid3D solid, Color col) {
+    private void drawSolid(GraphicSystem g, Solid3D solid) {
 	// make transformations to solid vertexes
 	// and create DrawOrMove array for drawing
-	Point3DOdn[] vertexes = solid.makeTransformations();
-	DrawOrMove[] doms = Solid3D.createDrawOrMoves(vertexes);
-	Triangle3D[] trias = solid.setTriasFromVerts(vertexes, solid.getIndsToTrias());
+	Point3DOdn[] verts = solid.makeTransformations();
+	Triangle3D[] trias = solid.setTriasFromVerts(verts);
 	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_FACES_TEXT:
-		//fillSolid(g, solid);
+		fillSolid(g, trias);
 		break;
 	    case RADIO_EDGES_TEXT:
-		drawEdges(g, doms, col);
+		drawEdges(g, verts, solid.getDoms(), solid.getEdgesColor());
 		break;
 	    case RADIO_EDGES_FACES_TEXT:
-		//fillSolid(g, solid);
-		drawEdges(g, doms, Color.BLACK);
+		fillSolid(g, trias);
+		drawEdges(g, verts, solid.getDoms(), solid.getEdgesColor());
 		break;
 	}
 	repaint();
     }
 
     /////////////////////////////////////////////////////////
-    private void drawEdges(GraphicSystem g, DrawOrMove[] doms, Color col) {
-	if (g == null || doms == null) {
+    private void drawEdges(GraphicSystem g, Point3DOdn[] verts, DrawOrMove[] doms, Color col) {
+	if (g == null || verts == null || doms == null) {
 	    return;
 	}
 	g.setColor(col);
 	for (int i = 0; i < doms.length; i++) {
-	    Point3DOdn p = doms[i].getPoint();
+	    Point3DOdn p = doms[i].getPoint3DOdn(verts);
 	    DrawOrMove.Operation op = doms[i].getOperation();
 	    if (op == DrawOrMove.Operation.MOVE) {
 		g.move(p);
@@ -414,7 +420,6 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	switch (selectedRadioText) {
 	    case RADIO_PAINTER_TEXT:
 		// !!! models.get(0)
-		//Triangle3D[] trias = models.get(0).getTriangles();
 		Triangle3D[] sortTrias = GraphicSystem.painterAlgorithm(trias);
 		if (sortTrias == null) {
 		    return;

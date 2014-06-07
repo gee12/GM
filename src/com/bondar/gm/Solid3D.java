@@ -23,6 +23,7 @@ public class Solid3D {
     private Triangle3D[] triangles = null;
     private DrawOrMove[] doms;
     private String name;
+    private Color edgesColor;
     
     private double angleX, angleY, angleZ;
     private double dx, dy, dz;
@@ -75,7 +76,7 @@ public class Solid3D {
     }
 
     /////////////////////////////////////////////////////////
-    public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias/* Triangle3D[] triangles,*/, DrawOrMove[] doms) {
+    public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias, DrawOrMove[] doms) {
 	this.name = name;
 	this.vertexes = vertexes;
 	this.indsToTrias = indsToTrias;
@@ -84,7 +85,7 @@ public class Solid3D {
 	resetTransformations();
     }
 
-    public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias/*Triangle3D[] triangles*/) {
+    public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias) {
 	this.name = name;
 	this.vertexes = vertexes;
 	this.indsToTrias = indsToTrias;
@@ -128,8 +129,8 @@ public class Solid3D {
 	int ind = 0;
 	for (int i = 0; i < size-1; i++) {
 	    for (int j = i+1; j < size; j++) {
-		res[ind] = new DrawOrMove(points[i], DrawOrMove.Operation.MOVE);
-		res[ind+1] = new DrawOrMove(points[j], DrawOrMove.Operation.DRAW);
+		res[ind] = new DrawOrMove(i, DrawOrMove.Operation.MOVE);
+		res[ind+1] = new DrawOrMove(j, DrawOrMove.Operation.DRAW);
 		ind += 2;
 	    }
 	}
@@ -177,9 +178,8 @@ public class Solid3D {
 	    vertexes[lineNumber] = new Point3DOdn(coords[0], coords[1], coords[2]);
 	    lineNumber++;
 	}
-	// Треугольники по 3-м вершинам
+	// Идентификаторы вершин треугльников
 	int triasCount = Integer.parseInt(reader.readLine());
-	//Triangle3D[] triangles = new Triangle3D[triasCount];
 	int[][] indsToTrias = new int[triasCount][];
 	lineNumber = 0;
 	while (lineNumber < triasCount && (line = reader.readLine()) != null) {
@@ -192,19 +192,10 @@ public class Solid3D {
 	    for (int i = 0; i < pointsCount; i++) {
 		indsToTrias[lineNumber][i] = Integer.parseInt(pointsStr[i]);
 	    }
-	    /*int[] points = new int[pointsCount];
-	    for (int i = 0; i < pointsCount; i++) {
-		points[i] = Integer.parseInt(pointsStr[i]);
-	    }
-	    triangles[lineNumber] = new Triangle3D(
-		    // по ссылке (!)
-		    vertexes[points[0]],
-		    vertexes[points[1]],
-		    vertexes[points[2]]);*/
 	    lineNumber++;
 	}
 
-	// Отображение ребер
+	// Структура для отображения ребер
 	int domCount = Integer.parseInt(reader.readLine());
 	DrawOrMove[] domPoints = new DrawOrMove[domCount];
 	lineNumber = 0;
@@ -214,39 +205,53 @@ public class Solid3D {
 	    if (elemCount < 2) {
 		throw new RuntimeException("Необходимо 2 числа (идентификатор точки и тип операции)");
 	    }
-	    int pointNum = Integer.parseInt(domStr[0]);
+	    int pointIndex = Integer.parseInt(domStr[0]);
 	    int domOper = Integer.parseInt(domStr[1]);
 	    domPoints[lineNumber] = new DrawOrMove(
-		    vertexes[pointNum],
+		    pointIndex,
 		    DrawOrMove.Operation.values()[domOper]);
 	    lineNumber++;
 	}
-
 	reader.close();
 
 	// get file name without path & extension
 	Path path = Paths.get(fileName);
 	String withoutPath = path.getFileName().toString();
 	String withoutExt = withoutPath.replaceFirst("[.][^.]+$", "");
+	//
 	return new Solid3D(withoutExt, vertexes, indsToTrias, domPoints);
     }
     
-    private Triangle3D[] getTriasFromVerts(Point3DOdn[] vertexes, int[][] indsToTrias) {
+    private static Triangle3D[] getTriasFromVerts(Point3DOdn[] vertexes, int[][] indsToTrias) {
+	if (vertexes == null || indsToTrias == null) return null;
+	return getTriasFromVerts(vertexes, indsToTrias, null);
+    }
+    
+    public static Triangle3D[] getTriasFromVerts(Point3DOdn[] vertexes, int[][] indsToTrias, Triangle3D[] oldTrias) {
 	if (vertexes == null || indsToTrias == null) return null;
 	int size = indsToTrias.length;
-	Triangle3D[] trias = new Triangle3D[size];
+	Triangle3D[] res = new Triangle3D[size];
 	for (int i = 0; i < size; i++) {
-	    trias[i] = new Triangle3D(
+	    Color color = (oldTrias != null && oldTrias.length >= size) ? 
+		    oldTrias[i].getColor() : Color.BLACK;
+	    res[i] = new Triangle3D(
+		    vertexes[indsToTrias[i][0]],
+		    vertexes[indsToTrias[i][1]],
+		    vertexes[indsToTrias[i][2]],
+		    color);
+	}
+	return res;
+    }
+    
+    public  Triangle3D[] setTriasFromVerts(Point3DOdn[] vertexes) {
+	if (vertexes == null) return null;
+	for (int i = 0; i < indsToTrias.length; i++) {
+	    triangles[i].setTriangle(
 		    vertexes[indsToTrias[i][0]],
 		    vertexes[indsToTrias[i][1]],
 		    vertexes[indsToTrias[i][2]]);
 	}
-	return trias;
-    }
-    
-    public Triangle3D[] setTriasFromVerts(Point3DOdn[] vertexes, int[][] indsToTrias) {
-	this.triangles = getTriasFromVerts(vertexes, indsToTrias);
-	return this.triangles;
+	return triangles;
     }
 
     /////////////////////////////////////////////////////////
@@ -277,64 +282,12 @@ public class Solid3D {
 	}
 	return res;
     }
-    /*
-    public void translate(double tx, double ty, double tz) {
-	Matrix transMatrix = Matrix.getTransferMatrix(tx, ty, tz);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(transMatrix);
-	}
+    
+    /////////////////////////////////////////////////////////
+    // set
+    public void setEdgesColor(Color col) {
+	edgesColor = col;
     }
-
-    public void rotate(double angle, AXIS axis) {
-	Matrix rotateMatrix = Matrix.getRotationMatrix(angle, axis);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(rotateMatrix);
-	}
-    }
-
-    public void scale(double sx, double sy, double sz) {
-	Matrix scaleMatrix = Matrix.getScaleMatrix(sx, sy, sz);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(scaleMatrix);
-	}
-    }
-
-    public void scale(double s) {
-	Matrix scaleMatrix = Matrix.getScaleMatrix(s);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(scaleMatrix);
-	}
-    }
-
-    public void perspective1(double p) {
-	Matrix perspMatrix = Matrix.getPerspective1Matrix(p);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(perspMatrix);
-	}
-    }
-
-    public void perspective2(double p1, double p2) {
-	Matrix perspMatrix = Matrix.getPerspective1Matrix(p1, p2);
-	for (Point3DOdn point : vertexes) {
-	    point.multiply(perspMatrix);
-	}
-    }
-
-    public void perspective(double dist, double ro, double theta, double phi) {
-	Matrix V = Matrix.getViewMatrix(ro, theta, phi);
-	for (Point3DOdn vertex : vertexes) {
-	    //double xe = V.getMatrix()[0][0] * point.getX() + V.getMatrix()[1][0] * point.getY();
-	    // double ye = V.getMatrix()[0][1] * point.getX() + V.getMatrix()[1][1] * point.getY() + V.getMatrix()[2][1] * point.getZ();
-	    // double ze = V.getMatrix()[0][2] * point.getX() + V.getMatrix()[1][2] * point.getY() + V.getMatrix()[2][2] * point.getZ() + V.getMatrix()[3][2];
-	     
-	    vertex.multiply(V);
-	    double xe = vertex.getX();
-	    double ye = vertex.getY();
-	    double ze = vertex.getZ();
-	    vertex.setX(dist * xe / ze);
-	    vertex.setY(dist * ye / ze);
-	}
-    }*/
 
     /////////////////////////////////////////////////////////
     // get
@@ -380,5 +333,9 @@ public class Solid3D {
     
     public String getName() {
 	return name;
+    }
+    
+    public Color getEdgesColor() {
+	return (edgesColor != null) ? edgesColor : Color.BLACK;
     }
 }
