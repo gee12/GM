@@ -495,8 +495,11 @@ public class GraphicSystem {
     }
 
     public static boolean isPointInRect(double[] borders, Point2D p) {
-	if (borders == null) {
+	if (borders == null || p == null) {
 	    return false;
+	}
+	if (borders.length < 4) {
+	    throw new RuntimeException("Размер массива borders < 4");
 	}
 	double minX = borders[0],
 		minY = borders[1],
@@ -514,6 +517,9 @@ public class GraphicSystem {
 	if (borders == null) {
 	    return null;
 	}
+	if (borders.length < 4) {
+	    throw new RuntimeException("Размер массива borders < 4");
+	}
 	double minX = borders[0],
 		minY = borders[1],
 		maxX = borders[2],
@@ -523,7 +529,6 @@ public class GraphicSystem {
 	res[1] = new Point2D(minX, maxY);
 	res[2] = new Point2D(maxX, maxY);
 	res[3] = new Point2D(maxX, minY);
-
 	return res;
     }
 
@@ -536,7 +541,7 @@ public class GraphicSystem {
 	    return null;
 	}
 	int size = polygon.length;
-	//if (size >= 4) {
+	if (size == 0) return null;
 	final Point2D first = polygon[0];
 	double minX = first.getX(),
 		minY = first.getY(),
@@ -681,10 +686,21 @@ public class GraphicSystem {
     public double getyMax() {
 	return yMax;
     }
+    
+    public void painterAlgorithm(Triangle3D[] trias) {
+	Triangle3D[] sortTrias = sortTrianglesByZ(trias);
+	if (sortTrias == null) {
+	    return;
+	}
+	for (Triangle3D tria : sortTrias) {
+	    setColor(tria.getColor());
+	    fillPolygon(tria.getVertexes());
+	}
+    }
 
     /////////////////////////////////////////////////////
-    // Алгоритм художника - сортировка граней по удаленности от камеры
-    public static Triangle3D[] painterAlgorithm(Triangle3D[] trias) {
+    // Сортировка граней по удаленности от камеры (алгоритм художника)
+    public static Triangle3D[] sortTrianglesByZ(Triangle3D[] trias) {
 	if (trias == null) {
 	    return null;
 	}
@@ -722,15 +738,12 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения невидимых граней с использованием z-буффера
-    public void zBufferAlgorithm(Solid3D solid) {
-	if (solid == null || width == 0 || height == 0) {
+    public void zBufferAlgorithm(Triangle3D[] trias) {
+	if (trias == null) {
 	    return;
 	}
-	//ZBuffer zBuffer = new ZBuffer(X_MAX, Y_MAX, X_MAX / width, Y_MAX / height);
-	Triangle3D[] trias = solid.getTriangles();
-	for (int i = 0; i < trias.length; i++) {//Triangle3D tria : trias) {
-	    Triangle3D tria = trias[i];
-	    drawTriangle(tria);
+	for (Triangle3D tria : trias) {
+	    drawBufferedTriangle(tria);
 	}
     }
 
@@ -746,7 +759,7 @@ public class GraphicSystem {
     }
 
     /////////////////////////////////////////////////////
-    private void drawTriangle(Triangle3D tria) {
+    private void drawBufferedTriangle(Triangle3D tria) {
 	if (tria == null) return;
 	Point3DOdn a = convPToScreen(tria.getV1());
 	Point3DOdn b = convPToScreen(tria.getV2());

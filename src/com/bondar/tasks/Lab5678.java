@@ -30,6 +30,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
     private static final int SCREEN_HEIGHT = 600;
     private static final double DX = 5;
     private static final double DY = 3.5;
+    private static final String MODELS_DIR_NAME = "models/";
     private static final String FILES_EXTENSION = ".gm";
     private static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
     private static final String RADIO_CAMERA_TEXT = "Камера";
@@ -46,18 +47,23 @@ public class Lab5678 extends Application implements RadioGroupListener {
     private static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
     private static final String RADIO_PAINTER_TEXT = "Алгритм художника";
     private static final String RADIO_Z_BUFFER_TEXT = "Z-Буффер";
+    private static final String GROUP_TITLE_INTERSECT_TEXT = "ПЕРЕСЕЧЕНИЕ ОБЪЕКТОВ:";
+    private static final String RADIO_INTERSECT_ON_TEXT = "Допускается";
+    private static final String RADIO_INTERSECT_OFF_TEXT = "Не допускается";
     private static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
     private static final String RADIO_EDGES_TEXT = "Ребра";
     private static final String RADIO_FACES_TEXT = "Грани";
     private static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
-
-    private ArrayList<Solid3D> models = new ArrayList<>();
+    
+    private ArrayList<Solid3D> solids = new ArrayList<>();
     private ArrayList<Solid3D> focusedSolids = new ArrayList<>();
     private final Solid3D axis;
     private final Solid3D camera;
     private final GraphicSystem g;
     private HashMap<String, String> radiosMap = new HashMap<>();
- 
+    private boolean isPerspective = false;
+    private Solid3D selectedSolid;
+    
     public static void main(String[] args) {
 	new Lab5678(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
@@ -82,27 +88,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	addMouseListener(new MListener());
 	addMouseWheelListener(new MWListener());
 	// добавление переключателей
-	_addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_CAMERA_TEXT);
-
-	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
-	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
-	_addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
-
-	_addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
-	_addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
-
-	_addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
-	_addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
-
-	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
-	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
-	_addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
-
-	_addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
-	_addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
-	
+	createRadioButtons();
 	setListeners(this);
-	
 	// оси
 	axis = new Solid3D("Оси", new Point3DOdn[]{
 	    new Point3DOdn(-5, 0, 0),
@@ -110,14 +97,13 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	    new Point3DOdn(0, 3.5, 0),
 	    new Point3DOdn(0, -3.5, 0)});
 	// точка наблюдения
-	camera = new Solid3D("Камера", new Point3DOdn[]{
+	camera = new Solid3D(RADIO_CAMERA_TEXT, new Point3DOdn[]{
 	    new Point3DOdn(2, 2, 2)});
+	selectedSolid = camera;
 	// объекты
-	initModels();
-
+	loadSolids();
 	//
 	g = getDrawablePanel().getGraphicSystem();
-
 	// таймер для регулярной перерисовки
 	ActionListener taskPerformer = new ActionListener() {
 	    public void actionPerformed(ActionEvent evt) {
@@ -127,19 +113,44 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	new Timer(500, taskPerformer).start();    
     }
     
-    private void _addRadio(final String titleText, final String text) {
-	addRadio(titleText, text);
+    private void createRadioButtons() {
+	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_CAMERA_TEXT);
+
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
+
+	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
+	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
+
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
+
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
+
+	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_ON_TEXT);
+	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_OFF_TEXT);
+	
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
+    }
+    
+    @Override
+    public void addRadio(final String titleText, final String text) {
+	super.addRadio(titleText, text);
 	radiosMap.put(titleText, 
 		optionsPanel.getGroupPanel(titleText).getSelectedRadioText());
     }
 
     /////////////////////////////////////////////////////////
-    private void initModels() {
-	File path = new File("models");
+    private void loadSolids() {
+	File path = new File(MODELS_DIR_NAME);
 	String[] objFileNames = path.list(new FileFilter(FILES_EXTENSION));
 	for (String fileName : objFileNames) {
 	    try {
-		Solid3D solid = Solid3D.readFromFile("models//" + fileName);
+		Solid3D solid = Solid3D.readFromFile(MODELS_DIR_NAME + fileName);
 		Random rand = new Random();
 		int size = solid.getTriangles().length;
 		for (int i = 0; i < size; i++) {
@@ -149,10 +160,9 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		solid.setEdgesColor(new Color(
 			    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255));
 		
-		models.add(solid);
+		solids.add(solid);
 		addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName());
-		
-	    } catch (IOException ex) {
+	    } catch (Exception ex) {
 		ex.printStackTrace();
 	    }
 	}
@@ -199,45 +209,62 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	}
     }
     
-    private void onProjection() {
-	String selectedRadioText = radiosMap.get(GROUP_TITLE_PROJECTION_TEXT);
-	boolean isNeedPerspective = false;
-	
+    private void onProjection(String selectedRadioText) {
 	switch (selectedRadioText) {
 	    case RADIO_ORTOGON_TEXT:
+		isPerspective = false;
 		break;
 	    case RADIO_CENTER_TEXT:
-		isNeedPerspective = true;
+		if (isPerspective) return;
+		isPerspective = true;
+		// get decart camera coordinates
 		Point3DOdn cameraP = camera.getVertex(0);
-		// получение сферических координат камеры
+		// convert to spherical coordinates
 		double[] sphereCoords = GraphicSystem.getSphericalCoordinates(
 			cameraP.getX(), cameraP.getY(), cameraP.getZ());
 		//sphereCoords = new double[] {2.44, 0.61, 0.78};
-		for (Solid3D solid : models) {
+		for (Solid3D solid : solids) {
 		    solid.setPerspective(cameraP.getZ(), sphereCoords[0], sphereCoords[1], sphereCoords[2]);
 		}
 		break;
 	}
-	for (Solid3D solid : models) {
-	    solid.setPerspective(isNeedPerspective);
+	for (Solid3D solid : solids) {
+	    solid.setPerspective(isPerspective);
 	}
+    }
+    
+    private void onSolidListSelection(String selectedRadioText) {
+	for (Solid3D solid : solids) {
+	    if (solid.getName().equals(selectedRadioText)) {
+		selectedSolid = solid;
+		return;
+	    }
+	}
+	// if suddenly selected solid don't finded
+	selectedSolid = camera;
     }
 
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
 	radiosMap.put(groupTitle, radioText);
-	onProjection();
+	switch(groupTitle) {
+	    case GROUP_TITLE_PROJECTION_TEXT:
+		onProjection(radioText);
+		break;
+	    case GROUP_TITLE_OBJECTS_TEXT:
+		onSolidListSelection(radioText);
+		break;
+	}
     }
 
     /////////////////////////////////////////////////////////
     public class MMListener implements MouseMotionListener {
-
 	private Point prevPoint = new Point();
 
 	@Override
 	public void mouseDragged(MouseEvent me) {
 	    Point curPoint = me.getPoint();
-	    double dx = 0, dy = 0, dz = 0, angle = 0, scale = 1;
+	    double dx = 0, dy = 0, dz = 0, angle = 0, scale = 0;
 	    Matrix.AXIS axis = Matrix.AXIS.X;
 
 	    if (curPoint.x > prevPoint.x) {
@@ -259,9 +286,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		dy = DISP_STEP;
 	    }
 	    prevPoint = curPoint;
-
 	    onOperation(angle, axis, dx, dy, dz, scale);
-	    repaint();
 	}
 
 	@Override
@@ -305,22 +330,23 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		case RADIO_BY_MOUSE_PRESSED_TEXT:
 		    Point curPoint = me.getPoint();
 		    Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-		    for (Solid3D solid : models) {
-			// находим границы объекта и проверяем попадание курсора
+		    for (Solid3D solid : solids) {
+			// find object borders & check the cursor hit into borders
 			double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
 			if (GraphicSystem.isPointInRect(borders, p)) {
 			    focusedSolids.add(solid);
 			}
-			// if 
-			if (focusedSolids.isEmpty()) {
-			    focusedSolids.add(camera);
-			}
+		    }
+		    // if the mouse is pressed in an empty area,
+		    // then making operations with camera
+		    if (focusedSolids.isEmpty()) {
+			focusedSolids.add(camera);
 		    }
 		    break;
 		//
 		case RADIO_BY_LIST_SELECTION_TEXT:
-		    
-			break;
+		    focusedSolids.add(selectedSolid);
+		    break;
 	    }
 	}
 
@@ -355,8 +381,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	g.translate(DX, DY);
 
 	drawAxis(g, axis);
-	if (models == null) return;
-	for (Solid3D solid : models) {
+	if (solids == null) return;
+	for (Solid3D solid : solids) {
 	    drawSolid(g, solid);
 	}
    }
@@ -376,7 +402,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	// make transformations to solid vertexes
 	// and create DrawOrMove array for drawing
 	Point3DOdn[] verts = solid.makeTransformations();
-	Triangle3D[] trias = solid.setTriasFromVerts(verts);
+	Triangle3D[] trias = solid.setTrianglesVertexes(verts);
 	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
 	switch (selectedRadioText) {
@@ -396,9 +422,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
     /////////////////////////////////////////////////////////
     private void drawEdges(GraphicSystem g, Point3DOdn[] verts, DrawOrMove[] doms, Color col) {
-	if (g == null || verts == null || doms == null) {
-	    return;
-	}
+	if (g == null || verts == null || doms == null) return;
+	
 	g.setColor(col);
 	for (int i = 0; i < doms.length; i++) {
 	    Point3DOdn p = doms[i].getPoint3DOdn(verts);
@@ -413,27 +438,15 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
     /////////////////////////////////////////////////////////
     private void fillSolid(GraphicSystem g, Triangle3D[] trias) {
-	if (g == null || trias == null) {
-	    return;
-	}
+	if (g == null || trias == null)  return;
+	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_CLIPPING_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_PAINTER_TEXT:
-		// !!! models.get(0)
-		Triangle3D[] sortTrias = GraphicSystem.painterAlgorithm(trias);
-		if (sortTrias == null) {
-		    return;
-		}
-		for (Triangle3D tria : sortTrias) {
-		    g.setColor(tria.getColor());
-		    g.fillPolygon(tria.getVertexes());
-		}
+		g.painterAlgorithm(trias);
 		break;
 	    case RADIO_Z_BUFFER_TEXT:
-		// !!! models.get(0)
-		/*if (solid.equals(models.get(0))) {
-		    g.zBufferAlgorithm(models.get(0));
-		}*/
+		g.zBufferAlgorithm(trias);
 		//drawZBuffer(g);
 		break;
 	}
