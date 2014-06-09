@@ -63,6 +63,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
     private HashMap<String, String> radiosMap = new HashMap<>();
     private boolean isPerspective = false;
     private Solid3D selectedSolid;
+    private boolean isMousePressed = false;
     
     public static void main(String[] args) {
 	new Lab5678(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -324,6 +325,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
 	@Override
 	public void mousePressed(MouseEvent me) {
+	    isMousePressed = true;
 	    String selectedRadioText = radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT);
 	    switch (selectedRadioText) {
 		//
@@ -352,6 +354,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
 	@Override
 	public void mouseReleased(MouseEvent me) {
+	    isMousePressed = false;
 	    focusedSolids.clear();
 	}
 
@@ -396,7 +399,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
     private boolean onCollision() {
 	boolean res = false;
 	// if collision check is off
-	if (radiosMap.get(GROUP_TITLE_INTERSECT_TEXT).equals(RADIO_INTERSECT_ON_TEXT)) {
+	if (radiosMap.get(GROUP_TITLE_INTERSECT_TEXT).equals(RADIO_INTERSECT_ON_TEXT)
+		|| isMousePressed) {
 	    return res;
 	}
 	for (Solid3D solid1 : solids) {
