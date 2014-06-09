@@ -7,7 +7,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -20,7 +19,8 @@ import javax.swing.Timer;
  */
 public class Lab5678 extends Application implements RadioGroupListener {
 
-    private static final double DISP_STEP = 0.12;
+    private static final int MSEC_TICK = 30;
+    private static final double SHIFT_STEP = 0.12;
     private static final double ANGLE_UP = Math.toRadians(6);
     private static final double ANGLE_DOWN = Math.toRadians(-6);
     private static final double SCALE_UP = 0.05;
@@ -107,14 +107,18 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	// таймер для регулярной перерисовки
 	ActionListener taskPerformer = new ActionListener() {
 	    public void actionPerformed(ActionEvent evt) {
+		update();
 		paint(g);
 	    }
 	};
-	new Timer(500, taskPerformer).start();    
+	new Timer(MSEC_TICK, taskPerformer).start();    
     }
     
     private void createRadioButtons() {
 	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_CAMERA_TEXT);
+	
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
 
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
@@ -132,9 +136,6 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
 	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_ON_TEXT);
 	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_OFF_TEXT);
-	
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
     }
     
     @Override
@@ -175,36 +176,36 @@ public class Lab5678 extends Application implements RadioGroupListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void onOperation(double angle, Matrix.AXIS axis,
+    private void onOperation(ArrayList<Solid3D> solids, double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz, double scale) {
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_OPERATIONS_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_ROTATE_TEXT:
-		onRotate(angle, axis);
+		onRotate(solids, angle, axis);
 		break;
 	    case RADIO_TRANSFER_TEXT:
-		onTransfer(dx, dy, dz);
+		onTransfer(solids, dx, dy, dz);
 		break;
 	    case RADIO_SCALE_TEXT:
-		onScale(scale);
+		onScale(solids, scale);
 		break;
 	}
     }
 
-    public void onRotate(double angle, Matrix.AXIS axis) {
-	for (Solid3D solid : focusedSolids) {
+    private void onRotate(ArrayList<Solid3D> solids, double angle, Matrix.AXIS axis) {
+	for (Solid3D solid : solids) {
 	    solid.updateAngle(angle, axis);
 	}
     }
 
-    public void onTransfer(double dx, double dy, double dz) {
-	for (Solid3D solid : focusedSolids) {
+    private void onTransfer(ArrayList<Solid3D> solids, double dx, double dy, double dz) {
+	for (Solid3D solid : solids) {
 	    solid.updateTransfers(dx, dy, dz);
 	}
     }
 
-    public void onScale(double scale) {
-	for (Solid3D solid : focusedSolids) {
+    private void onScale(ArrayList<Solid3D> solids, double scale) {
+	for (Solid3D solid : solids) {
 	    solid.updateScale(scale);
 	}
     }
@@ -270,23 +271,23 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	    if (curPoint.x > prevPoint.x) {
 		angle = ANGLE_UP;
 		axis = Matrix.AXIS.Y;
-		dx = DISP_STEP;
+		dx = SHIFT_STEP;
 	    } else if (curPoint.x < prevPoint.x) {
 		angle = ANGLE_DOWN;
 		axis = Matrix.AXIS.Y;
-		dx = -DISP_STEP;
+		dx = -SHIFT_STEP;
 	    }
 	    if (curPoint.y > prevPoint.y) {
 		angle = ANGLE_UP;
 		axis = Matrix.AXIS.X;
-		dy = -DISP_STEP;
+		dy = -SHIFT_STEP;
 	    } else if (curPoint.y < prevPoint.y) {
 		angle = ANGLE_DOWN;
 		axis = Matrix.AXIS.X;
-		dy = DISP_STEP;
+		dy = SHIFT_STEP;
 	    }
 	    prevPoint = curPoint;
-	    onOperation(angle, axis, dx, dy, dz, scale);
+	    onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
 	}
 
 	@Override
@@ -306,16 +307,15 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	    if (notches < 0) {
 		angle = ANGLE_UP;
 		axis = Matrix.AXIS.Z;
-		dz = DISP_STEP;
+		dz = SHIFT_STEP;
 		scale = SCALE_UP;
 	    } else {
 		angle = ANGLE_DOWN;
 		axis = Matrix.AXIS.Z;
-		dz = -DISP_STEP;
+		dz = -SHIFT_STEP;
 		scale = SCALE_DOWN;
 	    }
-	    onOperation(angle, axis, dx, dy, dz, scale);
-	    repaint();
+	    onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
 	}
     }
 
@@ -373,6 +373,67 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	int keyCode = evt.getKeyCode();
 
     }
+    
+    /////////////////////////////////////////////////////////
+    private void update() {
+	for (Solid3D solid : solids) {
+	    updateSolid(solid);
+	}
+	onCollision();
+    }
+   
+    private void updateSolid(Solid3D solid) {
+	if (solid == null) return;
+	// make transformations to solid vertexes
+	// and create triangles
+	Point3DOdn[] verts = solid.makeTransformations();
+	solid.setTransformVertexes(verts);
+	solid.setTrianglesVertexes(verts);
+	//
+	solid.setBounds(verts);
+    }
+     
+    private boolean onCollision() {
+	boolean res = false;
+	// if collision check is off
+	if (radiosMap.get(GROUP_TITLE_INTERSECT_TEXT).equals(RADIO_INTERSECT_ON_TEXT)) {
+	    return res;
+	}
+	for (Solid3D solid1 : solids) {
+	    for (Solid3D solid2 : solids) {
+		if (solid2.equals(camera) || solid2.equals(solid1)) continue;
+		// if solids are intersect, then shift them to opposite directions
+		if (solid2.isIntersect(solid1.getBounds())) {
+		    Point3DOdn cp1 = solid1.getCenter(solid1.getBounds());
+		    Point3DOdn cp2 = solid2.getCenter(solid2.getBounds());
+		    ArrayList<Solid3D> list = new ArrayList<Solid3D>();
+		    // shift to X axis
+		    if (cp2.getX() > cp1.getX()) {
+			list.add(solid2);
+			onTransfer(list, SHIFT_STEP,0,0);
+		    } else {
+			list.add(solid1);
+			onTransfer(list, -SHIFT_STEP,0,0);
+		    }
+		    list.clear();
+		    // shift to Y axis
+		    if (cp2.getY() > cp1.getY()) {
+			list.add(solid2);
+			onTransfer(list, 0,SHIFT_STEP,0);
+		    } else {
+			list.add(solid1);
+			onTransfer(list, 0,-SHIFT_STEP,0);
+		    }
+		    // shift to Z axis ??
+		    /*
+		     */
+		    res = true;
+		}
+	    }
+	}
+	return res;
+    }
+  
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(GraphicSystem g) {
@@ -381,10 +442,10 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	g.translate(DX, DY);
 
 	drawAxis(g, axis);
-	if (solids == null) return;
 	for (Solid3D solid : solids) {
 	    drawSolid(g, solid);
 	}
+ 	repaint();
    }
 
     /////////////////////////////////////////////////////////
@@ -399,10 +460,9 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid) {
-	// make transformations to solid vertexes
-	// and create DrawOrMove array for drawing
-	Point3DOdn[] verts = solid.makeTransformations();
-	Triangle3D[] trias = solid.setTrianglesVertexes(verts);
+	if (solid == null) return;
+	Point3DOdn[] verts = solid.getTransformVertexes();
+	Triangle3D[] trias = solid.getTriangles();
 	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
 	switch (selectedRadioText) {
@@ -417,8 +477,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		drawEdges(g, verts, solid.getDoms(), solid.getEdgesColor());
 		break;
 	}
-	repaint();
-    }
+  }
 
     /////////////////////////////////////////////////////////
     private void drawEdges(GraphicSystem g, Point3DOdn[] verts, DrawOrMove[] doms, Color col) {

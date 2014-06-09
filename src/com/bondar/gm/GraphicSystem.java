@@ -706,7 +706,7 @@ public class GraphicSystem {
 	}
 	int size = trias.length;
 	double[] dists = new double[size];
-	//Нахождение средней величины Z - удаленности грани
+	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
 	    Triangle3D tria = trias[i];
 	    dists[i] = (tria.getV1().getZ()
@@ -719,7 +719,7 @@ public class GraphicSystem {
 	for (int i = 0; i < size; i++) {
 	    res[i] = new Triangle3D(trias[i]);
 	}
-	//Непосредственная сортировка граней по удаленности
+	// непосредственная сортировка граней по удаленности
 	for (int i = 0; i < size - 1; i++) {
 	    for (int j = 0; j < size - 1; j++) {
 		if (dists[j] <= dists[j + 1]) {

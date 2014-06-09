@@ -2,10 +2,11 @@ package com.bondar.gm;
 
 import com.bondar.gm.Matrix.AXIS;
 import static com.bondar.gm.Matrix.AXIS.X;
+import static com.bondar.gm.Matrix.AXIS.Y;
+import static com.bondar.gm.Matrix.AXIS.Z;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,88 +19,52 @@ import java.util.List;
  */
 public class Solid3D {
 
-    private Point3DOdn[] vertexes;
+    private Point3DOdn[] srcVerts;
+    private Point3DOdn[] transVerts;
     private int[][] indsToTrias;
     private Triangle3D[] triangles = null;
     private DrawOrMove[] doms;
     private String name;
     private Color edgesColor;
+    private BoundingBox bounds;
     
     private double angleX, angleY, angleZ;
     private double dx, dy, dz;
     private double scale;
     private boolean isNeedPerspective = false;
     private double dist, ro, theta, phi;
-    
-    public void resetTransformations() {
-	angleX = angleY = angleZ = 0;
-	dx = dy = dz = 0;
-	scale = 1;
-    }
-    
-    public void updateAngle(double a, Matrix.AXIS axis) {
-	switch (axis) {
-	    case X: this.angleX += a;
-		break;
-	    case Y: this.angleY += a;
-		break;
-	    case Z: this.angleZ += a;
-		break;
-	}
-    }
-    
-    public void updateAngles(double ax, double ay, double az) {
-	this.angleX += ax;
-	this.angleY += ay;
-	this.angleZ += az;
-    }
-    
-    public void updateTransfers(double dx, double dy, double dz) {
-	this.dx += dx;
-	this.dy += dy;
-	this.dz += dz;
-    }
-    
-    public void updateScale(double scale) {
-	this.scale += scale;
-    }
-    
-    public void setPerspective(boolean isNeedPerspective) {
-	this.isNeedPerspective = isNeedPerspective;
-    }
-    
-    public void setPerspective(double d, double ro, double theta, double phi) {
-	this.dist += d;
-	this.ro += ro;
-	this.theta = theta;
-	this.phi += phi;
-    }
 
     /////////////////////////////////////////////////////////
     public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias, DrawOrMove[] doms) {
 	this.name = name;
-	this.vertexes = vertexes;
+	this.srcVerts = vertexes;
 	this.indsToTrias = indsToTrias;
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = doms;
+	this.bounds = new BoundingBox();
+	this.transVerts = vertexes;
 	resetTransformations();
     }
 
     public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias) {
 	this.name = name;
-	this.vertexes = vertexes;
+	this.srcVerts = vertexes;
 	this.indsToTrias = indsToTrias;
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = createDrawOrMoves(vertexes);
+	this.bounds = new BoundingBox();
+	this.transVerts = vertexes;
 	resetTransformations();
     }
 
     public Solid3D(String name, Point3DOdn[] vertexes) {
 	this.name = name;
-	this.vertexes = vertexes;
+	this.srcVerts = vertexes;
 	this.indsToTrias = createIndsForTrias(vertexes);
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = createDrawOrMoves(vertexes);
+	this.bounds = new BoundingBox();
+	this.transVerts = vertexes;
 	resetTransformations();
     }
 
@@ -143,7 +108,7 @@ public class Solid3D {
 	return res;
     }
     
-    public  Triangle3D[] setTrianglesVertexes(Point3DOdn[] vertexes) {
+    public Triangle3D[] setTrianglesVertexes(Point3DOdn[] vertexes) {
 	if (vertexes == null) return null;
 	for (int i = 0; i < indsToTrias.length; i++) {
 	    triangles[i].setTriangle(
@@ -277,6 +242,57 @@ public class Solid3D {
  
     /////////////////////////////////////////////////////////
     // operations
+    
+    public void resetTransformations() {
+	angleX = angleY = angleZ = 0;
+	dx = dy = dz = 0;
+	scale = 1;
+    }
+    
+    public void updateAngle(double a, Matrix.AXIS axis) {
+	switch (axis) {
+	    case X: this.angleX += a;
+		break;
+	    case Y: this.angleY += a;
+		break;
+	    case Z: this.angleZ += a;
+		break;
+	}
+    }
+    
+    public void updateAngles(double ax, double ay, double az) {
+	this.angleX += ax;
+	this.angleY += ay;
+	this.angleZ += az;
+    }
+    
+    public void updateTransfers(double dx, double dy, double dz) {
+	this.dx += dx;
+	this.dy += dy;
+	this.dz += dz;
+    }
+    
+    public void updateScale(double scale) {
+	this.scale += scale;
+    }
+    
+    public void setPerspective(boolean isNeedPerspective) {
+	this.isNeedPerspective = isNeedPerspective;
+    }
+    
+    public void setPerspective(double d, double ro, double theta, double phi) {
+	this.dist += d;
+	this.ro += ro;
+	this.theta = theta;
+	this.phi += phi;
+    }
+    
+    public void setTransformVertexes(Point3DOdn[] verts) {
+	transVerts = verts;
+    }
+    
+    /////////////////////////////////////////////////////////
+    // 
     public Point3DOdn[] makeTransformations() {
 	// create matrixes
 	Matrix rotateXM = Matrix.getRotationMatrix(angleX, AXIS.X);
@@ -286,11 +302,11 @@ public class Solid3D {
 	Matrix scaleM = Matrix.getScaleMatrix(scale, scale, scale);
 	Matrix viewM = Matrix.getViewMatrix(ro, theta, phi);
 	
-	int size = vertexes.length;
+	int size = srcVerts.length;
 	Point3DOdn[] res = new Point3DOdn[size];
 	// transform all vertexes
 	for (int i = 0; i < size; i++) {
-	    Point3DOdn v = vertexes[i].getCopy();
+	    Point3DOdn v = srcVerts[i].getCopy();
 	    v.multiply(rotateXM).multiply(rotateYM).multiply(rotateZM).
 		    multiply(transM).multiply(scaleM);
 	    // perspective
@@ -309,22 +325,26 @@ public class Solid3D {
     public void setEdgesColor(Color col) {
 	edgesColor = col;
     }
+    
+    public void setBounds(Point3DOdn[] verts) {
+	bounds.setBounds(verts);
+    }
 
     /////////////////////////////////////////////////////////
     // get
     public int getSize() {
-	return vertexes.length;
+	return srcVerts.length;
     }
 
     public Point3DOdn getVertex(int i) {
-	if (i >= vertexes.length || i < 0) {
+	if (i >= srcVerts.length || i < 0) {
 	    return null;
 	}
-	return vertexes[i];
+	return srcVerts[i];
     }
 
     public Point3DOdn[] getVertexes() {
-	return vertexes;
+	return srcVerts;
     }
 
     public static Point2D[] getVertexes2D(Point3DOdn[] vertexes) {
@@ -337,7 +357,7 @@ public class Solid3D {
     }
     
     public Point2D[] getVertexes2D() {
-	return getVertexes2D(vertexes);
+	return getVertexes2D(srcVerts);
     }
 
     public Triangle3D[] getTriangles() {
@@ -362,5 +382,25 @@ public class Solid3D {
     
     public boolean isPerspective() {
 	return isNeedPerspective;
+    }
+    
+    public BoundingBox getBounds() {
+	return bounds;
+    }
+    
+    public static Point3DOdn getCenter(BoundingBox bb) {
+	if (bb == null) return null;
+	double cx = (bb.getX().getMin() + bb.getX().getMax()) / 2;
+	double cy = (bb.getY().getMin() + bb.getY().getMax()) / 2;
+	double cz = (bb.getZ().getMin() + bb.getZ().getMax()) / 2;
+	return new Point3DOdn(cx, cy, cz);
+    }
+    
+    public boolean isIntersect(BoundingBox bb) {
+	return bounds.isIntersect(bb);
+    }
+    
+    public Point3DOdn[] getTransformVertexes() {
+	return transVerts;
     }
 }
