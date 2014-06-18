@@ -213,6 +213,7 @@ public class Solid3D {
 	    }
 	    lineNumber++;
 	}
+	
 	/////////////////////
 	// strtucture for edges drawing
 	if ((line = reader.readLine()) == null) {
