@@ -22,7 +22,7 @@ public class Point3DOdn {
     public Point3DOdn(double[] v) {
 	if (v == null) return;
 	if (v.length < 3) throw new RuntimeException("Размер вектора < 3");
-	vector = new Matrix(new double[][] {v});
+	vector = new Matrix(new double[][] {{v[0],v[1],v[2],1}});
     }
     
     public Point3DOdn(Point2D p2d) {
@@ -33,6 +33,13 @@ public class Point3DOdn {
 	vector = vector.multiply(other);
 	return this;
     }
+    public void normalizeByW() {
+	// div on w
+	double w = 1 / getW();
+	for (int i = 0; i < 4; i++) {
+	    vector.setAt(0, i, vector.getAt(0, i) * w);
+	}
+    }
     // set
     public void setX(double x) {
 	vector.setAt(0, 0, x);
@@ -42,10 +49,14 @@ public class Point3DOdn {
 	vector.setAt(0, 1, y);
     }
     
-     public void setZ(double z) {
+    public void setZ(double z) {
 	vector.setAt(0, 2, z);
     }
-    // get
+    
+    public void setW(double w) {
+	vector.setAt(0, 3, w);
+    }    
+     // get
     public Point2D toPoint2D() {
 	return new Point2D(vector.getAt(0,0), vector.getAt(0,1));
     }
@@ -66,6 +77,10 @@ public class Point3DOdn {
 	return vector.getAt(0, 2);
     }
     
+    public double getW() {
+	return vector.getAt(0, 3);
+    }
+	
     public Point3DOdn getCopy() {
 	return new Point3DOdn(getX(), getY(), getZ());
     }

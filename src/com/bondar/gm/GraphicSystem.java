@@ -815,9 +815,9 @@ public class GraphicSystem {
 	int dy = (int) (Math.abs(p2.getY() - p1.getY()));
 	int sx = p2.getX() >= p1.getX() ? 1 : -1;
 	int sy = p2.getY() >= p1.getY() ? 1 : -1;
-	if (dy <= dx) //проверка угла наклона линии
+	if (dy <= dx) // проверка угла наклона линии
 	{
-	    d = (dy >> 1) - dx; //деление на два для определения углового коэффициента
+	    d = (dy >> 1) - dx; // деление на два для определения углового коэффициента
 	    d1 = dy >> 1;
 	    d2 = (dy - dx) >> 1;
 
@@ -830,8 +830,7 @@ public class GraphicSystem {
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
-
-	    for (int x = (int) (p1.getX()) + sx, y = (int) (p1.getY()), i = 1; i <= dx; i++, x += sx) // цикл вывода линии на экран
+	    for (int x = (int)(p1.getX()) + sx, y = (int)(p1.getY()), i = 1; i <= dx; i++, x += sx) // цикл вывода линии на экран
 	    {
 		if (d > 0) // Если d < 0 значение y не меняется по сравнению с предыдущей точкой, иначе y увеличивается
 		{
@@ -845,7 +844,7 @@ public class GraphicSystem {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = tria.getZbyXY(xPix, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, tria.getColor()); //вывод на экран очередной точки линии
+			setScreenPixel(x, yPix, tria.getColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -860,11 +859,10 @@ public class GraphicSystem {
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
 		double z_b = tria.getZbyXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    setScreenPixel(xPix, yPix, tria.getColor()); //вывод первой точки на экране
+		    setScreenPixel(xPix, yPix, tria.getColor());
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
-
 	    for (int x = (int) (p1.getX()), y = (int) (p1.getY()) + sy, i = 1; i <= dy; i++, y += sy) {
 		if (d > 0) {
 		    d += d2;
@@ -877,7 +875,7 @@ public class GraphicSystem {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = tria.getZbyXY(x, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, tria.getColor()); //вывод на экран очередной точки линии
+			setScreenPixel(x, yPix, tria.getColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}

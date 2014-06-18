@@ -71,7 +71,7 @@ public abstract class Application extends JFrame {
 	return optionsPanel.getSliderValue(sliderName);
     }
     
-    public void setListeners(RadioGroupListener listener) {
+    public void setRadioGroupListeners(RadioGroupListener listener) {
 	optionsPanel.setListeners(listener);
     }
 

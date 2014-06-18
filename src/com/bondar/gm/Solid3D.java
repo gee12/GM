@@ -19,8 +19,8 @@ import java.util.List;
  */
 public class Solid3D {
 
-    private Point3DOdn[] srcVerts;
-    private Point3DOdn[] transVerts;
+    private Point3DOdn[] localVerts;
+    private Point3DOdn[] worldVerts;
     private int[][] indsToTrias;
     private Triangle3D[] triangles = null;
     private DrawOrMove[] doms;
@@ -37,35 +37,37 @@ public class Solid3D {
     /////////////////////////////////////////////////////////
     public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias, DrawOrMove[] doms) {
 	this.name = name;
-	this.srcVerts = vertexes;
+	this.localVerts = vertexes;
 	this.indsToTrias = indsToTrias;
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = doms;
-	this.bounds = new BoundingBox();
-	this.transVerts = vertexes;
+	init();
 	resetTransformations();
     }
 
     public Solid3D(String name, Point3DOdn[] vertexes, int[][] indsToTrias) {
 	this.name = name;
-	this.srcVerts = vertexes;
+	this.localVerts = vertexes;
 	this.indsToTrias = indsToTrias;
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = createDrawOrMoves(vertexes);
-	this.bounds = new BoundingBox();
-	this.transVerts = vertexes;
+	init();
 	resetTransformations();
     }
 
     public Solid3D(String name, Point3DOdn[] vertexes) {
 	this.name = name;
-	this.srcVerts = vertexes;
+	this.localVerts = vertexes;
 	this.indsToTrias = createIndsForTrias(vertexes);
 	this.triangles = createTriangles(vertexes, indsToTrias);
 	this.doms = createDrawOrMoves(vertexes);
-	this.bounds = new BoundingBox();
-	this.transVerts = vertexes;
+	init();
 	resetTransformations();
+    }
+    
+    private void init() {
+	this.bounds = new BoundingBox();
+	this.worldVerts = this.localVerts;
     }
 
     /////////////////////////////////////////////////////////
@@ -287,8 +289,8 @@ public class Solid3D {
 	this.phi += phi;
     }
     
-    public void setTransformVertexes(Point3DOdn[] verts) {
-	transVerts = verts;
+    public void setWorldVertexes(Point3DOdn[] verts) {
+	worldVerts = verts;
     }
     
     /////////////////////////////////////////////////////////
@@ -301,20 +303,30 @@ public class Solid3D {
 	Matrix transM = Matrix.getTransferMatrix(dx, dy, dz);
 	Matrix scaleM = Matrix.getScaleMatrix(scale, scale, scale);
 	Matrix viewM = Matrix.getViewMatrix(ro, theta, phi);
+	Matrix perspM = Matrix.getPerspectiveMatrix(dist);
 	
-	int size = srcVerts.length;
+	int size = localVerts.length;
 	Point3DOdn[] res = new Point3DOdn[size];
 	// transform all vertexes
 	for (int i = 0; i < size; i++) {
-	    Point3DOdn v = srcVerts[i].getCopy();
+	    Point3DOdn v = localVerts[i].getCopy();
 	    v.multiply(rotateXM).multiply(rotateYM).multiply(rotateZM).
 		    multiply(transM).multiply(scaleM);
 	    // perspective
 	    if (isNeedPerspective) {
 		v.multiply(viewM);
-		v.setX(dist * v.getX() / v.getZ());
-		v.setY(dist * v.getY() / v.getZ());
+		v.multiply(perspM);
+		/*v.setX(dist * v.getX() / v.getZ());
+		v.setY(dist * v.getY() / v.getZ());*/
 	    }
+	    v.normalizeByW();
+	    /*
+	    double w = 1 / v.getW();
+	    v.setX(v.getX()*w);
+	    v.setY(v.getY()*w);
+	    v.setZ(v.getZ()*w);
+	    v.setW(1);
+	    */
 	    res[i] = v;
 	}
 	return res;
@@ -333,18 +345,18 @@ public class Solid3D {
     /////////////////////////////////////////////////////////
     // get
     public int getSize() {
-	return srcVerts.length;
+	return localVerts.length;
     }
 
     public Point3DOdn getVertex(int i) {
-	if (i >= srcVerts.length || i < 0) {
+	if (i >= localVerts.length || i < 0) {
 	    return null;
 	}
-	return srcVerts[i];
+	return localVerts[i];
     }
 
-    public Point3DOdn[] getVertexes() {
-	return srcVerts;
+    public Point3DOdn[] getLocalVertexes() {
+	return localVerts;
     }
 
     public static Point2D[] getVertexes2D(Point3DOdn[] vertexes) {
@@ -354,10 +366,6 @@ public class Solid3D {
 	    res[i] = vertexes[i].toPoint2D();
 	}
 	return res;
-    }
-    
-    public Point2D[] getVertexes2D() {
-	return getVertexes2D(srcVerts);
     }
 
     public Triangle3D[] getTriangles() {
@@ -400,7 +408,7 @@ public class Solid3D {
 	return bounds.isIntersect(bb);
     }
     
-    public Point3DOdn[] getTransformVertexes() {
-	return transVerts;
+    public Point3DOdn[] getWorldVertexes() {
+	return worldVerts;
     }
 }

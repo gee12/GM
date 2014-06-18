@@ -1,5 +1,6 @@
 package com.bondar.panels;
 
+import java.awt.Cursor;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -22,6 +23,7 @@ public class OptionsPanel extends JPanel {
 	groups = new HashMap<>();
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	setAlignmentY(TOP_ALIGNMENT);
+	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
 
     /////////////////////////////////////////////////////

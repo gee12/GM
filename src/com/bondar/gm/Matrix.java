@@ -134,15 +134,15 @@ public class Matrix {
 	return m;
     }
 	
-    public static Matrix getPerspective1Matrix(double r) {
+    public static Matrix getPerspectiveMatrix(double d) {
 	Matrix m = new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
-	    {0, 0, 1, r},
-	    {0, 0, 0, 1}});
+	    {0, 0, 1, 1/d},
+	    {0, 0, 0, 0}});
 	return m;
     }
-    
+    /*
     public static Matrix getPerspective1Matrix(double r1, double r2) {
 	Matrix m = new Matrix(new double[][]{
 	    {1, 0, 0, r1},
@@ -150,7 +150,7 @@ public class Matrix {
 	    {0, 0, 1, 0},
 	    {0, 0, 0, 1}});
 	return m;
-    }
+    }*/
 
     //////////////////////////////////////////////////
     public void multiply(double s) {
@@ -165,15 +165,12 @@ public class Matrix {
 	if (other == null) {
 	    return null;
 	}
-
-	final int rowsOther = other.rows;
-	if (rowsOther != cols) {
+	if (other.rows != cols) {
 	    throw new RuntimeException("Столбцов 1 матрицы != строк 2 матрицы (размеры матриц не совпадают)");
 	}
-
-	double[][] res = new double[cols][rowsOther];
+	double[][] res = new double[rows][other.cols];
 	for (int i = 0; i < rows; i++) {
-	    for (int j = 0; j < rowsOther; j++) {
+	    for (int j = 0; j < other.cols; j++) {
 		for (int k = 0; k < cols; k++) {
 		    res[i][j] += m[i][k] * other.m[k][j];
 		}
@@ -189,18 +186,18 @@ public class Matrix {
 	if (sizeVector != rows) {
 	    throw new RuntimeException("Строк матрицы != размеру вектора");
 	}
-
 	double[] res = new double[sizeVector];
 	for (int i = 0; i < cols; i++) {
 	    for (int j = 0; j < rows; j++) {
 		res[i] += vector[j] * m[j][i];
 	    }
 	}
-	//
+	/*// ?
+	// делим на w
+	double w = 1 / res[3];
 	for (int i = 0; i < cols; i++) {
-	    res[i] /= res[3];
-	}
-	
+	    res[i] *= w;
+	}*/
 	return res;
     }
 

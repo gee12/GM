@@ -20,7 +20,7 @@ import javax.swing.Timer;
 public class Lab5678 extends Application implements RadioGroupListener {
 
     private static final int MSEC_TICK = 30;
-    private static final double SHIFT_STEP = 0.12;
+    private static final double SHIFT_STEP = 0.008;
     private static final double ANGLE_UP = Math.toRadians(6);
     private static final double ANGLE_DOWN = Math.toRadians(-6);
     private static final double SCALE_UP = 0.05;
@@ -77,20 +77,11 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	setLocation(50, 50);
 	setClip(false);
 	setScale(false);
-
-	// обработка клавиш
-	addKeyListener(new KeyAdapter() {
-	    @Override
-	    public void keyPressed(KeyEvent evt) {
-		onKeyPressed(evt);
-	    }
-	});
-	addMouseMotionListener(new MMListener());
-	addMouseListener(new MListener());
-	addMouseWheelListener(new MWListener());
-	// добавление переключателей
+	// обрабтчики
+	addListeners();
+	// переключателей
 	createRadioButtons();
-	setListeners(this);
+	setRadioGroupListeners(this);
 	// оси
 	axis = new Solid3D("Оси", new Point3DOdn[]{
 	    new Point3DOdn(-5, 0, 0),
@@ -112,7 +103,78 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		paint(g);
 	    }
 	};
-	new Timer(MSEC_TICK, taskPerformer).start();    
+	new Timer(MSEC_TICK, taskPerformer).start();   
+	
+
+    }
+    
+    private void addListeners() {
+	//
+	addKeyListener(new KeyAdapter() {
+	    @Override
+	    public void keyPressed(KeyEvent evt) {
+		onKeyPressed(evt);
+	    }
+	});
+	//
+	addMouseMotionListener(new MouseMotionListener() {
+	    // while be called mouseDragged() method, 
+	    // mouseMoved() will not be called
+	    private Point p = new Point();
+	    @Override
+	    public void mouseDragged(MouseEvent me) {
+		Point curPoint = me.getPoint();
+		onMouseDragged(curPoint, p);
+		p = curPoint;
+	    }
+	    @Override
+	    public void mouseMoved(MouseEvent me) {
+		p = me.getPoint();
+		onMouseMoved(p);
+	    }
+	});
+	//
+	addMouseListener(new MouseListener() {
+	    @Override
+	    public void mousePressed(MouseEvent me) {
+		onMousePressed(me.getPoint());
+	    }
+	    @Override
+	    public void mouseReleased(MouseEvent me) {
+		onMouseReleased();
+	    }
+	    @Override
+	    public void mouseClicked(MouseEvent me) {
+	    }
+	    @Override
+	    public void mouseEntered(MouseEvent me) {
+	    }
+	    @Override
+	    public void mouseExited(MouseEvent me) {
+	    }
+	});
+	//
+	addMouseWheelListener(new MouseWheelListener() {
+	    @Override
+	    public void mouseWheelMoved(MouseWheelEvent mwe) {
+		onMouseWheelMoved(mwe.getWheelRotation());
+	    }
+	});
+	//
+	addComponentListener(new ComponentListener() {
+	    @Override
+	    public void componentResized(ComponentEvent e) {
+	    }
+	    @Override
+	    public void componentMoved(ComponentEvent e) {
+	    }
+	    @Override
+	    public void componentShown(ComponentEvent e) {
+	    }
+	    @Override
+	    public void componentHidden(ComponentEvent e) {
+	    }
+	});
     }
     
     private void createRadioButtons() {
@@ -179,6 +241,15 @@ public class Lab5678 extends Application implements RadioGroupListener {
     /////////////////////////////////////////////////////////
     private void onOperation(ArrayList<Solid3D> solids, double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz, double scale) {
+	// if the camera was moved, then need to transfer all solids
+	// with inverse direction
+	if (solids.contains(camera)) {
+	    angle = (angle == ANGLE_UP) ? ANGLE_DOWN : ANGLE_UP;
+	    dx = -dx; dy = -dy; dz = -dz;
+	    solids.clear();
+	    solids.addAll(this.solids);
+	}
+	// choose operation
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_OPERATIONS_TEXT);
 	switch (selectedRadioText) {
 	    case RADIO_ROTATE_TEXT:
@@ -260,117 +331,104 @@ public class Lab5678 extends Application implements RadioGroupListener {
     }
 
     /////////////////////////////////////////////////////////
-    public class MMListener implements MouseMotionListener {
-	private Point prevPoint = new Point();
-
-	@Override
-	public void mouseDragged(MouseEvent me) {
-	    Point curPoint = me.getPoint();
-	    double dx = 0, dy = 0, dz = 0, angle = 0, scale = 0;
-	    Matrix.AXIS axis = Matrix.AXIS.X;
-
-	    if (curPoint.x > prevPoint.x) {
-		angle = ANGLE_UP;
-		axis = Matrix.AXIS.Y;
-		dx = SHIFT_STEP;
-	    } else if (curPoint.x < prevPoint.x) {
-		angle = ANGLE_DOWN;
-		axis = Matrix.AXIS.Y;
-		dx = -SHIFT_STEP;
-	    }
-	    if (curPoint.y > prevPoint.y) {
-		angle = ANGLE_UP;
-		axis = Matrix.AXIS.X;
-		dy = -SHIFT_STEP;
-	    } else if (curPoint.y < prevPoint.y) {
-		angle = ANGLE_DOWN;
-		axis = Matrix.AXIS.X;
-		dy = SHIFT_STEP;
-	    }
-	    prevPoint = curPoint;
-	    onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
+    public void onMouseDragged(Point curPoint, Point prevPoint) {
+	//Point curPoint = me.getPoint();
+	double dx = 0, dy = 0, dz = 0, angle = 0, scale = 0;
+	Matrix.AXIS axis = Matrix.AXIS.X;
+	int diffX = curPoint.x - prevPoint.x;
+	int diffY = curPoint.y - prevPoint.y;
+	
+	dx = diffX * SHIFT_STEP;
+	dy = -diffY * SHIFT_STEP;
+	if (diffX > 0) {
+	    angle = ANGLE_UP;
+	    axis = Matrix.AXIS.Y;
+	    
+	} else if (diffX < 0) {
+	    angle = ANGLE_DOWN;
+	    axis = Matrix.AXIS.Y;
 	}
-
-	@Override
-	public void mouseMoved(MouseEvent me) {
+	if (diffY > 0) {
+	    angle = ANGLE_UP;
+	    axis = Matrix.AXIS.X;
+	} else if (diffY < 0) {
+	    angle = ANGLE_DOWN;
+	    axis = Matrix.AXIS.X;
 	}
+	onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
     }
-
-    /////////////////////////////////////////////////////////
-    public class MWListener implements MouseWheelListener {
-
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent mwe) {
-	    int notches = mwe.getWheelRotation();
-	    double dx = 0, dy = 0, dz = 0, angle = 0, scale = 1;
-	    Matrix.AXIS axis = Matrix.AXIS.X;
-
-	    if (notches < 0) {
-		angle = ANGLE_UP;
-		axis = Matrix.AXIS.Z;
-		dz = SHIFT_STEP;
-		scale = SCALE_UP;
-	    } else {
-		angle = ANGLE_DOWN;
-		axis = Matrix.AXIS.Z;
-		dz = -SHIFT_STEP;
-		scale = SCALE_DOWN;
-	    }
-	    onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
+    
+    public void onMouseMoved(Point curPoint) {
+	if (g == null) return;
+	// set cursor type
+	if (radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
+	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+	    return;
 	}
+	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+	for (Solid3D solid : solids) {
+	    // find object borders & check the cursor hit into borders
+	    double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
+	    if (GraphicSystem.isPointInRect(borders, p)) {
+		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+		return;
+	    }
+	}	    
+    }
+    
+    /////////////////////////////////////////////////////////
+    public void onMouseWheelMoved(int notches) {
+	double dx = 0, dy = 0, dz = 0, angle = 0, scale = 1;
+	Matrix.AXIS axis = Matrix.AXIS.X;
+
+	if (notches < 0) {
+	    angle = ANGLE_UP;
+	    axis = Matrix.AXIS.Z;
+	    dz = SHIFT_STEP;
+	    scale = SCALE_UP;
+	} else {
+	    angle = ANGLE_DOWN;
+	    axis = Matrix.AXIS.Z;
+	    dz = -SHIFT_STEP;
+	    scale = SCALE_DOWN;
+	}
+	onOperation(focusedSolids, angle, axis, dx, dy, dz, scale);
     }
 
     /////////////////////////////////////////////////////////s
-    public class MListener implements MouseListener {
-
-	@Override
-	public void mousePressed(MouseEvent me) {
-	    isMousePressed = true;
-	    String selectedRadioText = radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT);
-	    switch (selectedRadioText) {
-		//
-		case RADIO_BY_MOUSE_PRESSED_TEXT:
-		    Point curPoint = me.getPoint();
-		    Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-		    for (Solid3D solid : solids) {
-			// find object borders & check the cursor hit into borders
-			double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
-			if (GraphicSystem.isPointInRect(borders, p)) {
-			    focusedSolids.add(solid);
-			}
+    public void onMousePressed(Point curPoint) {
+	isMousePressed = true;
+	String selectedRadioText = radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT);
+	switch (selectedRadioText) {
+	    //
+	    case RADIO_BY_MOUSE_PRESSED_TEXT:
+		//Point curPoint = me.getPoint();
+		Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		for (Solid3D solid : solids) {
+		    // find object borders & check the cursor hit into borders
+		    double[] borders = GraphicSystem.getBorders(solid.makeTransformations());
+		    if (GraphicSystem.isPointInRect(borders, p)) {
+			focusedSolids.add(solid);
 		    }
-		    // if the mouse is pressed in an empty area,
-		    // then making operations with camera
-		    if (focusedSolids.isEmpty()) {
-			focusedSolids.add(camera);
-		    }
-		    break;
-		//
-		case RADIO_BY_LIST_SELECTION_TEXT:
-		    focusedSolids.add(selectedSolid);
-		    break;
-	    }
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent me) {
-	    isMousePressed = false;
-	    focusedSolids.clear();
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent me) {
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent me) {
-	}
-
-	@Override
-	public void mouseExited(MouseEvent me) {
+		}
+		// if the mouse is pressed in an empty area,
+		// then making operations with camera
+		if (focusedSolids.isEmpty()) {
+		    focusedSolids.add(camera);
+		}
+		break;
+	    //
+	    case RADIO_BY_LIST_SELECTION_TEXT:
+		focusedSolids.add(selectedSolid);
+		break;
 	}
     }
 
+    public void onMouseReleased() {
+	isMousePressed = false;
+	focusedSolids.clear();
+    }
     /////////////////////////////////////////////////////////
     public void onKeyPressed(KeyEvent evt) {
 	int keyCode = evt.getKeyCode();
@@ -388,9 +446,9 @@ public class Lab5678 extends Application implements RadioGroupListener {
     private void updateSolid(Solid3D solid) {
 	if (solid == null) return;
 	// make transformations to solid vertexes
-	// and create triangles
+	// and triangles
 	Point3DOdn[] verts = solid.makeTransformations();
-	solid.setTransformVertexes(verts);
+	solid.setWorldVertexes(verts);
 	solid.setTrianglesVertexes(verts);
 	//
 	solid.setBounds(verts);
@@ -404,29 +462,24 @@ public class Lab5678 extends Application implements RadioGroupListener {
 	    return res;
 	}
 	for (Solid3D solid1 : solids) {
+	    //if (solid1.equals(camera)) continue;
 	    for (Solid3D solid2 : solids) {
-		if (solid2.equals(camera) || solid2.equals(solid1)) continue;
+		if (/*solid2.equals(camera) ||*/ solid2.equals(solid1)) continue;
 		// if solids are intersect, then shift them to opposite directions
 		if (solid2.isIntersect(solid1.getBounds())) {
 		    Point3DOdn cp1 = solid1.getCenter(solid1.getBounds());
 		    Point3DOdn cp2 = solid2.getCenter(solid2.getBounds());
-		    ArrayList<Solid3D> list = new ArrayList<Solid3D>();
 		    // shift to X axis
 		    if (cp2.getX() > cp1.getX()) {
-			list.add(solid2);
-			onTransfer(list, SHIFT_STEP,0,0);
+			solid2.updateTransfers(SHIFT_STEP,0,0);
 		    } else {
-			list.add(solid1);
-			onTransfer(list, -SHIFT_STEP,0,0);
+			solid1.updateTransfers(-SHIFT_STEP,0,0);
 		    }
-		    list.clear();
 		    // shift to Y axis
 		    if (cp2.getY() > cp1.getY()) {
-			list.add(solid2);
-			onTransfer(list, 0,SHIFT_STEP,0);
+			solid2.updateTransfers(0,SHIFT_STEP,0);
 		    } else {
-			list.add(solid1);
-			onTransfer(list, 0,-SHIFT_STEP,0);
+			solid1.updateTransfers(0,-SHIFT_STEP,0);
 		    }
 		    // shift to Z axis ??
 		    /*
@@ -443,6 +496,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
     protected void paint(GraphicSystem g) {
 	g.clear();
 	g.reset();
+	// shift the coordinates system to the center
 	g.translate(DX, DY);
 
 	drawAxis(g, axis);
@@ -454,7 +508,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
 
     /////////////////////////////////////////////////////////
     private void drawAxis(GraphicSystem g, Solid3D axis) {
-	if (axis == null || axis.getVertexes().length < 4) {
+	if (axis == null || axis.getLocalVertexes().length < 4) {
 	    return;
 	}
 	g.setColor(Color.BLACK);
@@ -465,7 +519,7 @@ public class Lab5678 extends Application implements RadioGroupListener {
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid) {
 	if (solid == null) return;
-	Point3DOdn[] verts = solid.getTransformVertexes();
+	Point3DOdn[] verts = solid.getWorldVertexes();
 	Triangle3D[] trias = solid.getTriangles();
 	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
@@ -510,22 +564,8 @@ public class Lab5678 extends Application implements RadioGroupListener {
 		break;
 	    case RADIO_Z_BUFFER_TEXT:
 		g.zBufferAlgorithm(trias);
-		//drawZBuffer(g);
 		break;
 	}
-    }
-
-    /////////////////////////////////////////////////////////
-    private void drawZBuffer(GraphicSystem g) {
-	//g.reset();
-	/*Triangle3D[] trias = cube.getTriangles();
-	 ZBuffer.Cell[][] buff = g.zBufferAlgorithm(trias);
-	 for (int i = 0; i < buff.length; i++) {
-	 for (int j = 0; j < buff[i].length; j++) {
-	 g.setColor(buff[i][j].getColor());
-	 g.line(new Point2D(i,j), new Point2D(i,j));
-	 }
-	 }*/
     }
 
     class FileFilter implements FilenameFilter {

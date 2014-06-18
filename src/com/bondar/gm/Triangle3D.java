@@ -121,15 +121,18 @@ public class Triangle3D implements Serializable {
 	double D = -(F.getX() * (S.getY() * T.getZ() - T.getY() * S.getZ())+ S.getX() * (T.getY() * F.getZ() - F.getY() * T.getZ()) + 
 		T.getX() * (F.getY() * S.getZ() - S.getY() * F.getZ()));*/
 	
-	double A = v1.getY() * (v2.getZ() - v3.getZ()) + v2.getY() * (v3.getZ() 
-		- v1.getZ()) + v3.getY() * (v1.getZ() - v2.getZ());
-	double B = v1.getZ() * (v2.getX() - v3.getX()) + v2.getZ() * (v3.getX() 
-		- v1.getX()) + v3.getZ() * (v1.getX() - v2.getX());
-	double C = v1.getX() * (v2.getY() - v3.getY()) + v2.getX() * (v3.getY() 
-		- v1.getY()) + v3.getX() * (v1.getY() - v2.getY());
+	double A = v1.getY() * (v2.getZ() - v3.getZ()) 
+		+ v2.getY() * (v3.getZ() - v1.getZ()) 
+		+ v3.getY() * (v1.getZ() - v2.getZ());
+	double B = v1.getZ() * (v2.getX() - v3.getX()) 
+		+ v2.getZ() * (v3.getX() - v1.getX()) 
+		+ v3.getZ() * (v1.getX() - v2.getX());
+	double C = v1.getX() * (v2.getY() - v3.getY()) 
+		+ v2.getX() * (v3.getY() - v1.getY()) 
+		+ v3.getX() * (v1.getY() - v2.getY());
 	double D = -(v1.getX() * (v2.getY() * v3.getZ() - v3.getY() * v2.getZ()) 
-		+ v2.getX() * (v3.getY() * v1.getZ() - v1.getY() * v3.getZ()) + 
-		v3.getX() * (v1.getY() * v2.getZ() - v2.getY() * v1.getZ()));
+		+ v2.getX() * (v3.getY() * v1.getZ() - v1.getY() * v3.getZ()) 
+		+ v3.getX() * (v1.getY() * v2.getZ()- v2.getY() * v1.getZ()));
 	return (-D - A * x - B * y) / C;
     }
 

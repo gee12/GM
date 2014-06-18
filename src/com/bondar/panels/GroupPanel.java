@@ -1,6 +1,5 @@
 package com.bondar.panels;
 
-import com.bondar.tasks.Lab5678;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
@@ -30,7 +29,6 @@ public class GroupPanel extends JPanel {
 		if (selectedRadioText.equals(lastText)) isChanged = false;
 		else isChanged = true;
 		lastText = selectedRadioText;
-		//onRadioSelected();
 		if (listener == null) return;
 		listener.onRadioSelected(titleText, selectedRadioText);
 	    }
@@ -66,6 +64,4 @@ public class GroupPanel extends JPanel {
     public void setChanged(boolean changed) {
 	isChanged = changed;
     }
-    
-    //public abstract void onRadioSelected(String radioText);
 }
