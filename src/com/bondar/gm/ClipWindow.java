@@ -1,8 +1,10 @@
 package com.bondar.gm;
 
 /**
- * a - left bottom b - left top c - right top d - right botton
- *
+ * a - left bottom
+ * b - left top
+ * c - right top
+ * d - right botton
  * @author bondar
  */
 public class ClipWindow {

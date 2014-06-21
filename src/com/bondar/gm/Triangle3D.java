@@ -1,5 +1,6 @@
 package com.bondar.gm;
 
+import com.bondar.tools.Mathem;
 import java.awt.Color;
 
 /**
@@ -20,7 +21,7 @@ public class Triangle3D extends Polygon3D {
 	double s1 = getSquare(getV1(), getV2(), point);
 	double s2 = getSquare(getV2(), getV3(), point);
 	double s3 = getSquare(getV1(), getV3(), point);
-	return ((s1 + s2 + s3) - getSquare() < 1e-6);
+	return ((s1 + s2 + s3) - getSquare() < Mathem.EPSILON_E6);
     }
     
     public double getZbyXY(double x, double y) {

@@ -28,9 +28,16 @@ public class Point3D {
     public Point3D(Point2D p2d) {
 	this(p2d.getX(), p2d.getY(), 0);
     }
+    
     // operations
     public Point3D mul(Matrix other) {
 	vector = vector.multiply(other);
+	return this;
+    }
+    public Point3D mul(double s) {
+	for (int i = 0; i < 3; i++) {
+	    vector.getMatrix()[0][i] *= s;
+	}
 	return this;
     }
     public Point3D add(Point3D other) {
