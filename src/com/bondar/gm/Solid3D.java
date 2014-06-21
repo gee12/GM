@@ -135,9 +135,14 @@ public class Solid3D {
 	}
 	return res;
     }*/
-    /*
-    public Triangle3D[] setTrianglesVertexes(Point3D[] vertexes) {
-	if (vertexes == null) return null;
+    
+    public void resetTrianglesVertexes() {
+	for (int i = 0; i < triangles.length; i++) {
+	    triangles[i].setVertexes(worldVerts);
+	}
+    }
+    /*public Triangle3D[] setTrianglesVertexes(Point3D[] verts) {
+	if (verts == null) return null;
 	for (int i = 0; i < indsToTrias.length; i++) {
 	    triangles[i].setTriangle(
 		    vertexes[indsToTrias[i][0]],
@@ -145,8 +150,8 @@ public class Solid3D {
 		    vertexes[indsToTrias[i][2]]);
 	}
 	return triangles;
-    }
-*/
+    }*/
+
     /////////////////////////////////////////////////////////
     // 
     public static DrawOrMove[] createDrawOrMoves(Point3D[] points) {
@@ -210,11 +215,11 @@ public class Solid3D {
     }
     
     public void updateScale(double s) {
-	scale.add(new Point3D(s, s, s));
+	scale = new Point3D(s, s, s);
     }
     
     public void updateScale(double sx, double sy, double sz) {
-	scale.add(new Point3D(sx, sy, sz));
+	scale = new Point3D(sx, sy, sz);
     }
     
     public void setPerspective(boolean isNeedPerspective) {

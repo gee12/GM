@@ -15,6 +15,13 @@ public class Triangle3D extends Polygon3D {
     public Triangle3D(Triangle3D tria) {
 	super(tria.getVertexes(), tria.getIndexes(), tria.getColor());
     }
+
+    public boolean isPointInto(Point3D point) {
+	double s1 = getSquare(getV1(), getV2(), point);
+	double s2 = getSquare(getV2(), getV3(), point);
+	double s3 = getSquare(getV1(), getV3(), point);
+	return ((s1 + s2 + s3) - getSquare() < 1e-6);
+    }
     
     public double getZbyXY(double x, double y) {
 	Point3D v1 = getV1(), v2 = getV2(), v3 = getV3();
@@ -51,13 +58,6 @@ public class Triangle3D extends Polygon3D {
 	return getSquare(getV1(), getV2(), getV3());
     }
 
-    public boolean isPointInto(Point3D point) {
-	double s1 = getSquare(getV1(), getV2(), point);
-	double s2 = getSquare(getV2(), getV3(), point);
-	double s3 = getSquare(getV1(), getV3(), point);
-	return ((s1 + s2 + s3) - getSquare() < 1e-6);
-    }
-
     // get
     public Point3D getV1() {
 	return vertexes[indexes[0]];
@@ -69,5 +69,9 @@ public class Triangle3D extends Polygon3D {
 
     public Point3D getV3() {
 	return vertexes[indexes[2]];
+    }
+    
+    public Triangle3D getCopy() {
+	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], color);
     }
 }

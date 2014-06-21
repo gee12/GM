@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import tools.Files;
+import com.bondar.tools.Files;
 
 /**
  *
@@ -45,7 +45,7 @@ public class GMXFile {
 	Point3D pos = new Point3D();
 	Point3D angles = new Point3D();
 	Point3D scale = new Point3D();
-	Point3DOdn[] vertexes = null;
+	Point3D[] vertexes = null;
 	int[][] indsToTrias = null;
 	Color[] colors = null;
 	DrawOrMove[] domPoints = null;
@@ -70,7 +70,7 @@ public class GMXFile {
 		//
 		case VERTEXES_PARAM:
 		    int vertCount = Integer.parseInt(words[1]);
-		    vertexes = new Point3DOdn[vertCount];
+		    vertexes = new Point3D[vertCount];
 		    int lineNumber = 0;
 		    while (lineNumber < vertCount) {
 			if ((line = reader.readLine()) == null) {
@@ -82,11 +82,11 @@ public class GMXFile {
 			    throw new RuntimeException("Необходимо 3 координаты");
 			}
 			// vertexes
-			double[] coords = new double[coordsCount];
-			for (int i = 0; i < coordsCount; i++) {
+			double[] coords = new double[3];
+			for (int i = 0; i < 3; i++) {
 			    coords[i] = Double.parseDouble(coordsStr[i]);
 			}
-			vertexes[lineNumber] = new Point3DOdn(coords[0], coords[1], coords[2]);
+			vertexes[lineNumber] = new Point3D(coords[0], coords[1], coords[2]);
 			lineNumber++;
 		    }
 		    break;
@@ -106,8 +106,8 @@ public class GMXFile {
 			    throw new RuntimeException("Необходимо 3 вершины");
 			}
 			// indexes
-			indsToTrias[lineNumber] = new int[pointsCount];
-			for (int i = 0; i < pointsCount; i++) {
+			indsToTrias[lineNumber] = new int[3];
+			for (int i = 0; i < 3; i++) {
 			    indsToTrias[lineNumber][i] = Integer.parseInt(pointsStr[i]);
 			}
 			// colors

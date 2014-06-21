@@ -242,6 +242,7 @@ public class GM extends Application implements RadioGroupListener {
 	Point3D[] verts = solid.makeTransformations();
 	solid.setWorldVertexes(verts);
 	//solid.setTrianglesVertexes(verts);
+	solid.resetTrianglesVertexes();
 	//
 	solid.setBounds(verts);
     }
@@ -448,7 +449,6 @@ public class GM extends Application implements RadioGroupListener {
 	switch (selectedRadioText) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		//Point curPoint = me.getPoint();
 		Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D solid : solids) {
 		    // find object borders & check the cursor hit into borders

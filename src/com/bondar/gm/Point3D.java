@@ -64,10 +64,10 @@ public class Point3D {
     }
     
     public Point3DOdn toPoint3DOdn() {
-	return new Point3DOdn(getX(), getY(), getZ());
+	return new Point3DOdn(vector.getMatrix()[0]);
     }
     
-    public double[] toArray3() {
+    public double[] toArray() {
         return vector.getMatrix()[0];
     }
     

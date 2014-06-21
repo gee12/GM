@@ -221,7 +221,7 @@ public class GraphicSystem {
 	int xs[] = new int[size];
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
-	    double[] p = transMatrix.applyTransform(points[i].toArray3());
+	    double[] p = transMatrix.applyTransform(points[i].toPoint3DOdn().toArray());
 	    xs[i] = convXToScreen(p[0]);
 	    ys[i] = convYToScreen(p[1]);
 	}
@@ -704,32 +704,32 @@ public class GraphicSystem {
 	}
 	int size = trias.length;
 	double[] dists = new double[size];
+	int[] indexes = new int[size];
 	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
 	    Triangle3D tria = trias[i];
 	    dists[i] = (tria.getV1().getZ()
 		    + tria.getV2().getZ()
 		    + tria.getV3().getZ()) / 3;
+	    indexes[i] = i;
 	}
-	Triangle3D triaTemp;
-	double distTemp;
 	Triangle3D[] res = new Triangle3D[size];
-	for (int i = 0; i < size; i++) {
-	    res[i] = new Triangle3D(trias[i]);
-	}
-	// непосредственная сортировка граней по удаленности
+	// сортировка граней по удаленности
 	for (int i = 0; i < size - 1; i++) {
 	    for (int j = 0; j < size - 1; j++) {
-		if (dists[j] <= dists[j + 1]) {
-		    distTemp = dists[j];
+		if (dists[j] < dists[j + 1]) {
+		    double distTemp = dists[j];
 		    dists[j] = dists[j + 1];
 		    dists[j + 1] = distTemp;
 
-		    triaTemp = res[j];
-		    res[j] = res[j + 1];
-		    res[j + 1] = triaTemp;
+		    int indTemp = indexes[j];
+		    indexes[j] = indexes[j + 1];
+		    indexes[j + 1] = indTemp;
 		}
 	    }
+	}
+	for (int i = 0; i < size; i++) {
+	    res[i] = trias[indexes[i]].getCopy();
 	}
 	return res;
     }

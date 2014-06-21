@@ -1,4 +1,4 @@
-package tools;
+package com.bondar.tools;
 
 import java.io.File;
 import java.io.FilenameFilter;

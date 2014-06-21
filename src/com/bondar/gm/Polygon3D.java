@@ -21,6 +21,10 @@ public class Polygon3D {
 	this.size = inds.length;
 	this.color = color;
     }
+    
+    public void setVertexes(Point3D[] verts) {
+	this.vertexes = verts;
+    }
 
     public int[] getIndexes() {
 	return indexes;
