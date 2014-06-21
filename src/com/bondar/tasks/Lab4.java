@@ -4,7 +4,7 @@ import com.bondar.panels.Application;
 import com.bondar.gm.GraphicSystem;
 import com.bondar.gm.Line;
 import com.bondar.gm.Point2D;
-import com.bondar.gm.Polygon2D;
+import com.bondar.gm.Solid2D;
 import java.awt.Color;
 
 /**
@@ -14,7 +14,7 @@ import java.awt.Color;
  */
 public class Lab4 extends Application {
 
-    private Polygon2D polygon;
+    private Solid2D polygon;
     private Line[] decompLines;
     
     public static void main(String[] args) {
@@ -35,7 +35,7 @@ public class Lab4 extends Application {
 	final double yMax = GraphicSystem.Y_MAX;
 	final double thikness = 1d;
 	// обход точек ПРОТИВ часовой стрелки
-	polygon = new Polygon2D(new Point2D[] {
+	polygon = new Solid2D(new Point2D[] {
 	    /*new Point2D(indent,indent),
 	    new Point2D(xMax - indent,indent),
 	    new Point2D(xMax - indent,yMax - indent),
@@ -75,7 +75,7 @@ public class Lab4 extends Application {
 	drawLines(g, decompLines);
     }
 
-    private void drawPolygon(GraphicSystem g, Polygon2D poly) {
+    private void drawPolygon(GraphicSystem g, Solid2D poly) {
 	if (poly == null) return;
 	int size = poly.getSize();
 	if (size == 0) return;

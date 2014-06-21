@@ -7,11 +7,11 @@ import java.util.List;
  *
  * @author truebondar
  */
-public class Polygon2D {
+public class Solid2D {
 
     private final Point2D[] points;
 
-    public Polygon2D(Point2D[] points) {
+    public Solid2D(Point2D[] points) {
 	this.points = points;
     }
     

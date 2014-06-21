@@ -34,7 +34,7 @@ public class DrawOrMove {
 	this.oper = op;
     }
     
-    public Point3DOdn getPoint3DOdn(Point3DOdn[] points) {
+    public Point3D getPoint3D(Point3D[] points) {
 	return points[index];
     }
 }

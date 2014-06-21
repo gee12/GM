@@ -3,8 +3,6 @@ package com.bondar.gm;
 import com.bondar.gm.Matrix.AXIS;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -157,7 +155,7 @@ public class GraphicSystem {
 	old.setY(y);
     }
 
-    public void move(final Point3DOdn p) {
+    public void move(final Point3D p) {
 	move(p.toPoint2D());
     }
 
@@ -172,7 +170,7 @@ public class GraphicSystem {
 	old = p;
     }
 
-    public void draw(final Point3DOdn p) {
+    public void draw(final Point3D p) {
 	draw(p.toPoint2D());
     }
 
@@ -191,13 +189,13 @@ public class GraphicSystem {
 	line(new Point2D(x1, x2), new Point2D(x2, y2));
     }
 
-    public void line(Point3DOdn from, Point3DOdn to) {
+    public void line(Point3D from, Point3D to) {
 	line(from.toPoint2D(), to.toPoint2D());
     }
 
     public void line(Point2D from, Point2D to) {
-	Point3DOdn p1 = new Point3DOdn(transMatrix.applyTransform(from.getVector3()));
-	Point3DOdn p2 = new Point3DOdn(transMatrix.applyTransform(to.getVector3()));
+	Point3D p1 = new Point3D(transMatrix.applyTransform(from.getVector3()));
+	Point3D p2 = new Point3D(transMatrix.applyTransform(to.getVector3()));
 	Line line = new Line(p1, p2);
 	// is need scale?
 	if (isNeedScale) {
@@ -215,7 +213,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
-    public void fillPolygon(Point3DOdn[] points) {
+    public void fillPolygon(Point3D[] points) {
 	if (points == null) {
 	    return;
 	}
@@ -223,7 +221,7 @@ public class GraphicSystem {
 	int xs[] = new int[size];
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
-	    double[] p = transMatrix.applyTransform(points[i].toVector3());
+	    double[] p = transMatrix.applyTransform(points[i].toArray3());
 	    xs[i] = convXToScreen(p[0]);
 	    ys[i] = convYToScreen(p[1]);
 	}
@@ -532,7 +530,7 @@ public class GraphicSystem {
 	return res;
     }
 
-    public static double[] getBorders(Point3DOdn[] polygon) {
+    public static double[] getBorders(Point3D[] polygon) {
 	return getBorders(Solid3D.getVertexes2D(polygon));
     }
     
@@ -638,34 +636,34 @@ public class GraphicSystem {
 	return GraphicSystem.convYToScreen(height, y);
     }
 
-    public static Point3DOdn convPToScreen(double width, double height, Point3DOdn p) {
-	return new Point3DOdn(
+    public static Point3D convPToScreen(double width, double height, Point3D p) {
+	return new Point3D(
 		GraphicSystem.convXToScreen(width, p.getX()),
 		GraphicSystem.convYToScreen(height, p.getY()),
 		p.getZ());
     }
     
-    public Point3DOdn convPToScreen(Point3DOdn p) {
-	Point3DOdn trans = transMatrix.getTranslate();
-	return new Point3DOdn(
+    public Point3D convPToScreen(Point3D p) {
+	Point3D trans = transMatrix.getTranslate();
+	return new Point3D(
 		(int) ((p.getX() + trans.getX()) * (width / X_MAX) + BORDER),
 		(int) (height - ((p.getY() + trans.getY()) * (height / Y_MAX) + BORDER)),
 		p.getZ());
     }
 
-    public static Point3DOdn convPToGraphic(double width, double height, Point3DOdn p) {
+    public static Point3D convPToGraphic(double width, double height, Point3D p) {
 	if (width == 0 || height == 0) {
 	    return null;
 	}
-	return new Point3DOdn(
+	return new Point3D(
 		(p.getX() - BORDER) * X_MAX / width,
 		(BORDER + height - p.getY()) * Y_MAX / height,
 		p.getZ());
     }
 
-    public Point3DOdn convPToGraphic(Point3DOdn p) {
-	Point3DOdn trans = transMatrix.getTranslate();
-	return new Point3DOdn(
+    public Point3D convPToGraphic(Point3DOdn p) {
+	Point3D trans = transMatrix.getTranslate();
+	return new Point3D(
 		(p.getX() - BORDER) * X_MAX / width - trans.getX() ,
 		(BORDER + height - p.getY()) * Y_MAX / height - trans.getY(),
 		p.getZ());
@@ -747,36 +745,36 @@ public class GraphicSystem {
 	}
     }
 
-    public void setScreenPixel(Point3DOdn p, Color col) {
+    public void setScreenPixel(Point3D p, Color col) {
 	g.setColor(col);
 	g.drawLine((int)p.getX(),height - (int)p.getY(), 
 		(int)p.getX(),height - (int)p.getY());
     }
 
     public void setScreenPixel(double x, double y, Color col) {
-	Point3DOdn p = new Point3DOdn(x, y, 0);
+	Point3D p = new Point3D(x, y, 0);
 	setScreenPixel(p,col);
     }
 
     /////////////////////////////////////////////////////
     private void drawBufferedTriangle(Triangle3D tria) {
 	if (tria == null) return;
-	Point3DOdn a = convPToScreen(tria.getV1());
-	Point3DOdn b = convPToScreen(tria.getV2());
-	Point3DOdn c = convPToScreen(tria.getV3());
+	Point3D a = convPToScreen(tria.getV1());
+	Point3D b = convPToScreen(tria.getV2());
+	Point3D c = convPToScreen(tria.getV3());
 	int sy, x1, x2;
 	boolean flag = true;
 	// здесь сортируем вершины (A,B,C)
 	while (flag) {
 	    flag = false;
 	    if (b.getY() < a.getY()) {
-		Point3DOdn d = b;
+		Point3D d = b;
 		b = a;
 		a = d;
 		flag = true;
 	    }
 	    if (c.getY() < b.getY()) {
-		Point3DOdn d = c;
+		Point3D d = c;
 		c = b;
 		b = d;
 		flag = true;

@@ -15,22 +15,22 @@ public class BoundingBox {
 	z = new Bound();
     }
     
-    public BoundingBox(Point3DOdn[] verts) {
+    public BoundingBox(Point3D[] verts) {
 	setBounds(verts);
     }
     
-    public void setBounds(Point3DOdn[] verts) {
+    public void setBounds(Point3D[] verts) {
 	if (verts == null) {
 	    return;
 	}
 	int size = verts.length;
 	if (size == 0) return;
-	final Point3DOdn first = verts[0];
+	final Point3D first = verts[0];
 	final double fx = first.getX(), fy = first.getY(), fz = first.getZ();
 	x = new Bound(fx, fx);
 	y = new Bound(fy, fy);
 	z = new Bound(fz, fz);
-	for (Point3DOdn v : verts) {
+	for (Point3D v : verts) {
 	    // x
 	    if (v.getX() < x.getMin()) {
 		x.setMin(v.getX());
@@ -55,7 +55,7 @@ public class BoundingBox {
 	}
     }
 
-    public boolean isPointInto(Point3DOdn p) {
+    public boolean isPointInto(Point3D p) {
 	if (p == null) {
 	    return false;
 	}
