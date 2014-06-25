@@ -36,12 +36,16 @@ public abstract class Application extends JFrame {
     public DrawablePanel getDrawablePanel() {
 	return drawablePanel;
     }
-
-    public int setClipWindow(double xmin, double ymin, double xmax, double ymax) {
-	return drawablePanel.getGraphicSystem().setClipWindow(xmin,ymin,xmax,ymax);
+    
+    public GraphicSystem getGraphicSystem() {
+	return drawablePanel.getGraphicSystem();
     }
-    public int setClipWindow(Point2D[] points) {
-	return drawablePanel.getGraphicSystem().setClipWindow(points);
+
+    public void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
+	drawablePanel.getGraphicSystem().setClipWindow(xmin,ymin,xmax,ymax);
+    }
+    public void setClipWindow(Point2D[] points) {
+	drawablePanel.getGraphicSystem().setClipWindow(points);
     }
     
     public void setClip(boolean isNeedClip) {

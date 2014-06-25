@@ -7,55 +7,59 @@ package com.bondar.gm;
  * d - right botton
  * @author bondar
  */
-public class ClipWindow {
+public class ClipBox2D {
 
-    public enum WINDOW_TYPE {
+    public enum Type {
 	None,
 	Rectangle,
 	Polygon
     }
-    private WINDOW_TYPE type;
+    public enum State {
+	ERROR,		// ошибка
+	OK,		// норма
+	LESS_3_VERTS,	// вершин менее трех
+	SEGMENT,	// многоугольник вырожден в отрезок
+	NONCONVEX	// многоугольник невыпуклый
+    }
+    private Type type;
+    private State state;
     // for rectangle
     private double xMin, xMax, yMin, yMax;
     // for polygon
-    private int count;
+    private int size;
     private Point2D[] points;
     private Point2D[] normals;
 
-    public ClipWindow() {
-	setRectangle(0,0,0,0);
+ 
+    public ClipBox2D(double xmin, double ymin, double xmax, double ymax) {
+	type = Type.Rectangle;
+	this.xMin = xmin;
+	this.yMin = ymin;
+	this.xMax = xmax;
+	this.yMax = ymax;
+	state = State.OK;
     }
     
-    public int setPolygon(Point2D[] points) {
+    public ClipBox2D(Point2D[] points) {
+	type = Type.Polygon;
 	if (points == null) {
-	    return -1;
+	    state = State.ERROR;
+	    return;
 	}
-	type = WINDOW_TYPE.Polygon;
-	this.count = points.length;
+	this.size = points.length;
 	this.points = points;
-	normals = new Point2D[count];
-	for (int i = 0; i < count; i++) {
+	normals = new Point2D[size];
+	for (int i = 0; i < size; i++) {
 	    normals[i] = new Point2D();
 	}
-	int res = setNormals(points);
-	return res;
+	state = setNormals();
     }
 
-    //-------------------------------------------------
-    // Устанавливает многоугольное окно отсечения;
-    // Проверяет окно на выпуклость и невырожденность;
+    /////////////////////////////////////////////////////////
+    // Проверяет окно на выпуклость и невырожденность.
     // Если окно правильное, то вычисляет координаты перепендикуляров к ребрам.
-    //
-    // Возвращает:
-    // -1 - ошибка
-    // 0 - норма
-    // 1 - вершин менее трех
-    // 2 - многоугольник вырожден в отрезок
-    // 3 - многоугольник невыпуклый
-    private int setNormals(Point2D[] points)
+    private State setNormals()
     {
-	if (points == null) return -1;
-	int n = points.length;
 	int i;
 	boolean sminus, splus, szero;	// Знак вект.произведений
 	double r,
@@ -69,21 +73,21 @@ public class ClipWindow {
 	 * если все знаки >= 0 то многоугольник выпуклый
 	 * если все знаки <= 0 то многоугольник невыпуклый
 	 */
-	if (--n < 2) {
-	    return 1;
+	if (--size < 2) {
+	    return State.LESS_3_VERTS;
 	}
 	sminus = false;
 	splus = false;
 	szero = false;
 	// (i-1)вершина = последняя
-	vox = points[n].getX();
-	voy = points[n].getY();
+	vox = points[size].getX();
+	voy = points[size].getY();
 	// (i)вершина = первая
 	vix =  points[0].getX();
 	viy =  points[0].getY();
 	i = 0;
 	do {
-	    if (++i > n) i= 0;
+	    if (++i > size) i= 0;
 	    vnx = points[i].getX();	// Следующая (i+1) вершина
 	    vny = points[i].getX(); 
 	    r = (vix - vox) * (vny - viy) -	// Векторное произведение ребер
@@ -102,19 +106,19 @@ public class ClipWindow {
 	    viy = vny;
 	} while (i != 0);
 
-	// Все векторные произведения равны нулю => Многоугольник вырожден
+	// Все векторные произведения равны нулю => Многоугольник вырожден в линию
 	if (!splus && !sminus)
-	    return 2;
+	    return State.SEGMENT;
 	// Знакопеременность => Многоугольник невыпуклый
 	if (splus && sminus)
-	    return 3;
+	    return State.NONCONVEX;
 
 	// Вычисление координат нормалей к сторонам
 	vox =  points[0].getX();
 	voy =  points[0].getY();
 	i = 0;
 	do {
-	    if (++i > n) i= 0;
+	    if (++i > size) i= 0;
 	    // Текущая вершина
 	    vix = points[i].getX();
 	    viy = points[i].getY();
@@ -132,19 +136,11 @@ public class ClipWindow {
 	    vox = vix;
 	    voy = viy;
 	} while (i != 0);
-
-	return 0;
+	return State.OK;
     }
 
-    public int setRectangle(double xmin, double ymin, double xmax, double ymax) {
-	type = WINDOW_TYPE.Rectangle;
-	this.xMin = xmin;
-	this.yMin = ymin;
-	this.xMax = xmax;
-	this.yMax = ymax;
-	return 0;
-    }
-
+    /////////////////////////////////////////////////////////
+    // get
     public Point2D[] getPoints() {
 	return points;
     }
@@ -153,12 +149,16 @@ public class ClipWindow {
 	return normals;
     }
 
-    public WINDOW_TYPE getType() {
+    public Type getType() {
 	return type;
+    }
+    
+    public State getState() {
+	return state;
     }
 
     public int getCount() {
-	return count;
+	return size;
     }
 
     public Point2D getA() {

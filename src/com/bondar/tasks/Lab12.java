@@ -2,7 +2,7 @@ package com.bondar.tasks;
 
 import com.bondar.panels.Application;
 import com.bondar.gm.GraphicSystem;
-import com.bondar.gm.ClipWindow;
+import com.bondar.gm.ClipBox2D;
 import static com.bondar.gm.GraphicSystem.X_MAX;
 import static com.bondar.gm.GraphicSystem.Y_MAX;
 import static com.bondar.gm.GraphicSystem.BORDER;
@@ -51,8 +51,7 @@ public class Lab12 extends Application {
 
     private void setClipWindow() {
 	setClip(true);
-	int res;
-	res = setClipWindow(
+	setClipWindow(
 		BORDER,
 		BORDER,
 		X_MAX - BORDER,
@@ -68,8 +67,8 @@ public class Lab12 extends Application {
 	    new Point2D(X_MAX, Y_MAX),
 	    new Point2D(X_MAX, 0)};
 
-	res = setClipWindow(paral);
-	System.out.println(res);
+	setClipWindow(paral);
+	System.out.println(getGraphicSystem().getClipWindow().getState());
     }
 
     /////////////////////////////////////////////////////////
@@ -136,14 +135,14 @@ public class Lab12 extends Application {
     private void drawClipWindow(GraphicSystem g) {
 	g.reset();
 	g.setColor(Color.BLACK);
-	final ClipWindow cw = g.getClipWindow();
-	if (cw.getType() == ClipWindow.WINDOW_TYPE.Rectangle) {
+	final ClipBox2D cw = g.getClipWindow();
+	if (cw.getType() == ClipBox2D.Type.Rectangle) {
 	    g.move(cw.getA());
 	    g.draw(cw.getB());
 	    g.draw(cw.getC());
 	    g.draw(cw.getD());
 	    g.draw(cw.getA());
-	} else if (cw.getType() == ClipWindow.WINDOW_TYPE.Polygon) {
+	} else if (cw.getType() == ClipBox2D.Type.Polygon) {
 	    g.move(cw.getPoints()[0]);
 	    for (int i = 1; i < cw.getCount(); i++) {
 		g.draw(cw.getPoints()[i]);

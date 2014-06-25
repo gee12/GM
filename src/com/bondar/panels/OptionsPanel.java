@@ -1,6 +1,7 @@
 package com.bondar.panels;
 
 import java.awt.Cursor;
+import java.awt.event.KeyAdapter;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -15,12 +16,12 @@ public class OptionsPanel extends JPanel {
     private final JPanel drawablePanel;
     private final HashMap<String, Integer> slidersVal;
     private String[] sliderValues;
-    private final HashMap<String, GroupPanel> groups;
+    private final HashMap<String, GroupPanel> radioGroups;
 
     public OptionsPanel(JPanel drawablePanel, int width) {
 	this.drawablePanel = drawablePanel;
 	slidersVal = new HashMap<>();
-	groups = new HashMap<>();
+	radioGroups = new HashMap<>();
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	setAlignmentY(TOP_ALIGNMENT);
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -80,13 +81,13 @@ public class OptionsPanel extends JPanel {
     /////////////////////////////////////////////////////
     public void addRadio(final String groupTitle, final String radioText) {
 	GroupPanel group = null;
-	if (groups.containsKey(groupTitle)) {
-	    group = groups.get(groupTitle);
+	if (radioGroups.containsKey(groupTitle)) {
+	    group = radioGroups.get(groupTitle);
 	}
 	else {
 	    group = new GroupPanel(groupTitle);
 	    add(group);
-	    groups.put(groupTitle, group);
+	    radioGroups.put(groupTitle, group);
 	}
 	group.addRadio(radioText);
 	// оставляем первый элемент выбранным
@@ -94,11 +95,11 @@ public class OptionsPanel extends JPanel {
     }
     
     public GroupPanel getGroupPanel(final String groupTitle) {
-	return groups.get(groupTitle);
+	return radioGroups.get(groupTitle);
     }
     
     public void setListeners(RadioGroupListener listener) {
-	for (GroupPanel group : groups.values()) {
+	for (GroupPanel group : radioGroups.values()) {
 	    group.setListener(listener);
 	}
     }

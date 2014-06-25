@@ -10,7 +10,7 @@ public class Point3D {
     public final static Point3D Zero = new Point3D(0, 0, 0);
     protected Matrix vector;
     
-    //
+    //////////////////////////////////////////////////
     public Point3D() {
 	vector = new Matrix(new double[][] {{0,0,0}});
     }
@@ -29,29 +29,35 @@ public class Point3D {
 	this(p2d.getX(), p2d.getY(), 0);
     }
     
+    //////////////////////////////////////////////////
     // operations
-    public Point3D mul(Matrix other) {
-	vector = vector.multiply(other);
-	return this;
-    }
-    public Point3D mul(double s) {
-	for (int i = 0; i < 3; i++) {
-	    vector.getMatrix()[0][i] *= s;
-	}
-	return this;
-    }
     public Point3D add(Point3D other) {
 	for (int i = 0; i < 3; i++) {
 	    vector.getMatrix()[0][i] += other.vector.getAt(0, i);
 	}
 	return this;
     }
+    
     public Point3D sub(Point3D other) {
 	for (int i = 0; i < 3; i++) {
 	    vector.getMatrix()[0][i] -= other.vector.getAt(0, i);
 	}
 	return this;
     }
+    
+    public Point3D mul(Matrix other) {
+	vector = vector.multiply(other);
+	return this;
+    }
+    
+    public Point3D mul(double s) {
+	for (int i = 0; i < 3; i++) {
+	    vector.getMatrix()[0][i] *= s;
+	}
+	return this;
+    }
+
+    //////////////////////////////////////////////////
     // set
     public void setX(double x) {
 	vector.setAt(0, 0, x);
@@ -65,7 +71,8 @@ public class Point3D {
 	vector.setAt(0, 2, z);
     }
    
-     // get
+    //////////////////////////////////////////////////
+    // get
     public Point2D toPoint2D() {
 	return new Point2D(getX(), getY());
     }
@@ -74,7 +81,7 @@ public class Point3D {
 	return new Point3DOdn(vector.getMatrix()[0]);
     }
     
-    public double[] toArray() {
+    public double[] toArray3() {
         return vector.getMatrix()[0];
     }
     

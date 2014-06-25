@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import com.bondar.tools.Files;
 
 /**
@@ -24,6 +23,7 @@ public class GMXFile {
     private static final String VERTEXES_PARAM = "verts:";
     private static final String TRIANGLES_PARAM = "trias:";
     private static final String DOMS_PARAM = "doms:";
+    private static final String EDGES_COLOR_PARAM = "edges_color:";
     
     /////////////////////////////////////////////////////////
     public static List<Solid3D> readGMXDir(String dirName) throws Exception {
@@ -49,6 +49,7 @@ public class GMXFile {
 	int[][] indsToTrias = null;
 	Color[] colors = null;
 	DrawOrMove[] domPoints = null;
+	Color edgesColor = Color.BLACK;
 	
 	String line = null;
 	while ((line = reader.readLine()) != null) {
@@ -143,6 +144,9 @@ public class GMXFile {
 			lineNumber++;
 		    }
 		    break;
+		case EDGES_COLOR_PARAM:
+		    int col = Integer.parseInt(words[1]);
+		    edgesColor = new Color(col);
 	    }
 	}
 	reader.close();
@@ -158,6 +162,7 @@ public class GMXFile {
 	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
 	res.updateAngles(angles.getX(), angles.getY(), angles.getZ());
 	res.updateScale(scale.getX(), scale.getY(), scale. getZ());
+	res.setEdgesColor(edgesColor);
 	
 	return res;
     }

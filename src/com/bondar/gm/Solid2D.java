@@ -38,7 +38,6 @@ public class Solid2D {
 	for (int i = 0; i < polySize; i++) {
 	    verts[i] = i;
 	}
-
 	int m = polySize;
 
 	while (m > 3) {
@@ -55,8 +54,6 @@ public class Solid2D {
 		if (isPointsInTriangle(vPrev, vCur, vNext, verts)) {
 		    continue;
 		}
-		
-
 		DetermDistance dd = counterClock(vPrev, vCur, vNext, verts);
 		double det = dd.getDeterm();
 		double dist = dd.getDistance();
@@ -90,6 +87,42 @@ public class Solid2D {
     }
     
     /////////////////////////////////////////////////////////
+    // 
+    public boolean isPointInto(Point2D point) {
+	if (points == null || point == null) {
+	    return false;
+	}
+	int size = points.length;
+	if (size <= 1) {
+	    return false;
+	}
+	int intersections_num = 0;
+	int prev = size - 1;
+	boolean prev_under = points[prev].getY() < point.getY();
+
+	for (int i = 0; i < size; ++i) {
+	    boolean cur_under = points[i].getY() < point.getY();
+
+	    Point2D a = points[prev].sub(point);
+	    Point2D b = points[i].sub(point);
+
+	    double t = (a.getX() * (b.getY() - a.getY()) - a.getY() * (b.getX() - a.getX()));
+	    if (cur_under && !prev_under) {
+		if (t > 0) {
+		    intersections_num += 1;
+		}
+	    }
+	    if (!cur_under && prev_under) {
+		if (t < 0) {
+		    intersections_num += 1;
+		}
+	    }
+	    prev = i;
+	    prev_under = cur_under;
+	}
+	return (intersections_num & 1) != 0;
+    }
+   
     private boolean isPointsInTriangle(int a, int b, int c, int[] verts) {
 	Point2D pa = points[verts[a]];
 	Point2D pb = points[verts[b]];
@@ -128,8 +161,8 @@ public class Solid2D {
 	Point2D pCur = points[verts[vCur]];
 	Point2D pNext = points[verts[vNext]];
 
-	Point2D pCurPrev = pCur.subPoint(pPrev);
-	Point2D pNextPrev = pNext.subPoint(pPrev);
+	Point2D pCurPrev = pCur.sub(pPrev);
+	Point2D pNextPrev = pNext.sub(pPrev);
 
 	DetermDistance res = new DetermDistance();
 	res.setDistance(pNextPrev.getX() * pNextPrev.getX() + pNextPrev.getY() * pNextPrev.getY());

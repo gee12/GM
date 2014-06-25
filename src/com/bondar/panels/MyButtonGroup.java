@@ -6,6 +6,7 @@ package com.bondar.panels;
  */
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -20,6 +21,10 @@ public class MyButtonGroup extends ButtonGroup {
    public void add(AbstractButton b) {
       b.addActionListener(btnGrpListener);
       super.add(b);
+   }
+   
+   public void addKeyListener(KeyAdapter ka) {
+      listenerList.add(KeyAdapter.class, ka);
    }
 
    public void addActionListener(ActionListener listener) {

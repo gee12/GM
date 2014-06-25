@@ -21,7 +21,7 @@ public class GraphicSystem {
     private int width, height;
     private Point2D old;
     private Matrix transMatrix;
-    private final ClipWindow cw;
+    private ClipBox2D clipWindow;
     private boolean isNeedClip;
     private boolean isNeedScale;
     private double xMin, xMax, yMin, yMax;
@@ -33,7 +33,7 @@ public class GraphicSystem {
     public GraphicSystem() {
 	old = new Point2D();
 	transMatrix = new Matrix();
-	cw = new ClipWindow();
+	clipWindow = new ClipBox2D(0,0,0,0);
 	resetScale();
     }
 
@@ -48,45 +48,53 @@ public class GraphicSystem {
 	g.fillRect(0, 0, width, height);
 	g.setColor(Color.BLACK);
     }
-
-    //////////////////////////////////////////////////
-    // Установка прямоугольного окна в координатах X_MAX и Y_MAX
-    public int setClipWindow(double xmin, double ymin, double xmax, double ymax) {
-	if (!isCorrectXCoord(xmin) || !isCorrectXCoord(xmax)
-		|| !isCorrectYCoord(ymin) || !isCorrectYCoord(ymax)
-		|| xmin > xmax || ymin > ymax) {
-	    return -1;
-	}
-	return cw.setRectangle(xmin, ymin, xmax, ymax);
+    
+    public void clear() {
+	g.setColor(Color.WHITE);
+	g.fillRect(convXToScreen(0), convYToScreen(Y_MAX), convXToScreen(X_MAX), convYToScreen(0));
+	g.setColor(Color.BLACK);
     }
 
     //////////////////////////////////////////////////
-    public int setClipWindow(Point2D[] points) {
-	if (points == null) {
-	    return -1;
-	}
-	for (int i = 0; i < points.length; i++) {
-	    if (!isCorrectPoint(points[i])) {
-		return -1;
-	    }
-	}
-	return cw.setPolygon(points);
-    }
-
+    // Устанвка окна отсечения
     public void setClip(boolean isNeedClip) {
 	this.isNeedClip = isNeedClip;
     }
+    
+    // Установка прямоугольного окна отсечения (в координатах X_MAX и Y_MAX)
+    public void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
+	if (!isCorrectXCoord(xmin) || !isCorrectXCoord(xmax)
+		|| !isCorrectYCoord(ymin) || !isCorrectYCoord(ymax)
+		|| xmin > xmax || ymin > ymax) {
+	    return;
+	}
+	clipWindow = new ClipBox2D(xmin, ymin, xmax, ymax);
+    }
+
+    // Установка поточечного окна отсечения (в координатах X_MAX и Y_MAX)
+    public void setClipWindow(Point2D[] points) {
+	if (points == null) {
+	    return;
+	}
+	for (int i = 0; i < points.length; i++) {
+	    if (!isCorrectPoint(points[i])) {
+		return;
+	    }
+	}
+	clipWindow = new ClipBox2D(points);
+    }
 
     //////////////////////////////////////////////////
+    // Установка масштабирования
     public void setScale(boolean isNeedScale) {
 	this.isNeedScale = isNeedScale;
 	resetScale();
     }
 
     public void setScale(double x, double y) {
-	double[] vector3 = transMatrix.applyTransform(new Point2D(x, y).getVector3());
-	x = vector3[0];
-	y = vector3[1];
+	double[] vector4 = transMatrix.applyTransform(new Point2D(x, y).toArrayOdn());
+	x = vector4[0];
+	y = vector4[1];
 	if (x < xMin) {
 	    xMin = x;
 	}
@@ -123,12 +131,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
-    public void clear() {
-	g.setColor(Color.WHITE);
-	g.fillRect(convXToScreen(0), convYToScreen(Y_MAX), convXToScreen(X_MAX), convYToScreen(0));
-	g.setColor(Color.BLACK);
-    }
-
+    // Работа с матрицей преобразования
     public void reset() {
 	transMatrix.reset();
     }
@@ -150,6 +153,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
+    // Перемещение точки-указателя
     public void move(double x, double y) {
 	old.setX(x);
 	old.setY(y);
@@ -164,6 +168,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
+    // Отрисовка линии из точки-указателя в указанную
     public void draw(double x, double y) {
 	Point2D p = new Point2D(x, y);
 	line(old, p);
@@ -178,13 +183,16 @@ public class GraphicSystem {
 	line(old, p);
 	old = new Point2D(p);
     }
-
+    
+    //////////////////////////////////////////////////
+    // Отрисовка строки
     public void drawString(String text, double x, double y) {
-	Point3DOdn p = new Point3DOdn(transMatrix.applyTransform(new Point2D(x, y).getVector3()));
+	Point3DOdn p = new Point3DOdn(transMatrix.applyTransform(new Point2D(x, y).toArrayOdn()));
 	g.drawString(text, convXToScreen(p.getX()), convYToScreen(p.getY()));
     }
 
     //////////////////////////////////////////////////
+    // Отрисовка линии по двум точкам
     public void line(double x1, double y1, double x2, double y2) {
 	line(new Point2D(x1, x2), new Point2D(x2, y2));
     }
@@ -194,8 +202,8 @@ public class GraphicSystem {
     }
 
     public void line(Point2D from, Point2D to) {
-	Point3D p1 = new Point3D(transMatrix.applyTransform(from.getVector3()));
-	Point3D p2 = new Point3D(transMatrix.applyTransform(to.getVector3()));
+	Point3D p1 = new Point3D(transMatrix.applyTransform(from.toArrayOdn()));
+	Point3D p2 = new Point3D(transMatrix.applyTransform(to.toArrayOdn()));
 	Line line = new Line(p1, p2);
 	// is need scale?
 	if (isNeedScale) {
@@ -213,6 +221,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
+    // Отрисовка многоугольника
     public void fillPolygon(Point3D[] points) {
 	if (points == null) {
 	    return;
@@ -221,7 +230,7 @@ public class GraphicSystem {
 	int xs[] = new int[size];
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
-	    double[] p = transMatrix.applyTransform(points[i].toPoint3DOdn().toArray());
+	    double[] p = transMatrix.applyTransform(points[i].toPoint3DOdn().toArray3());
 	    xs[i] = convXToScreen(p[0]);
 	    ys[i] = convYToScreen(p[1]);
 	}
@@ -229,6 +238,7 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
+    // Пребразование линии с учетом масштабирования
     private Line getScaleLine(Line line) {
 	return getScaleLine(line.getP1().getX(), line.getP1().getY(),
 		line.getP2().getX(), line.getP2().getY());
@@ -253,11 +263,12 @@ public class GraphicSystem {
     }
 
     //////////////////////////////////////////////////
+    // Пребразование линии с учетом отсечения
     private Line getClipLine(double x0, double y0, double x1, double y1) {
 	Line line = null;
-	if (cw.getType() == ClipWindow.WINDOW_TYPE.Rectangle) {
+	if (clipWindow.getType() == ClipBox2D.Type.Rectangle) {
 	    line = CSclip(x0, y0, x1, y1);
-	} else if (cw.getType() == ClipWindow.WINDOW_TYPE.Polygon) {
+	} else if (clipWindow.getType() == ClipBox2D.Type.Polygon) {
 	    line = CBclip(x0, y0, x1, y1);
 	} else {
 	    line = new Line();
@@ -272,22 +283,6 @@ public class GraphicSystem {
     private Line getClipLine(Line line) {
 	return getClipLine(line.getP1().getX(), line.getP1().getY(),
 		line.getP2().getX(), line.getP2().getY());
-    }
-
-    /////////////////////////////////////////////////////
-    private int code(double x, double y) {
-	int i = 0;
-	if (x < cw.getXMin() + EPS) {
-	    ++i;
-	} else if (x > cw.getXMax() - EPS) {
-	    i += 2;
-	}
-	if (y < cw.getYMin()) {
-	    i += 4;
-	} else if (y > cw.getYMax()) {
-	    i += 8;
-	}
-	return i;
     }
 
     /////////////////////////////////////////////////////
@@ -343,17 +338,17 @@ public class GraphicSystem {
 	     * пересечения отрезка со стороной окна.
 	     */
 	    if ((cn & 1) != 0) {         /* Пересечение с левой стороной */
-		y0 = y0 + dydx * (cw.getXMin() - x0);
-		x0 = cw.getXMin();
+		y0 = y0 + dydx * (clipWindow.getXMin() - x0);
+		x0 = clipWindow.getXMin();
 	    } else if ((cn & 2) != 0) {  /* Пересечение с правой стороной*/
-		y0 = y0 + dydx * (cw.getXMax() - x0);
-		x0 = cw.getXMax();
+		y0 = y0 + dydx * (clipWindow.getXMax() - x0);
+		x0 = clipWindow.getXMax();
 	    } else if ((cn & 4) != 0) {  /* Пересечение в нижней стороной*/
-		x0 = x0 + dxdy * (cw.getYMin() - y0);
-		y0 = cw.getYMin();
+		x0 = x0 + dxdy * (clipWindow.getYMin() - y0);
+		y0 = clipWindow.getYMin();
 	    } else if ((cn & 8) != 0) {  /*Пересечение с верхней стороной*/
-		x0 = x0 + dxdy * (cw.getYMax() - y0);
-		y0 = cw.getYMax();
+		x0 = x0 + dxdy * (clipWindow.getYMax() - y0);
+		y0 = clipWindow.getYMax();
 	    }
 	    cn = code(x0, y0);        /* Перевычисление кода точки Pn */
 	} while (--ii >= 0);
@@ -363,6 +358,23 @@ public class GraphicSystem {
 	} else {
 	    return res;
 	}
+    }
+
+    /////////////////////////////////////////////////////
+    // Область попадания точки
+    private int code(double x, double y) {
+	int i = 0;
+	if (x < clipWindow.getXMin() + EPS) {
+	    ++i;
+	} else if (x > clipWindow.getXMax() - EPS) {
+	    i += 2;
+	}
+	if (y < clipWindow.getYMin()) {
+	    i += 4;
+	} else if (y > clipWindow.getYMax()) {
+	    i += 8;
+	}
+	return i;
     }
 
     /////////////////////////////////////////////////////
@@ -385,11 +397,11 @@ public class GraphicSystem {
 	dx = x1 - x0;
 	dy = y1 - y0;
 
-	for (i = 0; i < cw.getCount(); i++) {
-	    Qx = Vx - cw.getPoints()[i].getX();	// Положения относительно ребра
-	    Qy = Vy - cw.getPoints()[i].getY();
-	    Nx = cw.getNormals()[i].getX();	// Перпендикуляры к ребру
-	    Ny = cw.getNormals()[i].getY();
+	for (i = 0; i < clipWindow.getCount(); i++) {
+	    Qx = Vx - clipWindow.getPoints()[i].getX();	// Положения относительно ребра
+	    Qy = Vy - clipWindow.getPoints()[i].getY();
+	    Nx = clipWindow.getNormals()[i].getX();	// Перпендикуляры к ребру
+	    Ny = clipWindow.getNormals()[i].getY();
 	    // Ориентация отрезка относительно i-й стороны окна 
 	    // определяется знаком скалярного произведения Pi = Ni * (V1 - V0).
 	    Pi = dx * Nx + dy * Ny;
@@ -456,115 +468,8 @@ public class GraphicSystem {
 	return new Line(x0, y0, x1, y1, visible);
     }
 
-    public static boolean isPointInPolygon(Point2D[] polygon, Point2D point) {
-	if (polygon == null) {
-	    return false;
-	}
-	int size = polygon.length;
-	if (size <= 1) {
-	    return false;
-	}
-
-	int intersections_num = 0;
-	int prev = size - 1;
-	boolean prev_under = polygon[prev].getY() < point.getY();
-
-	for (int i = 0; i < size; ++i) {
-	    boolean cur_under = polygon[i].getY() < point.getY();
-
-	    Point2D a = polygon[prev].subPoint(point);
-	    Point2D b = polygon[i].subPoint(point);
-
-	    double t = (a.getX() * (b.getY() - a.getY()) - a.getY() * (b.getX() - a.getX()));
-	    if (cur_under && !prev_under) {
-		if (t > 0) {
-		    intersections_num += 1;
-		}
-	    }
-	    if (!cur_under && prev_under) {
-		if (t < 0) {
-		    intersections_num += 1;
-		}
-	    }
-	    prev = i;
-	    prev_under = cur_under;
-	}
-	return (intersections_num & 1) != 0;
-    }
-
-    public static boolean isPointInRect(double[] borders, Point2D p) {
-	if (borders == null || p == null) {
-	    return false;
-	}
-	if (borders.length < 4) {
-	    throw new RuntimeException("Размер массива borders < 4");
-	}
-	double minX = borders[0],
-		minY = borders[1],
-		maxX = borders[2],
-		maxY = borders[3];
-	double x = p.getX(), y = p.getY();
-	if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-	    return true;
-	}
-	return false;
-    }
-
-    public static Point2D[] getBorderPoints(Point2D[] polygon) {
-	double[] borders = GraphicSystem.getBorders(polygon);
-	if (borders == null) {
-	    return null;
-	}
-	if (borders.length < 4) {
-	    throw new RuntimeException("Размер массива borders < 4");
-	}
-	double minX = borders[0],
-		minY = borders[1],
-		maxX = borders[2],
-		maxY = borders[3];
-	Point2D[] res = new Point2D[4];
-	res[0] = new Point2D(minX, minY);
-	res[1] = new Point2D(minX, maxY);
-	res[2] = new Point2D(maxX, maxY);
-	res[3] = new Point2D(maxX, minY);
-	return res;
-    }
-
-    public static double[] getBorders(Point3D[] polygon) {
-	return getBorders(Solid3D.getVertexes2D(polygon));
-    }
-    
-    public static double[] getBorders(Point2D[] polygon) {
-	if (polygon == null) {
-	    return null;
-	}
-	int size = polygon.length;
-	if (size == 0) return null;
-	final Point2D first = polygon[0];
-	double minX = first.getX(),
-		minY = first.getY(),
-		maxX = first.getX(),
-		maxY = first.getY();
-	for (int i = 1; i < size; i++) {
-	    final Point2D cur = polygon[i];
-	    if (cur.getX() < minX) {
-		minX = cur.getX();
-	    }
-	    if (cur.getY() < minY) {
-		minY = cur.getY();
-	    }
-	    if (cur.getX() > maxX) {
-		maxX = cur.getX();
-	    }
-	    if (cur.getY() > maxY) {
-		maxY = cur.getY();
-	    }
-	}
-	return new double[]{minX, minY, maxX, maxY};
-    }
-
     /////////////////////////////////////////////////////
-    public static double[] getSphericalCoordinates(double x, double y, double z) {
+    public static double[] decartToSpherical(double x, double y, double z) {
 	/*double ro = Math.sqrt(x * x + y * y + z * z);
 	double theta = /*Math.atan(Math.sqrt(x*x+y*y)/z);//*/ /*Math.atan2(z, x);
 	double phi = /*Math.atan(y/x);//*/ /*Math.atan2(y, Math.sqrt(x * x + z * z));*/
@@ -588,103 +493,7 @@ public class GraphicSystem {
     }
 
     /////////////////////////////////////////////////////
-    public static int factorial(int n) {
-	if (n > 1) {
-	    n *= factorial(n - 1);
-	}
-	return n;
-    }
-
-    public static int summ(int n) {
-	if (n > 2) {
-	    n += summ(n - 1);
-	}
-	return n;
-    }
-
-    /////////////////////////////////////////////////////
-    public ClipWindow getClipWindow() {
-	return cw;
-    }
-
-    public boolean isCorrectXCoord(double x) {
-	return (x >= 0 && x <= X_MAX);
-    }
-
-    public boolean isCorrectYCoord(double y) {
-	return (y >= 0 && y <= Y_MAX);
-    }
-
-    public boolean isCorrectPoint(Point2D p) {
-	return (isCorrectXCoord(p.getX())
-		&& isCorrectYCoord(p.getY()));
-    }
-
-    public static int convXToScreen(double width, double x) {
-	return (int) (x * (width / X_MAX) + BORDER);
-    }
-
-    private int convXToScreen(double x) {
-	return GraphicSystem.convXToScreen(width, x);
-    }
-
-    public static int convYToScreen(double height, double y) {
-	return (int) (height - (y * (height / Y_MAX) + BORDER));
-    }
-
-    private int convYToScreen(double y) {
-	return GraphicSystem.convYToScreen(height, y);
-    }
-
-    public static Point3D convPToScreen(double width, double height, Point3D p) {
-	return new Point3D(
-		GraphicSystem.convXToScreen(width, p.getX()),
-		GraphicSystem.convYToScreen(height, p.getY()),
-		p.getZ());
-    }
-    
-    public Point3D convPToScreen(Point3D p) {
-	Point3D trans = transMatrix.getTranslate();
-	return new Point3D(
-		(int) ((p.getX() + trans.getX()) * (width / X_MAX) + BORDER),
-		(int) (height - ((p.getY() + trans.getY()) * (height / Y_MAX) + BORDER)),
-		p.getZ());
-    }
-
-    public static Point3D convPToGraphic(double width, double height, Point3D p) {
-	if (width == 0 || height == 0) {
-	    return null;
-	}
-	return new Point3D(
-		(p.getX() - BORDER) * X_MAX / width,
-		(BORDER + height - p.getY()) * Y_MAX / height,
-		p.getZ());
-    }
-
-    public Point3D convPToGraphic(Point3DOdn p) {
-	Point3D trans = transMatrix.getTranslate();
-	return new Point3D(
-		(p.getX() - BORDER) * X_MAX / width - trans.getX() ,
-		(BORDER + height - p.getY()) * Y_MAX / height - trans.getY(),
-		p.getZ());
-    }
-
-    public double getxMin() {
-	return xMin;
-    }
-
-    public double getxMax() {
-	return xMax;
-    }
-
-    public double getyMin() {
-	return yMin;
-    }
-
-    public double getyMax() {
-	return yMax;
-    }
-    
+    // Алгоритм художника
     public void painterAlgorithm(Triangle3D[] trias) {
 	Triangle3D[] sortTrias = sortTrianglesByZ(trias);
 	if (sortTrias == null) {
@@ -696,8 +505,7 @@ public class GraphicSystem {
 	}
     }
 
-    /////////////////////////////////////////////////////
-    // Сортировка граней по удаленности от камеры (алгоритм художника)
+    // Сортировка граней по координате Z
     public static Triangle3D[] sortTrianglesByZ(Triangle3D[] trias) {
 	if (trias == null) {
 	    return null;
@@ -757,6 +565,7 @@ public class GraphicSystem {
     }
 
     /////////////////////////////////////////////////////
+    // Отрисовка треугольника (полинейно)
     private void drawBufferedTriangle(Triangle3D tria) {
 	if (tria == null) return;
 	Point3D a = convPToScreen(tria.getV1());
@@ -806,7 +615,9 @@ public class GraphicSystem {
 	}
     }
 
+    /////////////////////////////////////////////////////
     // Алгритм Брезинхема
+    // (поточечная отрисовка линии треугольника с использованием Z-буффера)
     private void drawBufferedLine(Triangle3D tria, Point3DOdn p1, Point3DOdn p2) {
 	float d, d1, d2;
 	int dx = (int) (Math.abs(p2.getX() - p1.getX()));
@@ -879,5 +690,91 @@ public class GraphicSystem {
 		}
 	    }
 	}
+    }
+
+    /////////////////////////////////////////////////////
+    // проверки и преобразования
+    public boolean isCorrectXCoord(double x) {
+	return (x >= 0 && x <= X_MAX);
+    }
+
+    public boolean isCorrectYCoord(double y) {
+	return (y >= 0 && y <= Y_MAX);
+    }
+
+    public boolean isCorrectPoint(Point2D p) {
+	return (isCorrectXCoord(p.getX())
+		&& isCorrectYCoord(p.getY()));
+    }
+
+    public static int convXToScreen(double width, double x) {
+	return (int) (x * (width / X_MAX) + BORDER);
+    }
+
+    private int convXToScreen(double x) {
+	return GraphicSystem.convXToScreen(width, x);
+    }
+
+    public static int convYToScreen(double height, double y) {
+	return (int) (height - (y * (height / Y_MAX) + BORDER));
+    }
+
+    private int convYToScreen(double y) {
+	return GraphicSystem.convYToScreen(height, y);
+    }
+
+    public static Point3D convPToScreen(double width, double height, Point3D p) {
+	return new Point3D(
+		GraphicSystem.convXToScreen(width, p.getX()),
+		GraphicSystem.convYToScreen(height, p.getY()),
+		p.getZ());
+    }
+    
+    public Point3D convPToScreen(Point3D p) {
+	Point3D trans = transMatrix.getTranslate();
+	return new Point3D(
+		(int) ((p.getX() + trans.getX()) * (width / X_MAX) + BORDER),
+		(int) (height - ((p.getY() + trans.getY()) * (height / Y_MAX) + BORDER)),
+		p.getZ());
+    }
+
+    public static Point3D convPToGraphic(double width, double height, Point3D p) {
+	if (width == 0 || height == 0) {
+	    return null;
+	}
+	return new Point3D(
+		(p.getX() - BORDER) * X_MAX / width,
+		(BORDER + height - p.getY()) * Y_MAX / height,
+		p.getZ());
+    }
+
+    public Point3D convPToGraphic(Point3DOdn p) {
+	Point3D trans = transMatrix.getTranslate();
+	return new Point3D(
+		(p.getX() - BORDER) * X_MAX / width - trans.getX() ,
+		(BORDER + height - p.getY()) * Y_MAX / height - trans.getY(),
+		p.getZ());
+    }
+
+    /////////////////////////////////////////////////////
+    // get
+    public ClipBox2D getClipWindow() {
+	return clipWindow;
+    }
+
+    public double getxMin() {
+	return xMin;
+    }
+
+    public double getxMax() {
+	return xMax;
+    }
+
+    public double getyMin() {
+	return yMin;
+    }
+
+    public double getyMax() {
+	return yMax;
     }
 }

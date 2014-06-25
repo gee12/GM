@@ -1,7 +1,7 @@
 name: Куб
-pos: 0 0 0
+pos: 0 0 3
 angles: 0 0 0
-scale: 1 1 1
+scale: 0 0 0
 verts: 8
 -1 -1 -1
 -1 1 -1

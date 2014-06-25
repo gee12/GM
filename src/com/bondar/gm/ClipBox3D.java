@@ -4,11 +4,11 @@ package com.bondar.gm;
  *
  * @author truebondar
  */
-public class ClipBox {
+public class ClipBox3D {
+    
     // 3d clipping planes
     // if view volume is NOT 90 degree then general 3d clipping
     // must be employed
-
     float nearClipZ;
     float farClipZ; 
     Plane3D rtPlane;
@@ -16,7 +16,7 @@ public class ClipBox {
     Plane3D tpPlane;
     Plane3D btPlane;
 
-    public ClipBox() {
+    public ClipBox3D() {
 	nearClipZ = farClipZ = 0;
 	rtPlane = new Plane3D();
 	ltPlane = new Plane3D();

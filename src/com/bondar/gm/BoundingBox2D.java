@@ -4,33 +4,30 @@ package com.bondar.gm;
  *
  * @author truebondar
  */
-public class BoundingBox {
-    private Bound x;
-    private Bound y;
-    private Bound z;
+public class BoundingBox2D {
+    protected Bound x;
+    protected Bound y;
 
-    public BoundingBox() {
+    public BoundingBox2D() {
 	x = new Bound();
 	y = new Bound();
-	z = new Bound();
     }
     
-    public BoundingBox(Point3D[] verts) {
+    public BoundingBox2D(Point2D[] verts) {
 	setBounds(verts);
     }
     
-    public void setBounds(Point3D[] verts) {
+    public void setBounds(Point2D[] verts) {
 	if (verts == null) {
 	    return;
 	}
 	int size = verts.length;
 	if (size == 0) return;
-	final Point3D first = verts[0];
-	final double fx = first.getX(), fy = first.getY(), fz = first.getZ();
+	final Point2D first = verts[0];
+	final double fx = first.getX(), fy = first.getY();
 	x = new Bound(fx, fx);
 	y = new Bound(fy, fy);
-	z = new Bound(fz, fz);
-	for (Point3D v : verts) {
+	for (Point2D v : verts) {
 	    // x
 	    if (v.getX() < x.getMin()) {
 		x.setMin(v.getX());
@@ -45,36 +42,27 @@ public class BoundingBox {
 	    if (v.getY() > y.getMax()) {
 		y.setMax(v.getY());
 	    }
-	    // z
-	    if (v.getZ() < z.getMin()) {
-		z.setMin(v.getZ());
-	    }
-	    if (v.getZ() > z.getMax()) {
-		z.setMax(v.getZ());
-	    }
 	}
     }
 
-    public boolean isPointInto(Point3D p) {
+    public boolean isPointInto(Point2D p) {
 	if (p == null) {
 	    return false;
 	}
-	double px = p.getX(), py = p.getY(), pz = p.getZ();
+	double px = p.getX(), py = p.getY();
 	if (px >= x.getMin() && px <= x.getMax() 
-		&& py >= y.getMin() && py <= y.getMax()
-		&& pz >= z.getMin() && pz <= z.getMax()) {
+		&& py >= y.getMin() && py <= y.getMax()) {
 	    return true;
 	}
 	return false;
     }
     
-    public boolean isIntersect(BoundingBox bb) {
+    public boolean isIntersect(BoundingBox2D bb) {
 	if (bb == null) {
 	    return false;
 	}
 	if (bb.x.getMin() <= x.getMax() && bb.x.getMin() >= x.getMin()
-		&& bb.y.getMin() <= y.getMax() && bb.y.getMin() >= y.getMin()
-		&& bb.z.getMin() <= z.getMax() && bb.z.getMin() >= z.getMin()) {
+		&& bb.y.getMin() <= y.getMax() && bb.y.getMin() >= y.getMin()) {
 	    return true;
 	}
 	return false;
@@ -86,9 +74,5 @@ public class BoundingBox {
 
     public Bound getY() {
 	return y;
-    }
-
-    public Bound getZ() {
-	return z;
     }
 }
