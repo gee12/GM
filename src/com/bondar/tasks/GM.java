@@ -249,23 +249,47 @@ public class GM extends Application implements RadioGroupListener {
 	    updateSolid(solid);
 	}
 	// update axis
-	axisSolid.setWorldVertexes(axisSolid.makeTransfer(camera));
+	axisSolid.setTransVertexes(Conveyor.transferFull(axisSolid, camera));
 	
 	onCollision();
     }
    
     private void updateSolid(Solid3D solid) {
 	if (solid == null) return;
-	
-	if (solid.isNeedCull(camera)) {
-	    solid.setVisible(false);
+	//1
+	// transferFull local vertexes to world
+	Point3D[] verts = Conveyor.transToWorld(solid);
+	// culling solid if need
+	solid.setIsNeedCulling(camera);
+	if (solid.getState() != Solid3D.States.VISIBLE)
 	    return;
-	}
-	solid.setVisible(true);
-	// make transformations to solid vertexes and triangles
-	Point3D[] verts = solid.makeTransfer(camera);
-	solid.setWorldVertexes(verts);
+	// define backfaces triangles
+	solid.resetTrianglesVertexes(verts);
+	solid.defineBackfacesTrias(camera);
+	// transferFull world vertexes to camera
+	verts = Conveyor.transToCamera(verts, camera);
+	if (solid.isNeedPerspective())
+	    verts = Conveyor.transToPerspective(verts, camera);
+	solid.resetTrianglesVertexes(verts);
+	solid.setTransVertexes(verts);
+	
+	//2
+	/*Point3D[] verts = Conveyor.transferFull(solid, camera);
+	solid.setTransVertexes(verts);
 	solid.resetTrianglesVertexes();
+	
+	solid.setIsNeedCulling(camera);*/
+	
+	//3
+	/*Point3D[] verts = solid.transToWorld();
+	solid.setTransVertexes(verts);
+	
+	solid.setIsNeedCulling(camera);
+	solid.defineBackfacesTrias(camera);
+	
+	verts = solid.transToCamera(camera);
+	solid.setTransVertexes(verts);
+	solid.resetTrianglesVertexes();*/
 	//
 	solid.setBounds(verts);
     }
@@ -367,10 +391,10 @@ public class GM extends Application implements RadioGroupListener {
 		if (isPerspective) return;
 		isPerspective = true;
 		// get decart camera coordinates
-		Point3D cameraP = camera.getPosition();//cameraSolid.getLocalVertex(0);
+		Point3D camPoint = camera.getPosition();
 		// convert to spherical coordinates
 		double[] sphereCoords = GraphicSystem.decartToSpherical(
-			cameraP.getX(), cameraP.getY(), cameraP.getZ());
+			camPoint.getX(), camPoint.getY(), camPoint.getZ());
 		//sphereCoords = new double[] {2.44, 0.61, 0.78};
 		for (Solid3D solid : solids) {
 		    solid.setPerspective(camera.getViewDist(), sphereCoords[0], sphereCoords[1], sphereCoords[2]);
@@ -380,11 +404,6 @@ public class GM extends Application implements RadioGroupListener {
 	for (Solid3D solid : solids) {
 	    solid.setPerspective(isPerspective);
 	}
-    }
-    
-    private boolean isPointInRect(Solid3D solid, Point2D p) {
-	//double[] borders = GraphicSystem.getBorders2D(solid.makeTransfer(camera));
-	return solid.getBounds().isPointInto(p);
     }
     
     private void onSolidListSelection(String selectedRadioText) {
@@ -449,9 +468,9 @@ public class GM extends Application implements RadioGroupListener {
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 	for (Solid3D solid : solids) {
-	    if (!solid.isVisible()) continue;
+	    if (solid.getState() != Solid3D.States.VISIBLE) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (isPointInRect(solid, p)) {
+	    if (solid.getBounds().isPointInto(p)) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		return;
 	    }
@@ -486,11 +505,11 @@ public class GM extends Application implements RadioGroupListener {
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
 		Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D solid : solids) {
-		    if (!solid.isVisible()) continue;
+		    if (solid.getState() != Solid3D.States.VISIBLE) continue;
 		    // find object borders & check the cursor hit into borders
-		    // double[] borders = GraphicSystem.getBorders2D(solid.makeTransfer(camera));
+		    // double[] borders = GraphicSystem.getBorders2D(solid.transToWorld(camera));
 		    // if (GraphicSystem.isPointInRect(borders, p)) {
-		    if (isPointInRect(solid, p)) {
+		    if (solid.getBounds().isPointInto(p)) {
 			focusedSolids.add(solid);
 		    }
 		}
@@ -518,10 +537,10 @@ public class GM extends Application implements RadioGroupListener {
 	int keyCode = evt.getKeyCode();
 	switch(keyCode) {
 	    case KeyEvent.VK_RIGHT:
-		dx = -CAMERA_SHIFT_STEP;
+		dx = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_LEFT:
-		dx = CAMERA_SHIFT_STEP;
+		dx = -CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_SPACE:
 		dy = CAMERA_SHIFT_STEP;
@@ -565,7 +584,7 @@ public class GM extends Application implements RadioGroupListener {
 
 	//List<Triangle3D> trias = new ArrayList<>();
 	for (Solid3D solid : solids) {
-	    if (!solid.isVisible()) continue;
+	    if (solid.getState() != Solid3D.States.VISIBLE) continue;
 	    drawSolid(g, solid);
 	    //trias.addAll(Types.toList(solid.getTriangles()));
 	}
@@ -577,13 +596,13 @@ public class GM extends Application implements RadioGroupListener {
     /////////////////////////////////////////////////////////
     private void drawAxis(GraphicSystem g, Solid3D axis) {
 	if (axis == null) return;
-	drawEdges(g, axis.getWorldVertexes(), axis.getDoms(), axis.getEdgesColor());
+	drawEdges(g, axis.getTransVertexes(), axis.getDoms(), axis.getEdgesColor());
      }
 
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid) {
 	if (solid == null) return;
-	Point3D[] verts = solid.getWorldVertexes();
+	Point3D[] verts = solid.getTransVertexes();
 	Triangle3D[] trias = solid.getTriangles();
 	
 	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
@@ -623,6 +642,12 @@ public class GM extends Application implements RadioGroupListener {
 	switch (selectedRadioText) {
 	    case RADIO_PAINTER_TEXT:
 		g.painterAlgorithm(trias);
+		/*for (Triangle3D tria : trias) {
+		    if (tria.getState() == Polygon3D.States.VISIBLE) {
+			g.setColor(tria.getColor());
+			g.fillPolygon(tria.getVertexes());
+		    }
+		}*/
 		break;
 	    case RADIO_Z_BUFFER_TEXT:
 		g.zBufferAlgorithm(trias);

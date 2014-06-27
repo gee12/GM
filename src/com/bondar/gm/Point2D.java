@@ -80,7 +80,8 @@ public class Point2D {
         return y;
     }
 
-    public double[] toArrayOdn() {
+    // convert
+    public double[] toArray4Odn() {
         return new double[] { x, y, 0, 1 };
     }
 }

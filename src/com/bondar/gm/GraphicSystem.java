@@ -92,7 +92,7 @@ public class GraphicSystem {
     }
 
     public void setScale(double x, double y) {
-	double[] vector4 = transMatrix.applyTransform(new Point2D(x, y).toArrayOdn());
+	double[] vector4 = transMatrix.applyTransform(new Point2D(x, y).toArray4Odn());
 	x = vector4[0];
 	y = vector4[1];
 	if (x < xMin) {
@@ -137,7 +137,7 @@ public class GraphicSystem {
     }
 
     public void rotate(double angle, AXIS axis) {
-	transMatrix = transMatrix.multiply(Matrix.getRotationMatrix(angle, axis));
+	transMatrix = transMatrix.multiply(Matrix.buildRotationMatrix(angle, axis));
     }
 
     public void translate(double tx, double ty) {
@@ -187,7 +187,7 @@ public class GraphicSystem {
     //////////////////////////////////////////////////
     // Отрисовка строки
     public void drawString(String text, double x, double y) {
-	Point3DOdn p = new Point3DOdn(transMatrix.applyTransform(new Point2D(x, y).toArrayOdn()));
+	Point3DOdn p = new Point3DOdn(transMatrix.applyTransform(new Point2D(x, y).toArray4Odn()));
 	g.drawString(text, convXToScreen(p.getX()), convYToScreen(p.getY()));
     }
 
@@ -202,8 +202,8 @@ public class GraphicSystem {
     }
 
     public void line(Point2D from, Point2D to) {
-	Point3D p1 = new Point3D(transMatrix.applyTransform(from.toArrayOdn()));
-	Point3D p2 = new Point3D(transMatrix.applyTransform(to.toArrayOdn()));
+	Point3D p1 = new Point3D(transMatrix.applyTransform(from.toArray4Odn()));
+	Point3D p2 = new Point3D(transMatrix.applyTransform(to.toArray4Odn()));
 	Line line = new Line(p1, p2);
 	// is need scale?
 	if (isNeedScale) {

@@ -43,53 +43,49 @@ public class Matrix {
     }
 
     //////////////////////////////////////////////////
-    public static Matrix getRotationMatrix(double angle, AXIS axis) {
+    public static Matrix buildRotationMatrix(double angle, AXIS axis) {
 	switch (axis) {
 	    case X: 
-		return Matrix.getRotationXMatrix(angle);
+		return Matrix.buildRotationXMatrix(angle);
 	    case Y:
-		return Matrix.getRotationYMatrix(angle);
+		return Matrix.buildRotationYMatrix(angle);
 	    case Z:
-		return Matrix.getRotationZMatrix(angle);
+		return Matrix.buildRotationZMatrix(angle);
 	    default: return new Matrix();
 	}
     }
     
-    public static Matrix getRotationZMatrix(double a) {
-	Matrix m = new Matrix(new double[][] {
+    public static Matrix buildRotationZMatrix(double a) {
+	return new Matrix(new double[][] {
 		{Math.cos(a), Math.sin(a), 0, 0},
 		{-Math.sin(a), Math.cos(a), 0, 0},
 		{0, 0, 1, 0},
 		{0, 0, 0, 1}});
-	return m;
     }
 
-    public static Matrix getRotationYMatrix(double a) {
-	Matrix m = new Matrix(new double[][] {
+    public static Matrix buildRotationYMatrix(double a) {
+	return new Matrix(new double[][] {
 		{Math.cos(a), 0, -Math.sin(a), 0},
 		{0, 1, 0, 0},
 		{Math.sin(a), 0, Math.cos(a), 0},
 		{0, 0, 0, 1}});
-	return m;
     }
 
-    public static Matrix getRotationXMatrix(double a) {
-	Matrix m = new Matrix(new double[][] {
+    public static Matrix buildRotationXMatrix(double a) {
+	return new Matrix(new double[][] {
 		{1, 0, 0, 0},
 		{0, Math.cos(a), Math.sin(a), 0},
 		{0, -Math.sin(a), Math.cos(a), 0},
 		{0, 0, 0, 1}});
-	return m;
     }
 
     //////////////////////////////////////////////////
-    public static Matrix getTransferMatrix(double tx, double ty, double tz) {
-	Matrix m = new Matrix(new double[][]{
+    public static Matrix buildTransferMatrix(double tx, double ty, double tz) {
+	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
 	    {0, 0, 1, 0},
 	    {tx, ty, tz, 1}});
-	return m;
     }
 
     public void translate(double tx, double ty) {
@@ -106,42 +102,46 @@ public class Matrix {
     }
      
     //////////////////////////////////////////////////
-    public static Matrix getScaleMatrix(double sx, double sy, double sz) {
-	Matrix m = new Matrix(new double[][]{
+    public static Matrix buildScaleMatrix(double sx, double sy, double sz) {
+	return new Matrix(new double[][]{
 	    {sx, 0, 0, 0},
 	    {0, sy, 0, 0},
 	    {0, 0, sz, 0},
 	    {0, 0, 0, 1}});
-	return m;
     }
     
-    public static Matrix getScaleMatrix(double s) {
-	Matrix m = new Matrix(new double[][]{
+    public static Matrix buildScaleMatrix(double s) {
+	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
 	    {0, 0, 1, 0},
 	    {0, 0, 0, s}});
-	return m;
     }
     
     //////////////////////////////////////////////////
-    public static Matrix getViewMatrix(double ro, double theta, double phi) {
-	Matrix m = new Matrix(new double[][]{
+    public static Matrix buildViewMatrix(double ro, double theta, double phi) {
+	return new Matrix(new double[][]{
 	    {-Math.sin(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.cos(theta)), 0},
 	    {Math.cos(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.sin(theta)), 0},
 	    {0, Math.sin(phi), -(Math.cos(phi)), 0},
 	    {0, 0, ro, 1}});
-	return m;
     }
-	
+    public static Matrix buildPerspectiveMatrix(double d, double ar) {
+	return new Matrix(new double[][]{
+	    {d, 0, 0, 0},
+	    {0, d, 0, 0},
+	    {0, 0, 1, 1},
+	    {0, 0, 0, 0}});
+    }
+	/*
     public static Matrix getPerspectiveMatrix(double d) {
-	Matrix m = new Matrix(new double[][]{
+	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
 	    {0, 0, 1, 1/d},
 	    {0, 0, 0, 0}});
-	return m;
-    }
+    }*/
+    
     /*
     public static Matrix getPerspective1Matrix(double r1, double r2) {
 	Matrix m = new Matrix(new double[][]{
@@ -152,6 +152,18 @@ public class Matrix {
 	return m;
     }*/
 
+    //////////////////////////////////////////////////
+     public static Matrix buildScreenMatrix(double width, double height) {
+	double alpha = (0.5 * width - 0.5);
+	double beta  = (0.5 * height - 0.5);
+	Matrix m = new Matrix(new double[][]{
+	    {alpha, 0, 0, 0},
+	    {0, -beta, 0, 0},
+	    {alpha, beta, 1, 0},
+	    {0, 0, 0, 1}});
+	return m;
+    }   
+    
     //////////////////////////////////////////////////
     public void multiply(double s) {
 	for (int i = 0; i < rows; i++) {

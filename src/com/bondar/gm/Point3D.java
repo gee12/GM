@@ -25,8 +25,12 @@ public class Point3D {
 	vector = new Matrix(new double[][] {{v[0],v[1],v[2]}});
     }
     
-    public Point3D(Point2D p2d) {
-	this(p2d.getX(), p2d.getY(), 0);
+    public Point3D(Point3D p3D) {
+	this(p3D.toArray3());
+    } 
+    
+    public Point3D(Point2D p2D) {
+	this(p2D.getX(), p2D.getY(), 0);
     }
     
     //////////////////////////////////////////////////
@@ -73,18 +77,6 @@ public class Point3D {
    
     //////////////////////////////////////////////////
     // get
-    public Point2D toPoint2D() {
-	return new Point2D(getX(), getY());
-    }
-    
-    public Point3DOdn toPoint3DOdn() {
-	return new Point3DOdn(vector.getMatrix()[0]);
-    }
-    
-    public double[] toArray3() {
-        return vector.getMatrix()[0];
-    }
-    
     public double getX() {
 	return vector.getAt(0, 0);
     }
@@ -99,5 +91,18 @@ public class Point3D {
 	
     public Point3D getCopy() {
 	return new Point3D(getX(), getY(), getZ());
+    }
+    
+    // convert
+    public Point2D toPoint2D() {
+	return new Point2D(getX(), getY());
+    }
+    
+    public Point3DOdn toPoint3DOdn() {
+	return new Point3DOdn(vector.getMatrix()[0]);
+    }
+    
+    public double[] toArray3() {
+        return vector.getMatrix()[0];
     }
 }

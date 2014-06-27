@@ -31,7 +31,7 @@ public class CameraEuler extends Camera{
 	
 	// now we know fov and we know the viewplane dimensions plug into formula and
 	// solve for view distance parameters
-	viewDist = 1;
+	viewDist = 2;
 	//viewDist = 0.5 * viewPlane.getWidth() * Math.tan(Math.toRadians(fov / 2.));
 	
 	clipBox = new ClipBox3D();
@@ -54,10 +54,10 @@ public class CameraEuler extends Camera{
 
     public Matrix builtMatrix(int camRotSeq) {
 	Matrix res = new Matrix();
-	Matrix transM = Matrix.getTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
-	Matrix rotateXM = Matrix.getRotationMatrix(-dir.getX(), Matrix.AXIS.X);
-	Matrix rotateYM = Matrix.getRotationMatrix(-dir.getY(), Matrix.AXIS.Y);
-	Matrix rotateZM = Matrix.getRotationMatrix(-dir.getZ(), Matrix.AXIS.Z);
+	Matrix transM = Matrix.buildTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
+	Matrix rotateXM = Matrix.buildRotationMatrix(-dir.getX(), Matrix.AXIS.X);
+	Matrix rotateYM = Matrix.buildRotationMatrix(-dir.getY(), Matrix.AXIS.Y);
+	Matrix rotateZM = Matrix.buildRotationMatrix(-dir.getZ(), Matrix.AXIS.Z);
 
 	// now compute inverse camera rotation sequence
 	switch (camRotSeq) {
@@ -87,11 +87,19 @@ public class CameraEuler extends Camera{
 	return viewDist;
     }
     
+    public double getAspectRatio() {
+	return aspectRatio;
+    }
+    
     public ClipBox3D getClipBox() {
 	return clipBox;
     }
     
     public Dimension2D getViewPlane() {
 	return viewPlane;
+    }
+    
+    public Dimension2D getViewPort() {
+	return viewPort;
     }
 }
