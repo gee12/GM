@@ -2,9 +2,12 @@ package com.bondar.gm;
 
 /**
  *
+ * Need to optimized:
+ * 4X4 + div Z -> 3x3 ?
+ * 
  * @author truebondar
  */
-public class Conveyor {
+public class Transfer {
 
     /////////////////////////////////////////////////////////
     // transfer with all vertexes

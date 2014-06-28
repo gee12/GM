@@ -14,8 +14,7 @@ public class GroupPanel extends JPanel {
     
     private final MyButtonGroup group;
     private String selectedRadioText = "";
-    private boolean isChanged = false;
-    private RadioGroupListener listener = null;
+    private OptionsPanelListener listener = null;
   
     public GroupPanel(final String titleText) {
 	
@@ -26,8 +25,6 @@ public class GroupPanel extends JPanel {
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
 		selectedRadioText = e.getActionCommand();
-		if (selectedRadioText.equals(lastText)) isChanged = false;
-		else isChanged = true;
 		lastText = selectedRadioText;
 		if (listener == null) return;
 		listener.onRadioSelected(titleText, selectedRadioText);
@@ -37,14 +34,14 @@ public class GroupPanel extends JPanel {
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     }
     
-    public void setListener(RadioGroupListener listener) {
+    public void setListener(OptionsPanelListener listener) {
 	this.listener = listener;
     }
     
     public void addRadio(final String radioText) {
 	final JRadioButton radio = new JRadioButton(radioText);
 	radio.setActionCommand(radioText);
-	// setFocusable(false) -> for KeyListener working in main JFrame
+	// setFocusable(false) -> for work KeyListener in main JFrame
 	radio.setFocusable(false);
 	group.add(radio);
 	add(radio);
@@ -57,13 +54,5 @@ public class GroupPanel extends JPanel {
     
     public String getSelectedRadioText() {
 	return selectedRadioText;
-    }
-    
-    public boolean isChanged() {
-	return isChanged;
-    }
-    
-    public void setChanged(boolean changed) {
-	isChanged = changed;
     }
 }

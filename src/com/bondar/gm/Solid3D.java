@@ -1,6 +1,5 @@
 package com.bondar.gm;
 
-import com.bondar.gm.Matrix.AXIS;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
@@ -18,60 +17,45 @@ public class Solid3D {
 	CULLED
     }
     
+    public static final int ATTR_FIXED = 1;
+    
     private States state;
-
+    private int attribute;
     private Point3D[] localVerts;
     private Point3D[] transVerts;
-    private int[][] indsToTrias;
-    private Triangle3D[] triangles = null;
-    private DrawOrMove[] doms;
+    //private int[][] indexes;
+    private Polygon3D[] polygons = null;
     private String name;
-    private Color edgesColor;
     private BoundingBox3D bounds;
     
     private Point3D dir;
     private Point3D pos;
     private Point3D scale;
     private boolean isNeedPerspective = false;
-    private double dist, ro, theta, phi;
-    
-    //private boolean isVisible;
     private double maxRadius;
 
     /////////////////////////////////////////////////////////
-    public Solid3D(String name, Point3D[] vertexes, int[][] indsToTrias, Color[] colors, DrawOrMove[] doms) {
+    public Solid3D(String name, Point3D[] vertexes, Polygon3D[] polies) {
 	this.name = name;
 	this.localVerts = vertexes;
-	this.indsToTrias = indsToTrias;
-	this.triangles = createTriangles(vertexes, indsToTrias, colors);
-	this.doms = doms;
+	//this.indexes = indsToTrias;
+	this.polygons = polies;
 	reInit();
     }
     
-    public Solid3D(String name, Point3D[] vertexes, int[][] indsToTrias, DrawOrMove[] doms) {
+    public Solid3D(String name, Point3D[] vertexes, int[][] indsToTrias, Color[] fills, Color[] borders, int attr) {
 	this.name = name;
 	this.localVerts = vertexes;
-	this.indsToTrias = indsToTrias;
-	this.triangles = createTriangles(vertexes, indsToTrias);
-	this.doms = doms;
-	reInit();
-    }
-
-    public Solid3D(String name, Point3D[] vertexes, int[][] indsToTrias, Color[] colors) {
-	this.name = name;
-	this.localVerts = vertexes;
-	this.indsToTrias = indsToTrias;
-	this.triangles = createTriangles(vertexes, indsToTrias, colors);
-	this.doms = createDrawOrMoves(vertexes);
+	//this.indexes = indsToTrias;
+	this.polygons = buildPolygons(vertexes, indsToTrias, fills, borders, attr);
 	reInit();
     }
 
     public Solid3D(String name, Point3D[] vertexes) {
 	this.name = name;
 	this.localVerts = vertexes;
-	this.indsToTrias = createIndsForTrias(vertexes);
-	this.triangles = createTriangles(vertexes, indsToTrias);
-	this.doms = createDrawOrMoves(vertexes);
+	//this.indexes = buildIndexes(vertexes);
+	this.polygons = buildPolygons(vertexes, buildIndexes(vertexes));
 	reInit();
     }
     
@@ -82,13 +66,12 @@ public class Solid3D {
 	dir = new Point3D();
 	pos = new Point3D();
 	scale = new Point3D(1,1,1);
-	edgesColor = null;
 	maxRadius = maxRadius(localVerts);
     }
 
     /////////////////////////////////////////////////////////
     // triangulation
-    public static int[][] createIndsForTrias(Point3D[] vertexes) {
+    public static int[][] buildIndexes(Point3D[] vertexes) {
 	if (vertexes == null) return null;
 	int n = vertexes.length;
 	// combination from n to 3
@@ -106,43 +89,46 @@ public class Solid3D {
 	return res;
     }
    
-    private static Triangle3D[] createTriangles(Point3D[] vertexes, int[][] indsToTrias) {
+    private static Polygon3D[] buildPolygons(Point3D[] vertexes, int[][] indsToTrias) {
 	if (indsToTrias == null) return null;
 	int size = indsToTrias.length;
-	Color[] colors = new Color[size];
+	Color[] fills = new Color[size];
+	Color[] borders = new Color[size];
 	Random rand = new Random();
 	for (int i = 0; i < size; i++) {
-	    colors[i] = new Color(
+	    fills[i] = new Color(
+		    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255);
+	    borders[i] = new Color(
 		    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255);
 	}
-	return createTriangles(vertexes, indsToTrias, colors);
+	return buildPolygons(vertexes, indsToTrias, fills, borders, 0);
     }
     
-    private static Triangle3D[] createTriangles(Point3D[] vertexes, int[][] indsToTrias, Color[] colors) {
-	if (vertexes == null || indsToTrias == null || colors == null) return null;
-	int size = indsToTrias.length;
-	Triangle3D[] res = new Triangle3D[size];
+    private static Polygon3D[] buildPolygons(Point3D[] vertexes, int[][] inds, Color[] fills, Color[] borders, int attr) {
+	if (vertexes == null || inds == null || fills == null || borders == null) return null;
+	int size = inds.length;
+	Polygon3D[] res = new Polygon3D[size];
 	for (int i = 0; i < size; i++) {
-	    res[i] = new Triangle3D(
+	    res[i] = new Polygon3D(
 		    vertexes,
-		    indsToTrias[i][0],
-		    indsToTrias[i][1],
-		    indsToTrias[i][2],
-		    colors[i]);
+		    inds[i],
+		    fills[i],
+		    borders[i],
+		    attr);
 	}
 	return res;
     }
 
     public void resetTrianglesVertexes(Point3D[] verts) {
-	if (triangles == null) return;
-	for (Triangle3D tria : triangles) {
-	    tria.setVertexes(verts);
+	if (polygons == null) return;
+	for (Polygon3D poly : polygons) {
+	    poly.setVertexes(verts);
 	}
     }
 
     /////////////////////////////////////////////////////////
     // 
-    public static DrawOrMove[] createDrawOrMoves(Point3D[] points) {
+    /*public static DrawOrMove[] createDrawOrMoves(Point3D[] points) {
 	if (points == null) {
 	    return null;
 	}
@@ -158,7 +144,7 @@ public class Solid3D {
 	    }
 	}
 	return res;
-    }
+    }*/
  
     /////////////////////////////////////////////////////////
     // operations
@@ -211,7 +197,7 @@ public class Solid3D {
     // Cull solid, if it's fully out of clip bounds.
     public boolean isNeedCull(CameraEuler cam) {
 	if (cam == null) return false;
-	Point3D spherePos = Conveyor.transToCamera(pos, cam);
+	Point3D spherePos = Transfer.transToCamera(pos, cam);
 	// by z
 	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||
 	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {
@@ -234,14 +220,22 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
-    public void defineBackfacesTrias(CameraEuler cam) {
-	for (Triangle3D tria: triangles) {
-	    tria.setIsBackFace(cam);
+    public void defineBackfaces(CameraEuler cam) {
+	for (Polygon3D poly: polygons) {
+	    poly.setIsBackFace(cam);
 	}
     }
     
     /////////////////////////////////////////////////////////
     // set
+    public final void setAttribute(int attr) {
+	attribute |= attr;
+    }
+
+    public final void unsetAttribute(int attr) {
+	attribute &= ~attr;
+    }   
+    
     public void setIsNeedCulling(CameraEuler cam) {
 	if (isNeedCull(cam))
 	    state = States.CULLED;
@@ -251,29 +245,14 @@ public class Solid3D {
     public void setPerspective(boolean isNeedPerspective) {
 	this.isNeedPerspective = isNeedPerspective;
     }
-    
-    public void setPerspective(double d, double ro, double theta, double phi) {
-	this.dist += d;
-	this.ro += ro;
-	this.theta = theta;
-	this.phi += phi;
-    }
-    
+
     public void setTransVertexes(Point3D[] verts) {
 	transVerts = verts;
     }
-    
-    public void setEdgesColor(Color col) {
-	edgesColor = col;
-    }
-    
+
     public void setBounds(Point3D[] verts) {
 	bounds.setBounds(verts);
     }
-    
-    /*public void setVisible(boolean vis) {
-	isVisible = vis;
-    }*/
 
     /////////////////////////////////////////////////////////
     // get
@@ -310,29 +289,21 @@ public class Solid3D {
 	return res;
     }
 
-    public Triangle3D[] getTriangles() {
-	return triangles;
-    }
-    
-    public DrawOrMove[] getDoms() {
-	return doms;
-    }
-    
-    public int[][] getIndsToTrias() {
-	return indsToTrias;
+    public Polygon3D[] getPolygons() {
+	return polygons;
     }
     
     public String getName() {
 	return name;
     }
     
-    public Color getEdgesColor() {
-	return edgesColor;
-    }
-    
     public boolean isPerspective() {
 	return isNeedPerspective;
     }
+    
+    public boolean isSetAttribute(int attr) {
+	return (attribute & attr) != 0;
+    }   
     
     public BoundingBox3D getBounds() {
 	return bounds;

@@ -22,7 +22,14 @@ public class Point2D {
         this.x = x;
         this.y = y;
     }
-
+    
+    public Point2D(double[] v) {
+	if (v == null) return;
+	if (v.length < 2) throw new RuntimeException("Размер массива < 2");
+        this.x = v[0];
+        this.y = v[1];
+    }
+    
     //////////////////////////////////////////////////
     // operations
     public Point2D add(Point2D p) {

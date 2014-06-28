@@ -18,7 +18,7 @@ public class CameraEuler extends Camera{
     private double aspectRatio;
     
     public CameraEuler(int attr, Point3D pos, Vector3D dir,
-	    float nearClipZ, float farClipZ, float fov, Dimension vp) {
+	    float nearClipZ, float farClipZ, double dist, float fov, Dimension vp) {
 	super(attr, pos, dir);
 	this.fov = fov;
 	this.viewPort = vp;
@@ -31,7 +31,7 @@ public class CameraEuler extends Camera{
 	
 	// now we know fov and we know the viewplane dimensions plug into formula and
 	// solve for view distance parameters
-	viewDist = 2;
+	viewDist = dist;
 	//viewDist = 0.5 * viewPlane.getWidth() * Math.tan(Math.toRadians(fov / 2.));
 	
 	clipBox = new ClipBox3D();

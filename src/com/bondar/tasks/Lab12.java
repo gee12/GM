@@ -83,10 +83,10 @@ public class Lab12 extends Application {
     private void drawSinArrows(GraphicSystem g) {
 	final double xShift = 1.5d, yShift = 0d;
 	double scale;
-	final double count = optionsPanel.getSliderValue(ARROW_COUNT_TEXT);
-	final double freq = optionsPanel.getSliderValue(FREQ_TEXT);
-	final double yScale = optionsPanel.getSliderValue(AMPLITUDE_TEXT) / 100d;
-	final double mScale = optionsPanel.getSliderValue(SCALE_TEXT) / 100d;
+	final double count = getSliderValue(ARROW_COUNT_TEXT);
+	final double freq = getSliderValue(FREQ_TEXT);
+	final double yScale = getSliderValue(AMPLITUDE_TEXT) / 100d;
+	final double mScale = getSliderValue(SCALE_TEXT) / 100d;
 	double oldX = 2, oldY = 2;
 	for (int i = 0; i < count; i++) {
 	    scale = (i / freq);

@@ -2,13 +2,11 @@ package com.bondar.tasks;
 
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
-import com.bondar.panels.RadioGroupListener;
-import com.bondar.tools.Types;
+import com.bondar.panels.OptionsPanelListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Random;
 import javax.swing.Timer;
 
@@ -17,9 +15,10 @@ import javax.swing.Timer;
  *
  * @author bondar
  */
-public class GM extends Application implements RadioGroupListener {
+public class GM extends Application implements OptionsPanelListener {
 
     private static final double SHIFT_STEP = 0.008;
+    private static final double SHIFT_BY_Z_STEP = 0.1;
     private static final double ANGLE_UP = Math.toRadians(6);
     private static final double ANGLE_DOWN = Math.toRadians(-6);
     private static final double SCALE_UP = 0.05;
@@ -28,7 +27,8 @@ public class GM extends Application implements RadioGroupListener {
     private static final double CAMERA_ANGLE_UP = ANGLE_UP/2;
     private static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/2;
     
-    private static final int MSEC_TICK = 30;
+    private static final int FPS = 30;
+    private static final int MSEC_TICK = 1000/FPS;
     private static final int SCREEN_WIDTH = 1100;
     private static final int SCREEN_HEIGHT = 600;
     private static final double DX = 5;
@@ -50,26 +50,22 @@ public class GM extends Application implements RadioGroupListener {
     private static final String RADIO_CENTER_TEXT = "Центральная";
     private static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
     private static final String RADIO_PAINTER_TEXT = "Алгритм художника";
+    private static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
     private static final String RADIO_Z_BUFFER_TEXT = "Z-Буффер";
-    private static final String GROUP_TITLE_INTERSECT_TEXT = "ПЕРЕСЕЧЕНИЕ ОБЪЕКТОВ:";
-    private static final String RADIO_INTERSECT_ON_TEXT = "Допускается";
-    private static final String RADIO_INTERSECT_OFF_TEXT = "Не допускается";
     private static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
     private static final String RADIO_EDGES_TEXT = "Ребра";
     private static final String RADIO_FACES_TEXT = "Грани";
     private static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
     
-    private List<Solid3D> solids = new ArrayList<>();
-    private List<Solid3D> focusedSolids = new ArrayList<>();
+    private static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
+    
+    private List<Solid3D> solids;
+    private List<Solid3D> focusedSolids;
+    private final Solid3D allSolid;
     private final CameraEuler camera;
-    private Solid3D axisSolid;
-    private final Solid3D allSolids;
     private final GraphicSystem g;
-    private HashMap<String, String> radiosMap = new HashMap<>();
-    private boolean isPerspective = false;
     private Solid3D selectedSolid;
-    private boolean isMousePressed = false;
- 
+    private boolean isMousePressed;
 	
     public static void main(String[] args) {
 	new GM(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -78,6 +74,10 @@ public class GM extends Application implements RadioGroupListener {
     /////////////////////////////////////////////////////////
     public GM(int width, int height) {
 	super(width, height);
+	this.isMousePressed = false;
+	this.solids = new ArrayList<>();
+	this.focusedSolids = new ArrayList<>();
+	
 	requestFocus();
 	setFocusable(true);
 	setResizable(true);
@@ -89,16 +89,17 @@ public class GM extends Application implements RadioGroupListener {
 	// listeners
 	addListeners();
 	// create radio buttons
-	createRadioButtons();
+	addControls();
 	setRadioGroupListeners(this);
 	// radio button to select all models to move
-	allSolids = new Solid3D(RADIO_ALL_MODELS_TEXT, null);
+	allSolid = new Solid3D(RADIO_ALL_MODELS_TEXT, null);
 	// watchpoint
 	camera = new CameraEuler(
 		0,
-		new Point3D(1,1,1),
+		new Point3D(0,0,0),
 		new Vector3D(0,0,0),
 		1, 10,
+		5,
 		90,
 		new Dimension(WIDTH, HEIGHT));
 	// load objects
@@ -185,7 +186,7 @@ public class GM extends Application implements RadioGroupListener {
 	});
     }
     
-    private void createRadioButtons() {
+    private void addControls() {
  	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_ALL_MODELS_TEXT);
 
 	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
@@ -199,21 +200,15 @@ public class GM extends Application implements RadioGroupListener {
 	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
 
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT);
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
 
 	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
 	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
 	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
 
-	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_ON_TEXT);
-	addRadio(GROUP_TITLE_INTERSECT_TEXT, RADIO_INTERSECT_OFF_TEXT);
-    }
-    
-    @Override
-    public void addRadio(final String titleText, final String text) {
-	super.addRadio(titleText, text);
-	radiosMap.put(titleText, 
-		optionsPanel.getGroupPanel(titleText).getSelectedRadioText());
+	//addCheckBox(CHECKBOX_BACKFACES_EJECTION_TEXT, true);
+	addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false);
     }
 
     /////////////////////////////////////////////////////////
@@ -228,14 +223,11 @@ public class GM extends Application implements RadioGroupListener {
 	    // axis solid need save to individual variable 
 	    // and remove from list
 	    if (solid.getName().equalsIgnoreCase(AXIS_TEXT)) {
-		axisSolid = solid;
 		continue;
 	    }
-	    solid.setEdgesColor(new Color(
-		    rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), 255));
 	    addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName());
 	}
-	solids.remove(axisSolid);
+	//solids.remove(axisSolid);
    }
 
     /////////////////////////////////////////////////////////
@@ -246,105 +238,94 @@ public class GM extends Application implements RadioGroupListener {
 	// if (!isCollisions && !isObjectsMoved) return;
 	
 	for (Solid3D solid : solids) {
+	    animate(solid);
 	    updateSolid(solid);
 	}
-	// update axis
-	axisSolid.setTransVertexes(Conveyor.transferFull(axisSolid, camera));
-	
+	//
 	onCollision();
+    }
+    
+    private void animate(Solid3D solid) {
+	if (solid == null || solid.isSetAttribute(Solid3D.ATTR_FIXED)) return;
+	solid.updateAngle(ANGLE_UP, Matrix.AXIS.Y);
     }
    
     private void updateSolid(Solid3D solid) {
 	if (solid == null) return;
 	//1
 	// transferFull local vertexes to world
-	Point3D[] verts = Conveyor.transToWorld(solid);
+	Point3D[] verts = Transfer.transToWorld(solid);
 	// culling solid if need
-	solid.setIsNeedCulling(camera);
+	//solid.setIsNeedCulling(camera);
 	if (solid.getState() != Solid3D.States.VISIBLE)
 	    return;
 	// define backfaces triangles
-	solid.resetTrianglesVertexes(verts);
-	solid.defineBackfacesTrias(camera);
+	if (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equalsIgnoreCase(RADIO_BACKFACES_EJECTION_TEXT))
+	    solid.resetTrianglesVertexes(verts);
+	    solid.defineBackfaces(camera);
 	// transferFull world vertexes to camera
-	verts = Conveyor.transToCamera(verts, camera);
+	verts = Transfer.transToCamera(verts, camera);
 	if (solid.isNeedPerspective())
-	    verts = Conveyor.transToPerspective(verts, camera);
+	    verts = Transfer.transToPerspective(verts, camera);
 	solid.resetTrianglesVertexes(verts);
 	solid.setTransVertexes(verts);
-	
-	//2
-	/*Point3D[] verts = Conveyor.transferFull(solid, camera);
-	solid.setTransVertexes(verts);
-	solid.resetTrianglesVertexes();
-	
-	solid.setIsNeedCulling(camera);*/
-	
-	//3
-	/*Point3D[] verts = solid.transToWorld();
-	solid.setTransVertexes(verts);
-	
-	solid.setIsNeedCulling(camera);
-	solid.defineBackfacesTrias(camera);
-	
-	verts = solid.transToCamera(camera);
-	solid.setTransVertexes(verts);
-	solid.resetTrianglesVertexes();*/
-	//
+	// 
 	solid.setBounds(verts);
     }
      
-    private boolean onCollision() {
-	boolean res = false;
+    private void onCollision() {
 	// if collision check is off
-	if (radiosMap.get(GROUP_TITLE_INTERSECT_TEXT).equals(RADIO_INTERSECT_ON_TEXT)
-		|| isMousePressed) {
-	    return res;
-	}
+	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT)
+		|| isMousePressed) return;
 	for (Solid3D solid1 : solids) {
-	    //if (solid1.equals(camera)) continue;
 	    for (Solid3D solid2 : solids) {
-		if (/*solid2.equals(camera) ||*/ solid2.equals(solid1)) continue;
+		if (solid2.equals(solid1)) continue;
 		// if solids are intersect, then shift them to opposite directions
 		if (solid2.isIntersect(solid1.getBounds())) {
+		    boolean isFixed1 = solid1.isSetAttribute(Solid3D.ATTR_FIXED);
+		    boolean isFixed2 = solid2.isSetAttribute(Solid3D.ATTR_FIXED);
+		    if (isFixed1 && isFixed2) continue;
+		    //
+		    double dx1=0,dy1=0,dz1=0,
+			    dx2=0,dy2=0,dz2=0;
 		    Point3D cp1 = Solid3D.getCenter(solid1.getBounds());
 		    Point3D cp2 = Solid3D.getCenter(solid2.getBounds());
 		    // shift to X axis
 		    if (cp2.getX() > cp1.getX()) {
-			solid2.updateTransfers(SHIFT_STEP,0,0);
+			dx2 = SHIFT_STEP;
 		    } else {
-			solid1.updateTransfers(-SHIFT_STEP,0,0);
+			dx1 = -SHIFT_STEP;
 		    }
 		    // shift to Y axis
 		    if (cp2.getY() > cp1.getY()) {
-			solid2.updateTransfers(0,SHIFT_STEP,0);
+			dy2 = SHIFT_STEP;
 		    } else {
-			solid1.updateTransfers(0,-SHIFT_STEP,0);
+			dy1 = -SHIFT_STEP;
 		    }
 		    // shift to Z axis
 		    if (cp2.getZ() > cp1.getZ()) {
-			solid2.updateTransfers(0,0,SHIFT_STEP);
+			dz2 = SHIFT_STEP;
 		    } else {
-			solid1.updateTransfers(0,0,-SHIFT_STEP);
+			dz1 = -SHIFT_STEP;
 		    }
-		    res = true;
+		    //
+		    if (!isFixed1) solid1.updateTransfers(dx1,dy1,dz1);
+		    if (!isFixed2) solid2.updateTransfers(dx2,dy2,dz2);
 		}
 	    }
 	}
-	return res;
     }
   
     /////////////////////////////////////////////////////////
     private void onOperation(List<Solid3D> solids, double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz, double scale) {
 	// if selected all solids
-	if (solids.contains(allSolids)) {
+	if (solids.contains(allSolid)) {
 	    solids.clear();
 	    solids.addAll(this.solids);
 	}
 	// select operation
-	String selectedRadioText = radiosMap.get(GROUP_TITLE_OPERATIONS_TEXT);
-	switch (selectedRadioText) {
+	switch (getSelectedRadioText(GROUP_TITLE_OPERATIONS_TEXT)) {
 	    case RADIO_ROTATE_TEXT:
 		onRotate(solids, angle, axis);
 		break;
@@ -366,39 +347,33 @@ public class GM extends Application implements RadioGroupListener {
 
     private void onRotate(List<Solid3D> solids, double angle, Matrix.AXIS axis) {
 	for (Solid3D solid : solids) {
+	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    solid.updateAngle(angle, axis);
 	}
     }
 
     private void onTransfer(List<Solid3D> solids, double dx, double dy, double dz) {
 	for (Solid3D solid : solids) {
+	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    solid.updateTransfers(dx, dy, dz);
 	}
     }
 
     private void onScale(List<Solid3D> solids, double scale) {
 	for (Solid3D solid : solids) {
+	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    solid.updateScale(scale);
 	}
     }
     
     private void onProjection(String selectedRadioText) {
+	boolean isPerspective = false;
 	switch (selectedRadioText) {
 	    case RADIO_ORTOGON_TEXT:
 		isPerspective = false;
 		break;
 	    case RADIO_CENTER_TEXT:
-		if (isPerspective) return;
 		isPerspective = true;
-		// get decart camera coordinates
-		Point3D camPoint = camera.getPosition();
-		// convert to spherical coordinates
-		double[] sphereCoords = GraphicSystem.decartToSpherical(
-			camPoint.getX(), camPoint.getY(), camPoint.getZ());
-		//sphereCoords = new double[] {2.44, 0.61, 0.78};
-		for (Solid3D solid : solids) {
-		    solid.setPerspective(camera.getViewDist(), sphereCoords[0], sphereCoords[1], sphereCoords[2]);
-		}
 		break;
 	}
 	for (Solid3D solid : solids) {
@@ -414,12 +389,12 @@ public class GM extends Application implements RadioGroupListener {
 	    }
 	}
 	// if suddenly selected solid don't finded
-	selectedSolid = allSolids;
+	selectedSolid = allSolid;
     }
 
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
-	radiosMap.put(groupTitle, radioText);
+	//radiosMap.put(groupTitle, radioText);
 	switch(groupTitle) {
 	    case GROUP_TITLE_PROJECTION_TEXT:
 		onProjection(radioText);
@@ -430,6 +405,10 @@ public class GM extends Application implements RadioGroupListener {
 	}
     }
 
+    @Override
+    public void itemStateChanged(ItemEvent ie) {
+    }
+    
     /////////////////////////////////////////////////////////
     public void onMouseDragged(Point curPoint, Point prevPoint) {
 	double dx = 0, dy = 0, dz = 0, angle = 0, scale = 0;
@@ -461,14 +440,15 @@ public class GM extends Application implements RadioGroupListener {
     public void onMouseMoved(Point curPoint) {
 	if (g == null) return;
 	// set cursor type
-	if (radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
+	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
 	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 	    return;
 	}
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+	Point2D p = g.convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 	for (Solid3D solid : solids) {
-	    if (solid.getState() != Solid3D.States.VISIBLE) continue;
+	    if (solid.getState() != Solid3D.States.VISIBLE
+		    || solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
 	    if (solid.getBounds().isPointInto(p)) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -479,18 +459,18 @@ public class GM extends Application implements RadioGroupListener {
     
     /////////////////////////////////////////////////////////
     public void onMouseWheelMoved(int notches) {
-	double dz = 0, angle = 0, scale = 1;
+	double dz, angle, scale;
 	Matrix.AXIS axis;
 
 	if (notches < 0) {
 	    angle = ANGLE_UP;
 	    axis = Matrix.AXIS.Z;
-	    dz = SHIFT_STEP;
+	    dz = notches * SHIFT_BY_Z_STEP;
 	    scale = SCALE_UP;
 	} else {
 	    angle = ANGLE_DOWN;
 	    axis = Matrix.AXIS.Z;
-	    dz = -SHIFT_STEP;
+	    dz = notches * SHIFT_BY_Z_STEP;
 	    scale = SCALE_DOWN;
 	}
 	onOperation(focusedSolids, angle, axis, 0, 0, dz, scale);
@@ -499,24 +479,24 @@ public class GM extends Application implements RadioGroupListener {
     /////////////////////////////////////////////////////////
     public void onMousePressed(Point curPoint) {
 	isMousePressed = true;
-	String selectedRadioText = radiosMap.get(GROUP_TITLE_OBJ_CHOISE_TEXT);
-	switch (selectedRadioText) {
+	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		Point2D p = g.convPToGraphic(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		Point2D p = g.convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D solid : solids) {
-		    if (solid.getState() != Solid3D.States.VISIBLE) continue;
+		    boolean isPointInto = solid.getBounds().isPointInto(p);
+		    if (solid.getState() != Solid3D.States.VISIBLE
+			    /*|| solid.getName().equals(AXIS_TEXT)*/
+			    /*|| solid.isSetAttribute(Solid3D.ATTR_FIXED)*/) continue;
 		    // find object borders & check the cursor hit into borders
-		    // double[] borders = GraphicSystem.getBorders2D(solid.transToWorld(camera));
-		    // if (GraphicSystem.isPointInRect(borders, p)) {
-		    if (solid.getBounds().isPointInto(p)) {
+		    if (isPointInto) {
 			focusedSolids.add(solid);
 		    }
 		}
 		// if the mouse is pressed in an empty area,
 		// then making operations with all solids
 		if (focusedSolids.isEmpty()) {
-		    focusedSolids.add(allSolids);
+		    focusedSolids.add(allSolid);
 		}
 		break;
 	    //
@@ -586,71 +566,56 @@ public class GM extends Application implements RadioGroupListener {
 	for (Solid3D solid : solids) {
 	    if (solid.getState() != Solid3D.States.VISIBLE) continue;
 	    drawSolid(g, solid);
-	    //trias.addAll(Types.toList(solid.getTriangles()));
+	    //trias.addAll(Types.toList(solid.getPolygons()));
 	}
-	drawAxis(g, axisSolid);
 	//g.painterAlgorithm(Types.toArray3(trias, Triangle3D.class));
  	repaint();
    }
-
-    /////////////////////////////////////////////////////////
-    private void drawAxis(GraphicSystem g, Solid3D axis) {
-	if (axis == null) return;
-	drawEdges(g, axis.getTransVertexes(), axis.getDoms(), axis.getEdgesColor());
-     }
-
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid) {
 	if (solid == null) return;
-	Point3D[] verts = solid.getTransVertexes();
-	Triangle3D[] trias = solid.getTriangles();
+	Polygon3D[] polies = solid.getPolygons();
 	
-	String selectedRadioText = radiosMap.get(GROUP_TITLE_VIEW_TEXT);
-	switch (selectedRadioText) {
+	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
 	    case RADIO_FACES_TEXT:
-		fillSolid(g, trias);
+		fillSolid(g, polies);
 		break;
 	    case RADIO_EDGES_TEXT:
-		drawEdges(g, verts, solid.getDoms(), solid.getEdgesColor());
+		drawEdges(g, polies);
 		break;
 	    case RADIO_EDGES_FACES_TEXT:
-		fillSolid(g, trias);
-		drawEdges(g, verts, solid.getDoms(), solid.getEdgesColor());
+		fillSolid(g, polies);
+		drawEdges(g, polies);
 		break;
 	}
-  }
+    }
 
-    /////////////////////////////////////////////////////////
-    private void drawEdges(GraphicSystem g, Point3D[] verts, DrawOrMove[] doms, Color col) {
-	if (g == null || verts == null || doms == null) return;
-	g.setColor(col);
-	for (int i = 0; i < doms.length; i++) {
-	    Point3D p = doms[i].getPoint3D(verts);
-	    DrawOrMove.Operation op = doms[i].getOperation();
-	    if (op == DrawOrMove.Operation.MOVE) {
-		g.move(p);
-	    } else {
-		g.draw(p);
+    private void drawEdges(GraphicSystem g, Polygon3D[] polies) {
+	if (g == null || polies == null) return;
+	for (Polygon3D poly : polies) {
+	    if (poly.getState() == Polygon3D.States.VISIBLE) {
+		g.drawPolygonBorder(poly.getVertexes(), poly.getBorderColor());
 	    }
 	}
     }
 
     /////////////////////////////////////////////////////////
-    private void fillSolid(GraphicSystem g, Triangle3D[] trias) {
-	if (g == null || trias == null)  return;
-	String selectedRadioText = radiosMap.get(GROUP_TITLE_CLIPPING_TEXT);
-	switch (selectedRadioText) {
+    private void fillSolid(GraphicSystem g, Polygon3D[] polies) {
+	if (g == null || polies == null)  return;
+	switch (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT)) {
 	    case RADIO_PAINTER_TEXT:
-		g.painterAlgorithm(trias);
-		/*for (Triangle3D tria : trias) {
-		    if (tria.getState() == Polygon3D.States.VISIBLE) {
-			g.setColor(tria.getColor());
-			g.fillPolygon(tria.getVertexes());
+		g.painterAlgorithm(polies);
+		break;
+	    case RADIO_BACKFACES_EJECTION_TEXT:
+		for (Polygon3D poly : polies) {
+		    if (poly.getState() == Polygon3D.States.VISIBLE) {
+			g.setColor(poly.getFillColor());
+			g.fillPolygon(poly.getVertexes());
 		    }
-		}*/
+		}
 		break;
 	    case RADIO_Z_BUFFER_TEXT:
-		g.zBufferAlgorithm(trias);
+		g.zBufferAlgorithm(polies);
 		break;
 	}
     }

@@ -9,23 +9,30 @@ import java.awt.Color;
  */
 public class Triangle3D extends Polygon3D {
     
-    public Triangle3D(Point3D[] verts, int i1, int i2, int i3, Color color) {
-	super(verts, new int[] { i1,i2,i3 }, color);
+    public Triangle3D(Point3D[] verts, int i1, int i2, int i3, Color fill, Color border, int attr) {
+	super(verts, new int[] { i1,i2,i3 }, fill, border, attr);
     }
     
     public Triangle3D(Triangle3D tria) {
-	super(tria.getVertexes(), tria.getIndexes(), tria.getColor());
+	super(tria.getVertexes(), tria.getIndexes(), tria.getFillColor(), tria.getBorderColor(), tria.getAttributes());
     }
 
     public boolean isPointInto(Point3D point) {
-	double s1 = getSquare(getV1(), getV2(), point);
-	double s2 = getSquare(getV2(), getV3(), point);
-	double s3 = getSquare(getV1(), getV3(), point);
-	return ((s1 + s2 + s3) - getSquare() < Mathem.EPSILON_E6);
+	return isPointInto(getV1(), getV2(), getV3(), point);
+    }
+    
+    public static boolean isPointInto(Point3D v1, Point3D v2, Point3D v3, Point3D point) {
+	double s1 = getSquare(v1, v2, point);
+	double s2 = getSquare(v1, v3, point);
+	double s3 = getSquare(v2, v3, point);
+	return ((s1 + s2 + s3) - getSquare(v1,v2,v3) < Mathem.EPSILON_E6);
     }
     
     public double getZbyXY(double x, double y) {
-	Point3D v1 = getV1(), v2 = getV2(), v3 = getV3();
+	return getZbyXY(getV1(), getV2(), getV3(), x, y);
+    }
+    
+    public static double getZbyXY(Point3D v1, Point3D v2, Point3D v3, double x, double y) {
 	double A = v1.getY() * (v2.getZ() - v3.getZ()) 
 		+ v2.getY() * (v3.getZ() - v1.getZ()) 
 		+ v3.getY() * (v1.getZ() - v2.getZ());
@@ -72,7 +79,8 @@ public class Triangle3D extends Polygon3D {
 	return vertexes[indexes[2]];
     }
     
+    @Override
     public Triangle3D getCopy() {
-	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], color);
+	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], fillColor, borderColor, attributes);
     }
 }

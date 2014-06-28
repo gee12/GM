@@ -21,7 +21,7 @@ public class Point3D {
     
     public Point3D(double[] v) {
 	if (v == null) return;
-	if (v.length < 3) throw new RuntimeException("Размер вектора < 3");
+	if (v.length < 3) throw new RuntimeException("Размер массива < 3");
 	vector = new Matrix(new double[][] {{v[0],v[1],v[2]}});
     }
     

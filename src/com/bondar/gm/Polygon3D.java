@@ -8,39 +8,55 @@ import java.awt.Color;
  */
 public class Polygon3D {
     
-    public enum States {
+    public static enum States {
 	VISIBLE,
-	BACKFACE
+	INVISIBLE
     }
-    public static final int TWO_SIDES = 0;
-    public static final int LESS_3_VERTS = 1;
+    public static enum Types {
+	POLYGON,
+	TRIANGLE,
+	LINE,
+	POINT
+    }
     
-    private States state;
-    protected int attribute;
+    public static final int ATTR_TWO_SIDES = 1;
+    
+    protected States state;
+    protected Types type;
+    protected int attributes;
     protected Point3D[] vertexes;
     protected int indexes[];
     protected int size;
-    protected Color color;
+    protected Color fillColor;
+    protected Color borderColor;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(Point3D[] verts, int[] inds, Color color) {
+    public Polygon3D(Point3D[] verts, int[] inds, Color fill, Color border, int attr) {
 	this.vertexes = verts;
 	this.indexes = inds;
-	this.color = color;
-	if (inds != null) {
-	    this.size = inds.length;
-	    this.state = States.VISIBLE;
+	this.fillColor = fill;
+	this.borderColor = border;
+	this.attributes = attr;
+	if (inds == null) return;
+	this.size = inds.length;
+	this.state = States.VISIBLE;
+	switch (size) {
+	    case 1: type = Types.POINT;
+		break;
+	    case 2: type = Types.LINE;
+		break;
+	    case 3: type = Types.TRIANGLE;
+		break;
+	    default: type = Types.POLYGON;
 	}
-	if (this.size < 3)
-	    setAttribute(LESS_3_VERTS);
     }
     
     /////////////////////////////////////////////////////////
     //
     public boolean isBackFace(CameraEuler cam) {
-	//if (state == States.BACKFACE) return true;
-	if (isSetAttribute(TWO_SIDES)
-		|| isSetAttribute(LESS_3_VERTS)
+	if (isSetAttribute(ATTR_TWO_SIDES)
+		|| type == Types.LINE
+		|| type == Types.POINT
 		|| cam == null) return false;
 	// build normal
 	Vector3D u = new Vector3D(getVertex(0), getVertex(1));
@@ -56,12 +72,12 @@ public class Polygon3D {
     /////////////////////////////////////////////////////////
     // set
     public final void setAttribute(int attr) {
-	attribute &= attr;
+	attributes |= attr;
     }
     
     public void setIsBackFace(CameraEuler cam) {
 	if (isBackFace(cam))
-	    state = States.BACKFACE;
+	    state = States.INVISIBLE;
 	else state = States.VISIBLE;
     }
      
@@ -71,13 +87,30 @@ public class Polygon3D {
 
     /////////////////////////////////////////////////////////
     // get
+    public Types getType() {
+	return type;
+    }
+    
+    public double getAverageZ() {
+	double s = 0;
+	for (Point3D v : getVertexes()) {
+	    s += v.getZ();
+	}
+	return s / size;
+    }
+    
+    public double getZbyXY(double x, double y) {
+	return Triangle3D.getZbyXY(getVertex(0), getVertex(1), getVertex(2), x, y);
+    }
+	
     public Point3D getVertex(int i) {
-	if (vertexes == null || indexes == null) return null;
+	if (vertexes == null || indexes == null
+		|| (i < 0 || i >= size) || (indexes[i] > vertexes.length)) return null;
 	return vertexes[indexes[i]];
     }
     
     public boolean isSetAttribute(int attr) {
-	return (attribute & attr) != 0;
+	return (attributes & attr) != 0;
     }
     
     public int[] getIndexes() {
@@ -88,10 +121,14 @@ public class Polygon3D {
 	return size;
     }
     
-    public Color getColor() {
-	return color;
+    public Color getFillColor() {
+	return fillColor;
     }
-    
+     
+    public Color getBorderColor() {
+	return borderColor;
+    }
+
     public Point3D[] getVertexes() {
 	if (vertexes == null) return null;
 	Point3D[] res = new Point3D[size];
@@ -103,5 +140,13 @@ public class Polygon3D {
     
     public States getState() {
 	return state;
+    }
+    
+    public int getAttributes() {
+	return attributes;
+    }
+    
+    public Polygon3D getCopy() {
+	return new Polygon3D(vertexes, indexes, fillColor, borderColor, attributes);
     }
 }

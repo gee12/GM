@@ -10,6 +10,8 @@ import java.awt.Graphics;
  */
 public class GraphicSystem {
 
+    private static int TONE = 240;
+    public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
     public static double EPS = 0.0000001;
     public static final double MAX_POINT = 10;
     public static final double X_MAX = 10d;
@@ -50,7 +52,7 @@ public class GraphicSystem {
     }
     
     public void clear() {
-	g.setColor(Color.WHITE);
+	g.setColor(BACK_COLOR);
 	g.fillRect(convXToScreen(0), convYToScreen(Y_MAX), convXToScreen(X_MAX), convYToScreen(0));
 	g.setColor(Color.BLACK);
     }
@@ -222,19 +224,33 @@ public class GraphicSystem {
 
     //////////////////////////////////////////////////
     // Отрисовка многоугольника
-    public void fillPolygon(Point3D[] points) {
-	if (points == null) {
+    public void fillPolygon(Point3D[] verts) {
+	if (verts == null) {
 	    return;
 	}
-	int size = points.length;
+	int size = verts.length;
 	int xs[] = new int[size];
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
-	    double[] p = transMatrix.applyTransform(points[i].toPoint3DOdn().toArray3());
+	    double[] p = transMatrix.applyTransform(verts[i].toPoint3DOdn().toArray3());
 	    xs[i] = convXToScreen(p[0]);
 	    ys[i] = convYToScreen(p[1]);
 	}
 	g.fillPolygon(xs, ys, size);
+    }
+    
+    /////////////////////////////////////////////////////
+    //
+    public void drawPolygonBorder(Point3D[] verts, Color color) {
+	if (verts == null) return;
+	setColor(color);
+	int size = verts.length;
+	for (int i = 0; i < size-1; i++) {
+	    line(verts[i], verts[i+1]);
+	    //line(convPToScreen(verts[i]), convPToScreen(verts[i+1]));
+	}
+	line(verts[size-1], verts[0]);
+	//line(convPToScreen(verts[size-1]), convPToScreen(verts[0]));
     }
 
     //////////////////////////////////////////////////
@@ -469,59 +485,47 @@ public class GraphicSystem {
     }
 
     /////////////////////////////////////////////////////
-    public static double[] decartToSpherical(double x, double y, double z) {
-	/*double ro = Math.sqrt(x * x + y * y + z * z);
-	double theta = /*Math.atan(Math.sqrt(x*x+y*y)/z);//*/ /*Math.atan2(z, x);
-	double phi = /*Math.atan(y/x);//*/ /*Math.atan2(y, Math.sqrt(x * x + z * z));*/
-	/*double ro = Math.atan2(x,z)/6.28318f; 
-	double theta = 0;
-	if(ro < 0.0f) 
-	    theta += 1.0f; 
-	double phi = Math.atan2(Math.sqrt(x*x+z*z),y)/3.14159f; */
-	double ro = (Math.sqrt(x*x + y*y + z*z)); 
-	//double theta = Math.toDegrees(Math.asin(z/ro));
-	double theta = Math.toDegrees(Math.atan(y/x)); // Find the value of 'θ'
-	if(y<0 && x<0) { // Correct the value of 'θ' depending upon the quadrant.
-	    theta += 180;
-	}
-	if(y>0 && x<0) { // Correct the value of 'θ' depending upon the quadrant.
-	    theta += 180;
-	}
-	//double phi = Math.toDegrees(Math.atan2(y, x));
-	double phi = Math.toDegrees(Math.acos(z/ro)); // Find the value of 'β'
-	return new double[]{ro, theta, phi};
-    }
-
-    /////////////////////////////////////////////////////
     // Алгоритм художника
-    public void painterAlgorithm(Triangle3D[] trias) {
-	Triangle3D[] sortTrias = sortTrianglesByZ(trias);
-	if (sortTrias == null) {
+    public void painterAlgorithm(Polygon3D[] polies) {
+	Polygon3D[] sortPolies = sortTrianglesByZ(polies);
+	if (sortPolies == null) {
 	    return;
 	}
-	for (Triangle3D tria : sortTrias) {
-	    setColor(tria.getColor());
-	    fillPolygon(tria.getVertexes());
+	for (Polygon3D poly : sortPolies) {
+	    drawFilledPolygon(poly);
+	}
+    }
+    
+    public void drawFilledPolygon(Polygon3D poly) {
+	setColor(poly.getFillColor());
+	switch(poly.getType()) {
+	    case POINT:
+		line(poly.getVertex(0), poly.getVertex(0));
+		break;
+	    case LINE:
+		line(poly.getVertex(0), poly.getVertex(1));
+		break;
+	    default:
+		fillPolygon(poly.getVertexes());
+		break;
 	}
     }
 
     // Сортировка граней по координате Z
-    public static Triangle3D[] sortTrianglesByZ(Triangle3D[] trias) {
-	if (trias == null) {
+    public static Polygon3D[] sortTrianglesByZ(Polygon3D[] polies) {
+	if (polies == null) {
 	    return null;
 	}
-	int size = trias.length;
+	int size = polies.length;
 	double[] dists = new double[size];
 	int[] indexes = new int[size];
 	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
-	    Triangle3D tria = trias[i];
-	    dists[i] = (tria.getV1().getZ()
-		    + tria.getV2().getZ()
-		    + tria.getV3().getZ()) / 3;
+	    Polygon3D poly = polies[i];
+	    dists[i] = poly.getAverageZ();
 	    indexes[i] = i;
 	}
-	Triangle3D[] res = new Triangle3D[size];
+	Polygon3D[] res = new Polygon3D[size];
 	// сортировка граней по удаленности
 	for (int i = 0; i < size - 1; i++) {
 	    for (int j = 0; j < size - 1; j++) {
@@ -537,19 +541,29 @@ public class GraphicSystem {
 	    }
 	}
 	for (int i = 0; i < size; i++) {
-	    res[i] = trias[indexes[i]].getCopy();
+	    res[i] = polies[indexes[i]].getCopy();
 	}
 	return res;
     }
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения невидимых граней с использованием z-буффера
-    public void zBufferAlgorithm(Triangle3D[] trias) {
-	if (trias == null) {
+    public void zBufferAlgorithm(Polygon3D[] polies) {
+	if (polies == null) {
 	    return;
 	}
-	for (Triangle3D tria : trias) {
-	    drawBufferedTriangle(tria);
+	for (Polygon3D poly : polies) {
+	    switch(poly.getType()) {
+		case POINT:
+		    line(poly.getVertex(0), poly.getVertex(0));
+		    break;
+		case LINE:
+		    line(poly.getVertex(0), poly.getVertex(1));
+		    break;
+		default:
+		    drawBufferedPolygon(poly);
+		    break;
+	    }
 	}
     }
 
@@ -566,11 +580,11 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // Отрисовка треугольника (полинейно)
-    private void drawBufferedTriangle(Triangle3D tria) {
-	if (tria == null) return;
-	Point3D a = convPToScreen(tria.getV1());
-	Point3D b = convPToScreen(tria.getV2());
-	Point3D c = convPToScreen(tria.getV3());
+    private void drawBufferedPolygon(Polygon3D poly) {
+	if (poly == null) return;
+	Point3D a = convPToScreen(poly.getVertex(0));
+	Point3D b = convPToScreen(poly.getVertex(1));
+	Point3D c = convPToScreen(poly.getVertex(2));
 	int sy, x1, x2;
 	boolean flag = true;
 	// здесь сортируем вершины (A,B,C)
@@ -611,14 +625,14 @@ public class GraphicSystem {
 	    }
 	    Point3DOdn p1 = new Point3DOdn(x1, sy, 0);
 	    Point3DOdn p2 = new Point3DOdn(x2, sy, 0);
-	    drawBufferedLine(tria, p1, p2);
+	    drawBufferedLine(poly, p1, p2);
 	}
     }
 
     /////////////////////////////////////////////////////
     // Алгритм Брезинхема
     // (поточечная отрисовка линии треугольника с использованием Z-буффера)
-    private void drawBufferedLine(Triangle3D tria, Point3DOdn p1, Point3DOdn p2) {
+    private void drawBufferedLine(Polygon3D poly, Point3DOdn p1, Point3DOdn p2) {
 	float d, d1, d2;
 	int dx = (int) (Math.abs(p2.getX() - p1.getX()));
 	int dy = (int) (Math.abs(p2.getY() - p1.getY()));
@@ -633,9 +647,9 @@ public class GraphicSystem {
 	    int xPix = (int) p1.getX();
 	    int yPix = (int) (height - p1.getY());
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = tria.getZbyXY(xPix, yPix);
+		double z_b = poly.getZbyXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    setScreenPixel(xPix, yPix, tria.getColor()); //вывод первой точки на экране
+		    setScreenPixel(xPix, yPix, poly.getFillColor()); //вывод первой точки на экране
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -651,9 +665,9 @@ public class GraphicSystem {
 		yPix = (int) (height - y);
 
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = tria.getZbyXY(xPix, yPix);
+		    double z_b = poly.getZbyXY(xPix, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, tria.getColor());
+			setScreenPixel(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -666,9 +680,9 @@ public class GraphicSystem {
 	    int xPix = (int) p1.getX();
 	    int yPix = (int) (height - p1.getY());
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = tria.getZbyXY(xPix, yPix);
+		double z_b = poly.getZbyXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    setScreenPixel(xPix, yPix, tria.getColor());
+		    setScreenPixel(xPix, yPix, poly.getFillColor());
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -682,9 +696,9 @@ public class GraphicSystem {
 		yPix = (int) (height - y);
 
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = tria.getZbyXY(x, yPix);
+		    double z_b = poly.getZbyXY(x, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, tria.getColor());
+			setScreenPixel(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -694,6 +708,29 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // проверки и преобразования
+    public static double[] decartToSpherical(double x, double y, double z) {
+	/*double ro = Math.sqrt(x * x + y * y + z * z);
+	double theta = /*Math.atan(Math.sqrt(x*x+y*y)/z);//*/ /*Math.atan2(z, x);
+	double phi = /*Math.atan(y/x);//*/ /*Math.atan2(y, Math.sqrt(x * x + z * z));*/
+	/*double ro = Math.atan2(x,z)/6.28318f; 
+	double theta = 0;
+	if(ro < 0.0f) 
+	    theta += 1.0f; 
+	double phi = Math.atan2(Math.sqrt(x*x+z*z),y)/3.14159f; */
+	double ro = (Math.sqrt(x*x + y*y + z*z)); 
+	//double theta = Math.toDegrees(Math.asin(z/ro));
+	double theta = Math.toDegrees(Math.atan(y/x)); // Find the value of 'θ'
+	if(y<0 && x<0) { // Correct the value of 'θ' depending upon the quadrant.
+	    theta += 180;
+	}
+	if(y>0 && x<0) { // Correct the value of 'θ' depending upon the quadrant.
+	    theta += 180;
+	}
+	//double phi = Math.toDegrees(Math.atan2(y, x));
+	double phi = Math.toDegrees(Math.acos(z/ro)); // Find the value of 'β'
+	return new double[]{ro, theta, phi};
+    }
+
     public boolean isCorrectXCoord(double x) {
 	return (x >= 0 && x <= X_MAX);
     }
@@ -707,6 +744,8 @@ public class GraphicSystem {
 		&& isCorrectYCoord(p.getY()));
     }
 
+    /////////////////////////////////////////////////////
+    // Convert to screen coordinates.
     public static int convXToScreen(double width, double x) {
 	return (int) (x * (width / X_MAX) + BORDER);
     }
@@ -731,6 +770,7 @@ public class GraphicSystem {
     }
     
     public Point3D convPToScreen(Point3D p) {
+	if (p == null) return null;
 	Point3D trans = transMatrix.getTranslate();
 	return new Point3D(
 		(int) ((p.getX() + trans.getX()) * (width / X_MAX) + BORDER),
@@ -738,7 +778,9 @@ public class GraphicSystem {
 		p.getZ());
     }
 
-    public static Point3D convPToGraphic(double width, double height, Point3D p) {
+    /////////////////////////////////////////////////////
+    // Convert back to world coordinates.
+    public static Point3D convPToWorld(double width, double height, Point3D p) {
 	if (width == 0 || height == 0) {
 	    return null;
 	}
@@ -748,7 +790,7 @@ public class GraphicSystem {
 		p.getZ());
     }
 
-    public Point3D convPToGraphic(Point3DOdn p) {
+    public Point3D convPToWorld(Point3DOdn p) {
 	Point3D trans = transMatrix.getTranslate();
 	return new Point3D(
 		(p.getX() - BORDER) * X_MAX / width - trans.getX() ,

@@ -12,8 +12,8 @@ import javax.swing.WindowConstants;
  */
 public abstract class Application extends JFrame {
 
-    protected final OptionsPanel optionsPanel;
-    protected DrawablePanel drawablePanel;
+    private final OptionsPanel optionsPanel;
+    private DrawablePanel drawablePanel;
 
     public Application(int width, int height) {
 	setLocationByPlatform(true);
@@ -28,19 +28,31 @@ public abstract class Application extends JFrame {
 	pack();
 	setVisible(true);
     }
-
-    public OptionsPanel getOptionsPanel() {
-	return optionsPanel;
+      
+    /////////////////////////////////////////////////////
+    // add controls
+    public void addSlider(String text, int min, int max, int init) {
+	optionsPanel.addSlider(text, min, max, init);
+	revalidate();
     }
     
-    public DrawablePanel getDrawablePanel() {
-	return drawablePanel;
+    public void addSlider(String text, int min, int max, int init, String[] values) {
+	optionsPanel.addSlider(text, min, max, init, values);
+	revalidate();
     }
     
-    public GraphicSystem getGraphicSystem() {
-	return drawablePanel.getGraphicSystem();
+    public void addRadio(final String titleText, final String text) {
+	optionsPanel.addRadio(titleText, text);
+	revalidate();
     }
-
+     
+    public void addCheckBox(final String text, final boolean isChecked) {
+	optionsPanel.addCheckBox(text, isChecked);
+	revalidate();
+    }
+    
+    /////////////////////////////////////////////////////
+    // set
     public void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
 	drawablePanel.getGraphicSystem().setClipWindow(xmin,ymin,xmax,ymax);
     }
@@ -56,28 +68,35 @@ public abstract class Application extends JFrame {
 	drawablePanel.getGraphicSystem().setScale(isNeedScale);
     }
     
-    public void addSlider(String text, int min, int max, int init) {
-	optionsPanel.addSlider(text, min, max, init);
-	revalidate();
+    public void setRadioGroupListeners(OptionsPanelListener listener) {
+	optionsPanel.setListeners(listener);
+    }
+
+    // get
+    public OptionsPanel getOptionsPanel() {
+	return optionsPanel;
     }
     
-    public void addSlider(String text, int min, int max, int init, String[] values) {
-	optionsPanel.addSlider(text, min, max, init, values);
-	revalidate();
+    public DrawablePanel getDrawablePanel() {
+	return drawablePanel;
     }
     
-    public void addRadio(final String titleText, final String text) {
-	optionsPanel.addRadio(titleText, text);
-	revalidate();
+    public GraphicSystem getGraphicSystem() {
+	return drawablePanel.getGraphicSystem();
     }
 
     public int getSliderValue(String sliderName) {
 	return optionsPanel.getSliderValue(sliderName);
     }
     
-    public void setRadioGroupListeners(RadioGroupListener listener) {
-	optionsPanel.setListeners(listener);
+    public String getSelectedRadioText(final String titleText) {
+	return optionsPanel.getGroupPanel(titleText).getSelectedRadioText();
+    }
+    
+    public boolean isSelectedCheckBox(String text) {
+	return optionsPanel.isSelectedCheckBox(text);
     }
 
+    //
     protected abstract void paint(GraphicSystem g);
 }

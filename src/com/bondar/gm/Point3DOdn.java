@@ -1,6 +1,8 @@
 
 package com.bondar.gm;
 
+import com.bondar.tools.Mathem;
+
 /**
  *
  * @author truebondar
@@ -30,11 +32,12 @@ public class Point3DOdn extends Point3D {
 	this(p2D.getX(), p2D.getY(), 0);
     }
 
+    // div by w
     public Point3DOdn divByW() {
-	// div by w
-	double w = 1 / getW();
+	double w = getW();
+	double invW = (w >= Mathem.EPSILON_E5) ? (1 / w) : (1 / Mathem.EPSILON_E5);
 	for (int i = 0; i < 4; i++) {
-	    vector.setAt(0, i, vector.getAt(0, i) * w);
+	    vector.setAt(0, i, vector.getAt(0, i) * invW);
 	}
 	return this;
     }

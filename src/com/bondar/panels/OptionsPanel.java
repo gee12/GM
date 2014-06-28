@@ -1,7 +1,6 @@
 package com.bondar.panels;
 
 import java.awt.Cursor;
-import java.awt.event.KeyAdapter;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -17,17 +16,29 @@ public class OptionsPanel extends JPanel {
     private final HashMap<String, Integer> slidersVal;
     private String[] sliderValues;
     private final HashMap<String, GroupPanel> radioGroups;
+    private final HashMap<String, JCheckBox> checkBoxes;
 
     public OptionsPanel(JPanel drawablePanel, int width) {
 	this.drawablePanel = drawablePanel;
 	slidersVal = new HashMap<>();
 	radioGroups = new HashMap<>();
+	checkBoxes = new HashMap<>();
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	setAlignmentY(TOP_ALIGNMENT);
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
-
+    
+    public void setListeners(OptionsPanelListener listener) {
+	for (GroupPanel group : radioGroups.values()) {
+	    group.setListener(listener);
+	}
+	for (JCheckBox check: checkBoxes.values()) {
+	    check.addItemListener(listener);
+	}
+    }
+    
     /////////////////////////////////////////////////////
+    // Sliders
     public int getSliderValue(String sliderName) {
 	if (slidersVal == null) {
 	    return 0;
@@ -79,6 +90,7 @@ public class OptionsPanel extends JPanel {
     }
    
     /////////////////////////////////////////////////////
+    // Radio buttons
     public void addRadio(final String groupTitle, final String radioText) {
 	GroupPanel group = null;
 	if (radioGroups.containsKey(groupTitle)) {
@@ -97,22 +109,17 @@ public class OptionsPanel extends JPanel {
     public GroupPanel getGroupPanel(final String groupTitle) {
 	return radioGroups.get(groupTitle);
     }
-    
-    public void setListeners(RadioGroupListener listener) {
-	for (GroupPanel group : radioGroups.values()) {
-	    group.setListener(listener);
-	}
+
+    /////////////////////////////////////////////////////
+    // CheckBoxes
+    public void addCheckBox(String text, boolean isChecked) {
+	final JCheckBox check = new JCheckBox(text, isChecked);
+	check.setFocusable(false);
+	add(check);
+	checkBoxes.put(text, check);
     }
-/*
-    public String getSelectedRadioText(final String groupTitle) {
-	GroupPanel group = groups.get(groupTitle);
-	if (group == null) return null;
-	for (Enumeration<AbstractButton> buttons = group.getRadioGroup().getElements(); buttons.hasMoreElements();) {
-	    AbstractButton button = buttons.nextElement();
-	    if (button.isSelected()) {
-		return button.getText();
-	    }
-	}
-	return null;
-    }*/
+    
+    public boolean isSelectedCheckBox(String text) {
+	return checkBoxes.get(text).isSelected();
+    }
 }
