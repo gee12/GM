@@ -9,8 +9,8 @@ public class ClipBox3D {
     // 3d clipping planes
     // if view volume is NOT 90 degree then general 3d clipping
     // must be employed
-    float nearClipZ;
-    float farClipZ; 
+    double nearClipZ;
+    double farClipZ; 
     Plane3D rtPlane;
     Plane3D ltPlane;
     Plane3D tpPlane;
@@ -25,11 +25,11 @@ public class ClipBox3D {
     }
 
     // set
-    public void setNearClipZ(float nearClipZ) {
+    public void setNearClipZ(double nearClipZ) {
 	this.nearClipZ = nearClipZ;
     }
 
-    public void setFarClipZ(float farClipZ) {
+    public void setFarClipZ(double farClipZ) {
 	this.farClipZ = farClipZ;
     }
 
@@ -50,11 +50,11 @@ public class ClipBox3D {
     }
 
     // get
-    public float getNearClipZ() {
+    public double getNearClipZ() {
 	return nearClipZ;
     }
 
-    public float getFarClipZ() {
+    public double getFarClipZ() {
 	return farClipZ;
     }
 

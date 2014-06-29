@@ -18,6 +18,7 @@ public class Solid3D {
     }
     
     public static final int ATTR_FIXED = 1;
+    public static final int ATTR_NO_CULL = 2;
     
     private States state;
     private int attribute;
@@ -35,16 +36,22 @@ public class Solid3D {
     private double maxRadius;
 
     /////////////////////////////////////////////////////////
-    public Solid3D(String name, Point3D[] vertexes, Polygon3D[] polies) {
+    public Solid3D(Solid3D solid) {
+	this(solid.getName(), solid.getAttributes(), solid.getLocalVertexes(), solid.getPolygons());
+    }
+
+    public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3D[] polies) {
 	this.name = name;
-	this.localVerts = vertexes;
+	this.attribute = attribs;
+	this.localVerts = getVertexCopy(vertexes);
 	//this.indexes = indsToTrias;
-	this.polygons = polies;
+	this.polygons = getPolygonsCopy(polies);
 	reInit();
     }
     
-    public Solid3D(String name, Point3D[] vertexes, int[][] indsToTrias, Color[] fills, Color[] borders, int attr) {
+    public Solid3D(String name, int attribs, Point3D[] vertexes, int[][] indsToTrias, Color[] fills, Color[] borders, int attr) {
 	this.name = name;
+	this.attribute = attribs;
 	this.localVerts = vertexes;
 	//this.indexes = indsToTrias;
 	this.polygons = buildPolygons(vertexes, indsToTrias, fills, borders, attr);
@@ -53,6 +60,7 @@ public class Solid3D {
 
     public Solid3D(String name, Point3D[] vertexes) {
 	this.name = name;
+	this.attribute = 0;
 	this.localVerts = vertexes;
 	//this.indexes = buildIndexes(vertexes);
 	this.polygons = buildPolygons(vertexes, buildIndexes(vertexes));
@@ -119,7 +127,7 @@ public class Solid3D {
 	return res;
     }
 
-    public void resetTrianglesVertexes(Point3D[] verts) {
+    public void reinitTrianglesVertexes(Point3D[] verts) {
 	if (polygons == null) return;
 	for (Polygon3D poly : polygons) {
 	    poly.setVertexes(verts);
@@ -204,13 +212,13 @@ public class Solid3D {
 	    return true;
 	}
 	// by x
-	double zTest = 0.5 * cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
+	double zTest = 2*cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
 	if (((spherePos.getX() - maxRadius) > zTest)  || // right side
 	    ((spherePos.getX() + maxRadius) < -zTest) ) { // left side, note sign change
 	    return true;
 	}
 	// by y
-	zTest = 0.5 * cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
+	zTest = 1.5*cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
 	if (((spherePos.getY() - maxRadius) > zTest)  || // right side
 	    ((spherePos.getY() + maxRadius) < -zTest) ) { // left side, note sign change
 	    return true;
@@ -228,7 +236,7 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // set
-    public final void setAttribute(int attr) {
+    public final void setAttributes(int attr) {
 	attribute |= attr;
     }
 
@@ -301,6 +309,10 @@ public class Solid3D {
 	return isNeedPerspective;
     }
     
+    public int getAttributes() {
+	return attribute;
+    }
+    
     public boolean isSetAttribute(int attr) {
 	return (attribute & attr) != 0;
     }   
@@ -343,5 +355,27 @@ public class Solid3D {
 
     public boolean isNeedPerspective() {
 	return isNeedPerspective;
+    }
+     
+    public static Point3D[] getVertexCopy(Point3D[] vertexes) {
+	int size = vertexes.length;
+	Point3D[] res = new Point3D[size];
+	for (int i = 0; i < size; i++) {
+	    res[i] = vertexes[i].getCopy();
+	}
+	return res;
+    }
+    
+    public static Polygon3D[] getPolygonsCopy(Polygon3D[] polies) {
+	int size = polies.length;
+	Polygon3D[] res = new Polygon3D[size];
+	for (int i = 0; i < size; i++) {
+	    res[i] = polies[i].getCopy();
+	}
+	return res;
+    }
+        
+    public Solid3D getCopy() {
+	return new Solid3D(name, attribute, localVerts, polygons);
     }
 }

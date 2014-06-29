@@ -156,14 +156,22 @@ public class Matrix {
      public static Matrix buildScreenMatrix(double width, double height) {
 	double alpha = (0.5 * width - 0.5);
 	double beta  = (0.5 * height - 0.5);
-	Matrix m = new Matrix(new double[][]{
+	return new Matrix(new double[][]{
 	    {alpha, 0, 0, 0},
 	    {0, -beta, 0, 0},
 	    {alpha, beta, 1, 0},
 	    {0, 0, 0, 1}});
-	return m;
     }   
-    
+     
+    //////////////////////////////////////////////////
+     public static Matrix buildUVNMatrix(Vector3D u, Vector3D v, Vector3D n) {
+	return new Matrix(new double[][]{
+	    {u.getX(), v.getX(), n.getX(), 0},
+	    {u.getY(), v.getY(), n.getY(), 0},
+	    {u.getZ(), v.getZ(), n.getZ(), 0},
+	    {0, 0, 0, 1}});
+    }
+     
     //////////////////////////////////////////////////
     public void multiply(double s) {
 	for (int i = 0; i < rows; i++) {

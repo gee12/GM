@@ -9,30 +9,27 @@ import java.awt.geom.Dimension2D;
  */
 public class CameraEuler extends Camera{
 
-    private double viewDist;	    // focal length 
+    public static final int CAM_ROT_SEQ_XYZ = 0;
+    public static final int CAM_ROT_SEQ_YXZ = 1;
+    public static final int CAM_ROT_SEQ_XZY = 2;
+    public static final int CAM_ROT_SEQ_YZX = 3;
+    public static final int CAM_ROT_SEQ_ZYX = 4;
+    public static final int CAM_ROT_SEQ_ZXY = 5;
+    
     private double fov;		    // field of view for both horizontal and vertical axes
     private Dimension2D viewPlane;  // width and height of view plane to project onto
     private ClipBox3D clipBox;	    // 3d clipping planes
-    private Dimension viewPort;	    // size of viewport (screen window)
     private Point2D viewportCenter; // center of view port (final image destination)
-    private double aspectRatio;
     
     public CameraEuler(int attr, Point3D pos, Vector3D dir,
-	    float nearClipZ, float farClipZ, double dist, float fov, Dimension vp) {
-	super(attr, pos, dir);
+	    double nearClipZ, double farClipZ, double dist, double fov, Dimension vp) {
+	super(attr, pos, dir, dist, vp);
 	this.fov = fov;
-	this.viewPort = vp;
 	viewportCenter = new Point2D(viewPort.getWidth() / 2., viewPort.getHeight() / 2.);
-	aspectRatio = viewPort.getWidth() / viewPort.getHeight();
 	// usually 2x2 for normalized projection or 
 	// the exact same size as the viewport (screen window)
 	viewPlane = new Dimension();
 	viewPlane.setSize(2., 2. / aspectRatio);
-	
-	// now we know fov and we know the viewplane dimensions plug into formula and
-	// solve for view distance parameters
-	viewDist = dist;
-	//viewDist = 0.5 * viewPlane.getWidth() * Math.tan(Math.toRadians(fov / 2.));
 	
 	clipBox = new ClipBox3D();
 	clipBox.setNearClipZ(nearClipZ);
@@ -52,9 +49,10 @@ public class CameraEuler extends Camera{
 	}
     }
 
+    @Override
     public Matrix builtMatrix(int camRotSeq) {
 	Matrix res = new Matrix();
-	Matrix transM = Matrix.buildTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
+	Matrix invM = Matrix.buildTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
 	Matrix rotateXM = Matrix.buildRotationMatrix(-dir.getX(), Matrix.AXIS.X);
 	Matrix rotateYM = Matrix.buildRotationMatrix(-dir.getY(), Matrix.AXIS.Y);
 	Matrix rotateZM = Matrix.buildRotationMatrix(-dir.getZ(), Matrix.AXIS.Z);
@@ -80,17 +78,10 @@ public class CameraEuler extends Camera{
 		res = rotateZM.multiply(rotateXM).multiply(rotateYM);
 		break;
 	}
-	return res.multiply(transM);
+	return res.multiply(invM);
     }
-    
-    public double getViewDist() {
-	return viewDist;
-    }
-    
-    public double getAspectRatio() {
-	return aspectRatio;
-    }
-    
+
+    // get
     public ClipBox3D getClipBox() {
 	return clipBox;
     }

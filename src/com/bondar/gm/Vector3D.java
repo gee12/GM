@@ -36,13 +36,21 @@ public class Vector3D extends Point3D {
 	mul(1. / length);
     }
     
+    public Vector3D mul(Vector3D v) {
+	return mul(this, v);
+    }
+    
     public static Vector3D mul(Vector3D v1, Vector3D v2) {
 	double x = (v1.getY() * v2.getZ()) - (v1.getZ() * v2.getY());
 	double y = (v1.getX() * v2.getZ()) - (v1.getZ() * v2.getX());
 	double z = (v1.getX() * v2.getY()) - (v1.getY() * v2.getX());
 	return new Vector3D(x, y, z);
     }
-    
+     
+    public double dot(Vector3D v) {
+	return dot(this, v);
+    }
+       
     public static double dot(Vector3D v1, Vector3D v2) {
 	return ((v1.getX() * v2.getX()) + (v1.getY() * v2.getY()) + (v1.getZ() * v2.getZ()));
     }

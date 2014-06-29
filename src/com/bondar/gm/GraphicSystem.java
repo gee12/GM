@@ -14,11 +14,11 @@ public class GraphicSystem {
     public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
     public static double EPS = 0.0000001;
     public static final double MAX_POINT = 10;
-    public static final double X_MAX = 10d;
-    public static final double Y_MAX = 7d;
-    public static final double X_MIN = 0d;
-    public static final double Y_MIN = 0d;
-    public static final double BORDER = 1d;
+    public static final double X_MAX = 10;
+    public static final double Y_MAX = 7;
+    public static final double X_MIN = 0;
+    public static final double Y_MIN = 0;
+    public static final double BORDER = 1;
     private Graphics g;
     private int width, height;
     private Point2D old;

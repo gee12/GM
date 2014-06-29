@@ -157,11 +157,10 @@ public class GMXFile {
 	for (Polygon3D poly : polies) {
 	    poly.setVertexes(vertexes);
 	}
-	Solid3D res = new Solid3D(name, vertexes, polies);
+	Solid3D res = new Solid3D(name, attribs, vertexes, polies);
 	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
 	res.updateAngles(angles.getX(), angles.getY(), angles.getZ());
 	res.updateScale(scale.getX(), scale.getY(), scale. getZ());
-	res.setAttribute(attribs);
 
 	return res;
     }

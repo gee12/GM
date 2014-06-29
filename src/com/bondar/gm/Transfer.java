@@ -12,14 +12,14 @@ public class Transfer {
     /////////////////////////////////////////////////////////
     // transfer with all vertexes
     // local -> world -> camera -> perspective
-    public static Point3D[] transferFull(Solid3D solid, CameraEuler cam) {
+    public static Point3D[] transferFull(Solid3D solid, Camera cam) {
 	if (solid == null) return null;
 	return transferFull(solid.getLocalVertexes(), solid.getDirection(), 
 		solid.getPosition(), solid.getScale(), cam, solid.isNeedPerspective());
     }
     
     public static Point3D[] transferFull(Point3D[] verts, Point3D dir, Point3D pos, Point3D scale,
-	    CameraEuler cam, boolean isNeedPerspective) {
+	    Camera cam, boolean isNeedPerspective) {
 	if (verts == null || dir == null || pos == null || scale == null || cam == null) return null;
 	// create matrixes
 	Matrix rotateXM = Matrix.buildRotationMatrix(dir.getX(), Matrix.AXIS.X);
@@ -28,9 +28,7 @@ public class Transfer {
 	Matrix transM = Matrix.buildTransferMatrix(pos.getX(), pos.getY(), pos.getZ());
 	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
-	//Matrix viewM = Matrix.getViewMatrix(ro, theta, phi);
-	//Matrix perspM = Matrix.getPerspectiveMatrix(dist);
-	Matrix camM = cam.builtMatrix(Camera.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM,perspM,camM};
 	// transform all local vertexes
 	int size = verts.length;
@@ -70,7 +68,7 @@ public class Transfer {
     public static Point3D[] transToCamera(Point3D[] verts, CameraEuler cam) {
 	if (verts == null || cam == null)return null;
 	// create camera matrix
-	Matrix camM = cam.builtMatrix(Camera.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
 	// transform all world vertexes
 	int size = verts.length;
 	Point3D[] res = new Point3D[size];
@@ -128,7 +126,7 @@ public class Transfer {
     public static Point3D transToCamera(Point3D vert, CameraEuler cam) {
 	if (vert == null || cam == null) return null;
 	// create camera matrix
-	Matrix camM = cam.builtMatrix(Camera.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
 	// transform world vertex
 	return transVertex(vert, camM);
     }

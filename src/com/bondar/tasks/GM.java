@@ -23,9 +23,9 @@ public class GM extends Application implements OptionsPanelListener {
     private static final double ANGLE_DOWN = Math.toRadians(-6);
     private static final double SCALE_UP = 0.05;
     private static final double SCALE_DOWN = -SCALE_UP;
-    private static final double CAMERA_SHIFT_STEP = 0.08;
-    private static final double CAMERA_ANGLE_UP = ANGLE_UP/2;
-    private static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/2;
+    private static final double CAMERA_SHIFT_STEP = 0.5;
+    private static final double CAMERA_ANGLE_UP = ANGLE_UP/7;
+    private static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/7;
     
     private static final int FPS = 30;
     private static final int MSEC_TICK = 1000/FPS;
@@ -36,6 +36,7 @@ public class GM extends Application implements OptionsPanelListener {
     private static final String TITLE_TEXT = "GM";
     private static final String MODELS_DIR = "models/";
     private static final String AXIS_TEXT = "Оси";
+    private static final String CUBE_TEXT = "Куб";
     private static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
     private static final String RADIO_ALL_MODELS_TEXT = "Все";
     private static final String GROUP_TITLE_OBJ_CHOISE_TEXT = "ВЫБОР ОБЪЕКТА:";
@@ -62,7 +63,8 @@ public class GM extends Application implements OptionsPanelListener {
     private List<Solid3D> solids;
     private List<Solid3D> focusedSolids;
     private final Solid3D allSolid;
-    private final CameraEuler camera;
+    private final CameraEuler cameraEuler;
+    private final CameraUVN cameraUVN;
     private final GraphicSystem g;
     private Solid3D selectedSolid;
     private boolean isMousePressed;
@@ -77,6 +79,7 @@ public class GM extends Application implements OptionsPanelListener {
 	this.isMousePressed = false;
 	this.solids = new ArrayList<>();
 	this.focusedSolids = new ArrayList<>();
+	this.g = getDrawablePanel().getGraphicSystem();
 	
 	requestFocus();
 	setFocusable(true);
@@ -92,20 +95,19 @@ public class GM extends Application implements OptionsPanelListener {
 	addControls();
 	setRadioGroupListeners(this);
 	// radio button to select all models to move
-	allSolid = new Solid3D(RADIO_ALL_MODELS_TEXT, null);
-	// watchpoint
-	camera = new CameraEuler(
-		0,
-		new Point3D(0,0,0),
-		new Vector3D(0,0,0),
-		1, 10,
-		5,
-		90,
-		new Dimension(WIDTH, HEIGHT));
+	this.allSolid = new Solid3D(RADIO_ALL_MODELS_TEXT, null);
+	
+	// camera
+	Point3D pos = new Point3D(0,10,-10);
+	Vector3D dir = new Vector3D(0,0,0);
+	Point3D target = new Point3D(0,0,10);
+	double near = 4, far = 1000, dist = 10, fov = 90;
+	Dimension vp = new Dimension((int)GraphicSystem.X_MAX, (int)GraphicSystem.Y_MAX);
+	this.cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp);
+	this.cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target);
+	
 	// load objects
 	loadSolids();
-	//
-	g = getDrawablePanel().getGraphicSystem();
 	// timer for regular update and repeaint
 	ActionListener taskPerformer = new ActionListener() {
 	    @Override
@@ -114,7 +116,9 @@ public class GM extends Application implements OptionsPanelListener {
 		paint(g);
 	    }
 	};
-	new Timer(MSEC_TICK, taskPerformer).start();   
+	new Timer(MSEC_TICK, taskPerformer).start();
+	//
+	init();
     }
     
     private void addListeners() {
@@ -196,8 +200,8 @@ public class GM extends Application implements OptionsPanelListener {
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
 
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
 	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
+	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
 
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT);
@@ -222,14 +226,32 @@ public class GM extends Application implements OptionsPanelListener {
 	for (Solid3D solid : solids) {
 	    // axis solid need save to individual variable 
 	    // and remove from list
-	    if (solid.getName().equalsIgnoreCase(AXIS_TEXT)) {
+	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) {
 		continue;
 	    }
 	    addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName());
 	}
-	//solids.remove(axisSolid);
-   }
+    }
 
+    public void init() {
+	
+	Random rand = new Random();
+	List<Solid3D> cubes = new ArrayList<>();
+	for (Solid3D solid : solids) {
+	    if (solid.getName().equals(CUBE_TEXT)) {
+		for (int i = 0; i < 1000; i++) {
+		    Solid3D newCube = new Solid3D(solid);
+		    newCube.updateTransfers(rand.nextInt(500)-250, 0, rand.nextInt(500)-250);
+		    cubes.add(newCube);
+		}
+		break;
+	    }
+	}
+	solids.addAll(cubes);
+	
+ 	onProjection(getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT));
+   }
+    
     /////////////////////////////////////////////////////////
     private void update() {
 	// if there are not collisions OR objects were not moved ->
@@ -238,14 +260,14 @@ public class GM extends Application implements OptionsPanelListener {
 	// if (!isCollisions && !isObjectsMoved) return;
 	
 	for (Solid3D solid : solids) {
-	    animate(solid);
+	    animateSolid(solid);
 	    updateSolid(solid);
 	}
 	//
 	onCollision();
     }
     
-    private void animate(Solid3D solid) {
+    private void animateSolid(Solid3D solid) {
 	if (solid == null || solid.isSetAttribute(Solid3D.ATTR_FIXED)) return;
 	solid.updateAngle(ANGLE_UP, Matrix.AXIS.Y);
     }
@@ -256,18 +278,21 @@ public class GM extends Application implements OptionsPanelListener {
 	// transferFull local vertexes to world
 	Point3D[] verts = Transfer.transToWorld(solid);
 	// culling solid if need
-	//solid.setIsNeedCulling(camera);
+	if (!solid.isSetAttribute(Solid3D.ATTR_NO_CULL))
+	    solid.setIsNeedCulling(cameraEuler);
 	if (solid.getState() != Solid3D.States.VISIBLE)
 	    return;
 	// define backfaces triangles
 	if (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equalsIgnoreCase(RADIO_BACKFACES_EJECTION_TEXT))
-	    solid.resetTrianglesVertexes(verts);
-	    solid.defineBackfaces(camera);
+	{
+	    solid.reinitTrianglesVertexes(verts);
+	    solid.defineBackfaces(cameraEuler);
+	}
 	// transferFull world vertexes to camera
-	verts = Transfer.transToCamera(verts, camera);
+	verts = Transfer.transToCamera(verts, cameraEuler);
 	if (solid.isNeedPerspective())
-	    verts = Transfer.transToPerspective(verts, camera);
-	solid.resetTrianglesVertexes(verts);
+	    verts = Transfer.transToPerspective(verts, cameraEuler);
+	solid.reinitTrianglesVertexes(verts);
 	solid.setTransVertexes(verts);
 	// 
 	solid.setBounds(verts);
@@ -341,8 +366,8 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     public void onCameraOperation(double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz) {
-	camera.updateAngle(angle, axis);
-	camera.updateTransfers(dx, dy, dz);
+	cameraEuler.updateDirection(angle, axis);
+	cameraEuler.updatePosition(dx, dy, dz);
     }
 
     private void onRotate(List<Solid3D> solids, double angle, Matrix.AXIS axis) {
@@ -394,7 +419,6 @@ public class GM extends Application implements OptionsPanelListener {
 
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
-	//radiosMap.put(groupTitle, radioText);
 	switch(groupTitle) {
 	    case GROUP_TITLE_PROJECTION_TEXT:
 		onProjection(radioText);
