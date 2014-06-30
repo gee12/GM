@@ -1,5 +1,8 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Solid3D;
+import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Point3D;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileInputStream;

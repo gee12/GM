@@ -1,5 +1,6 @@
-package com.bondar.gm;
+package com.bondar.geom;
 
+import com.bondar.gm.Camera;
 import java.awt.Color;
 
 /**
@@ -53,7 +54,7 @@ public class Polygon3D {
     
     /////////////////////////////////////////////////////////
     //
-    public boolean isBackFace(CameraEuler cam) {
+    public boolean isBackFace(Camera cam) {
 	if (isSetAttribute(ATTR_TWO_SIDES)
 		|| type == Types.LINE
 		|| type == Types.POINT
@@ -75,7 +76,7 @@ public class Polygon3D {
 	attributes |= attr;
     }
     
-    public void setIsBackFace(CameraEuler cam) {
+    public void setIsBackFace(Camera cam) {
 	if (isBackFace(cam))
 	    state = States.INVISIBLE;
 	else state = States.VISIBLE;

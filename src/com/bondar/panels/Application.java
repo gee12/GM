@@ -1,9 +1,12 @@
 package com.bondar.panels;
 
 import com.bondar.gm.GraphicSystem;
-import com.bondar.gm.Point2D;
+import com.bondar.geom.Point2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 
 /**
@@ -13,8 +16,8 @@ import javax.swing.WindowConstants;
 public abstract class Application extends JFrame {
 
     private final OptionsPanel optionsPanel;
-    private DrawablePanel drawablePanel;
-
+    private final DrawablePanel drawablePanel;
+    
     public Application(int width, int height) {
 	setLocationByPlatform(true);
 	setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -22,81 +25,95 @@ public abstract class Application extends JFrame {
 
 	drawablePanel = new DrawablePanel(this, width, height);
 	add(drawablePanel);
-	optionsPanel = new OptionsPanel(drawablePanel, width);
+	optionsPanel = new OptionsPanel();
 	add(optionsPanel);
 
 	pack();
 	setVisible(true);
     }
-      
+    
+    protected void start(int msec) {
+	load();
+	init();
+	new Timer(msec, taskPerformer).start();
+    }
+    
     /////////////////////////////////////////////////////
     // add controls
-    public void addSlider(String text, int min, int max, int init) {
-	optionsPanel.addSlider(text, min, max, init);
+    protected void addSlider(String text, int min, int max, int init, OptionsPanelListener listener) {
+	optionsPanel.addSlider(text, min, max, init, listener);
 	revalidate();
     }
     
-    public void addSlider(String text, int min, int max, int init, String[] values) {
-	optionsPanel.addSlider(text, min, max, init, values);
+    protected void addSlider(String text, int min, int max, int init, String[] values, OptionsPanelListener listener) {
+	optionsPanel.addSlider(text, min, max, init, values, listener);
 	revalidate();
     }
     
-    public void addRadio(final String titleText, final String text) {
-	optionsPanel.addRadio(titleText, text);
+    protected void addRadio(final String titleText, final String text, OptionsPanelListener listener) {
+	optionsPanel.addRadio(titleText, text, listener);
 	revalidate();
     }
      
-    public void addCheckBox(final String text, final boolean isChecked) {
-	optionsPanel.addCheckBox(text, isChecked);
+    protected void addCheckBox(final String text, final boolean isChecked, OptionsPanelListener listener) {
+	optionsPanel.addCheckBox(text, isChecked, listener);
 	revalidate();
     }
     
     /////////////////////////////////////////////////////
     // set
-    public void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
+    protected void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
 	drawablePanel.getGraphicSystem().setClipWindow(xmin,ymin,xmax,ymax);
     }
-    public void setClipWindow(Point2D[] points) {
+    protected void setClipWindow(Point2D[] points) {
 	drawablePanel.getGraphicSystem().setClipWindow(points);
     }
     
-    public void setClip(boolean isNeedClip) {
+    protected void setClip(boolean isNeedClip) {
 	drawablePanel.getGraphicSystem().setClip(isNeedClip);
     }
     
-    public void setScale(boolean isNeedScale) {
+    protected void setScale(boolean isNeedScale) {
 	drawablePanel.getGraphicSystem().setScale(isNeedScale);
     }
     
-    public void setRadioGroupListeners(OptionsPanelListener listener) {
-	optionsPanel.setListeners(listener);
-    }
-
     // get
-    public OptionsPanel getOptionsPanel() {
+    protected OptionsPanel getOptionsPanel() {
 	return optionsPanel;
     }
     
-    public DrawablePanel getDrawablePanel() {
+    protected DrawablePanel getDrawablePanel() {
 	return drawablePanel;
     }
     
-    public GraphicSystem getGraphicSystem() {
+    protected GraphicSystem getGraphicSystem() {
 	return drawablePanel.getGraphicSystem();
     }
 
-    public int getSliderValue(String sliderName) {
+    protected int getSliderValue(String sliderName) {
 	return optionsPanel.getSliderValue(sliderName);
     }
     
-    public String getSelectedRadioText(final String titleText) {
+    protected String getSelectedRadioText(final String titleText) {
 	return optionsPanel.getGroupPanel(titleText).getSelectedRadioText();
     }
     
-    public boolean isSelectedCheckBox(String text) {
+    protected boolean isSelectedCheckBox(String text) {
 	return optionsPanel.isSelectedCheckBox(text);
     }
 
     //
+    protected abstract void load();
+    protected abstract void init();
+    protected abstract void update();
     protected abstract void paint(GraphicSystem g);
+    
+    // timer for regular update and repaint
+    ActionListener taskPerformer = new ActionListener() {
+	@Override
+	public void actionPerformed(ActionEvent evt) {
+	    update();
+	    drawablePanel.repaint();
+	}
+    };
 }

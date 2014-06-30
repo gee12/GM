@@ -13,8 +13,7 @@ public class DrawablePanel extends JPanel {
 
     private final Application app;
     private final GraphicSystem graphicSystem;
-
-
+    
     public DrawablePanel(Application app, int width, int height) {
 	this.app = app;
 	setPreferredSize(new Dimension(width, height));

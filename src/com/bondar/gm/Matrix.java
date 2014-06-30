@@ -1,5 +1,8 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Vector3D;
+import com.bondar.geom.Point3DOdn;
+
 /**
  *
  * @author bondar

@@ -1,4 +1,4 @@
-package com.bondar.gm;
+package com.bondar.geom;
 
 import java.awt.Color;
 
@@ -6,37 +6,37 @@ import java.awt.Color;
  *
  * @author bondar
  */
-public final class Line {
+public final class Line3D {
 
     private static final Color DEF_COLOR = Color.BLACK;
     private Point3D p1, p2;
     private Color color;
     private boolean isVisible;
 
-    public Line() {
-	setLine(Point3D.Zero, Point3D.Zero, DEF_COLOR, false);
+    public Line3D() {
+	setLine(Point3D.Zero, Point3D.Zero, DEF_COLOR, true);
     }
     // 2D
-    public Line(Point2D p1, Point2D p2) {
+    public Line3D(Point2D p1, Point2D p2) {
 	setLine(p1, p2, DEF_COLOR, true);
     }
-    public Line(double x0, double y0, double x1, double y1, boolean isVisible) {
+    public Line3D(double x0, double y0, double x1, double y1, boolean isVisible) {
 	setLine(new Point3DOdn(x0,y0,0), new Point3DOdn(x1,y1,0), DEF_COLOR, isVisible);
     }
     // 3D
-    public Line(Point3D p1, Point3D p2, boolean isVisible) {
+    public Line3D(Point3D p1, Point3D p2, boolean isVisible) {
 	setLine(p1, p2, DEF_COLOR, isVisible);
     }
 
-    public Line(Point3D p1, Point3D p2) {
+    public Line3D(Point3D p1, Point3D p2) {
 	setLine(p1, p2, DEF_COLOR, true);
     }
 
-    public Line(Point3D p1, Point3D p2, Color col, boolean isVisible) {
+    public Line3D(Point3D p1, Point3D p2, Color col, boolean isVisible) {
 	setLine(p1, p2, col, isVisible);
     }
     
-    public Line(Point3D p1, Point3D p2, Color col) {
+    public Line3D(Point3D p1, Point3D p2, Color col) {
 	setLine(p1, p2, col, true);
     }
     // set

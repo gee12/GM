@@ -12,46 +12,24 @@ import java.util.*;
  */
 public class OptionsPanel extends JPanel {
 
-    private final JPanel drawablePanel;
-    private final HashMap<String, Integer> slidersVal;
+    private final HashMap<String, JSlider> sliders = new HashMap<>();
     private String[] sliderValues;
-    private final HashMap<String, GroupPanel> radioGroups;
-    private final HashMap<String, JCheckBox> checkBoxes;
+    private final HashMap<String, GroupPanel> radioGroups = new HashMap<>();
+    private final HashMap<String, JCheckBox> checkBoxes = new HashMap<>();
 
-    public OptionsPanel(JPanel drawablePanel, int width) {
-	this.drawablePanel = drawablePanel;
-	slidersVal = new HashMap<>();
-	radioGroups = new HashMap<>();
-	checkBoxes = new HashMap<>();
+    public OptionsPanel() {
 	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	setAlignmentY(TOP_ALIGNMENT);
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
     
-    public void setListeners(OptionsPanelListener listener) {
-	for (GroupPanel group : radioGroups.values()) {
-	    group.setListener(listener);
-	}
-	for (JCheckBox check: checkBoxes.values()) {
-	    check.addItemListener(listener);
-	}
-    }
-    
     /////////////////////////////////////////////////////
     // Sliders
-    public int getSliderValue(String sliderName) {
-	if (slidersVal == null) {
-	    return 0;
-	}
-	return slidersVal.get(sliderName);
-    }
-    
-    public void addSlider(final String text, int min, int max, int init) {
-	addSlider(text, min, max, init, null);
+    public void addSlider(final String text, int min, int max, int init, final OptionsPanelListener listener) {
+	addSlider(text, min, max, init, null, listener);
     }
 
-    public void addSlider(final String text, int min, int max, int init, String[] values) {
-	slidersVal.put(text, init);
+    public void addSlider(final String text, int min, int max, int init, String[] values, final OptionsPanelListener listener) {
 	this.sliderValues = values;
 	final JPanel sliderPanel = new JPanel();
 
@@ -60,44 +38,45 @@ public class OptionsPanel extends JPanel {
 
 	final JLabel valueLabel = new JLabel();
 	valueLabel.setText(Integer.toString(init));
-	setSliderText(valueLabel, 0);
+	setSliderValueText(valueLabel, 0);
 	
 	final JSlider slider = new JSlider(min, max, init);
 	slider.addChangeListener(new ChangeListener() {
 	    @Override
 	    public void stateChanged(ChangeEvent ce) {
 		int value = slider.getValue();
-		slidersVal.put(text, value);
-		
-		setSliderText(valueLabel, value);
-		drawablePanel.repaint();
+		setSliderValueText(valueLabel, value);
+		listener.onSliderChanged(text, value);
 	    }
 	});
+	sliders.put(text, slider);
 	sliderPanel.add(slider);
 	sliderPanel.add(valueLabel);
 
 	add(sliderPanel);
     }
-
-    private void setSliderText(JLabel label, int value) {
+    
+    public int getSliderValue(String sliderName) {
+	JSlider slider = sliders.get(sliderName);
+	return (slider != null) ? slider.getValue() : 0;
+    }
+    
+    private void setSliderValueText(JLabel label, int value) {
 	if (sliderValues != null && sliderValues.length > value)
 	    label.setText(sliderValues[value]);
 	else label.setText(Integer.toString(value));
     }
- 
-    public HashMap<String, Integer> getSlidersValues() {
-	return slidersVal;
-    }
    
     /////////////////////////////////////////////////////
     // Radio buttons
-    public void addRadio(final String groupTitle, final String radioText) {
+    public void addRadio(final String groupTitle, final String radioText, OptionsPanelListener listener) {
 	GroupPanel group = null;
 	if (radioGroups.containsKey(groupTitle)) {
 	    group = radioGroups.get(groupTitle);
 	}
 	else {
 	    group = new GroupPanel(groupTitle);
+	    group.setListener(listener);
 	    add(group);
 	    radioGroups.put(groupTitle, group);
 	}
@@ -112,9 +91,10 @@ public class OptionsPanel extends JPanel {
 
     /////////////////////////////////////////////////////
     // CheckBoxes
-    public void addCheckBox(String text, boolean isChecked) {
+    public void addCheckBox(String text, boolean isChecked, OptionsPanelListener listener) {
 	final JCheckBox check = new JCheckBox(text, isChecked);
 	check.setFocusable(false);
+	check.addItemListener(listener);
 	add(check);
 	checkBoxes.put(text, check);
     }

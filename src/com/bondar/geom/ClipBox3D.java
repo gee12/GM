@@ -1,4 +1,7 @@
-package com.bondar.gm;
+package com.bondar.geom;
+
+import com.bondar.geom.Vector3D;
+import com.bondar.geom.Point3D;
 
 /**
  *

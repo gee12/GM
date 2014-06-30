@@ -2,9 +2,9 @@ package com.bondar.tasks;
 
 import com.bondar.panels.Application;
 import com.bondar.gm.GraphicSystem;
-import com.bondar.gm.Line;
-import com.bondar.gm.Point2D;
-import com.bondar.gm.Solid2D;
+import com.bondar.geom.Line3D;
+import com.bondar.geom.Point2D;
+import com.bondar.geom.Solid2D;
 import java.awt.Color;
 
 /**
@@ -15,7 +15,7 @@ import java.awt.Color;
 public class Lab4 extends Application {
 
     private Solid2D polygon;
-    private Line[] decompLines;
+    private Line3D[] decompLines;
     
     public static void main(String[] args) {
 	new Lab4(900, 600);
@@ -88,7 +88,7 @@ public class Lab4 extends Application {
 	}
     }
     
-    private void drawLines(GraphicSystem g, Line[] lines) {
+    private void drawLines(GraphicSystem g, Line3D[] lines) {
 	if (lines == null) return;
 	g.reset();
 	g.setColor(Color.RED);
@@ -97,5 +97,17 @@ public class Lab4 extends Application {
 	    g.move(lines[i].getP1());
 	    g.draw(lines[i].getP2());
 	}	
+    }
+
+    @Override
+    protected void load() {
+    }
+
+    @Override
+    protected void init() {
+    }
+
+    @Override
+    protected void update() {
     }
 }

@@ -1,5 +1,7 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Vector3D;
+import com.bondar.geom.Point3D;
 import java.awt.Dimension;
 
 /**
@@ -16,9 +18,9 @@ public class CameraUVN extends Camera{
     private Vector3D v;
     private Vector3D n;
     
-    public CameraUVN(int attr, Point3D pos, Vector3D dir,
-	    double nearClipZ, double farClipZ, double dist, double fov, Dimension vp, Point3D target) {
-	super(attr, pos, dir, dist, vp);
+    public CameraUVN(int attr, Point3D pos, Vector3D dir, double nearClipZ, double farClipZ, 
+	    double dist, double fov, Dimension vp, Point3D target, int mode) {
+	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, mode);
 	this.target = target;
 	this.u = new Vector3D(1, 0, 0);
 	this.v = new Vector3D(0, 1, 0);

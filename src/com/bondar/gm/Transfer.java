@@ -1,5 +1,9 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Solid3D;
+import com.bondar.geom.Point3D;
+import com.bondar.geom.Point3DOdn;
+
 /**
  *
  * Need to optimized:
@@ -28,7 +32,7 @@ public class Transfer {
 	Matrix transM = Matrix.buildTransferMatrix(pos.getX(), pos.getY(), pos.getZ());
 	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
-	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(cam.getBuildMode());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM,perspM,camM};
 	// transform all local vertexes
 	int size = verts.length;
@@ -65,10 +69,10 @@ public class Transfer {
     }
 
     // world -> camera
-    public static Point3D[] transToCamera(Point3D[] verts, CameraEuler cam) {
+    public static Point3D[] transToCamera(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null)return null;
 	// create camera matrix
-	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(cam.getBuildMode());
 	// transform all world vertexes
 	int size = verts.length;
 	Point3D[] res = new Point3D[size];
@@ -79,7 +83,7 @@ public class Transfer {
     }
 
     // camera -> perspective
-    public static Point3D[] transToPerspective(Point3D[] verts, CameraEuler cam) {
+    public static Point3D[] transToPerspective(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create perspective matrix
 	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
@@ -93,7 +97,7 @@ public class Transfer {
     }
     
     // perspective -> screen
-    public static Point3D[] transToScreen(Point3D[] verts, CameraEuler cam) {
+    public static Point3D[] transToScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create screen matrix
 	Matrix scrM = Matrix.buildScreenMatrix(cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
@@ -109,9 +113,8 @@ public class Transfer {
     /////////////////////////////////////////////////////////
     // transfer with 1 vertex 
     // local -> world
-    public static Point3D transToWorld(Point3D vert, Point3D dir, Point3D pos, Point3D scale,
-	    CameraEuler cam) {
-	if (vert == null || dir == null || pos == null || scale == null || cam == null) return null;
+    public static Point3D transToWorld(Point3D vert, Point3D dir, Point3D pos, Point3D scale) {
+	if (vert == null || dir == null || pos == null || scale == null) return null;
 	// create matrixes
 	Matrix rotateXM = Matrix.buildRotationMatrix(dir.getX(), Matrix.AXIS.X);
 	Matrix rotateYM = Matrix.buildRotationMatrix(dir.getY(), Matrix.AXIS.Y);
@@ -123,16 +126,16 @@ public class Transfer {
 	return transVertex(vert, ms);
     }   
     // world -> camera
-    public static Point3D transToCamera(Point3D vert, CameraEuler cam) {
+    public static Point3D transToCamera(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create camera matrix
-	Matrix camM = cam.builtMatrix(CameraEuler.CAM_ROT_SEQ_ZYX);
+	Matrix camM = cam.builtMatrix(cam.getBuildMode());
 	// transform world vertex
 	return transVertex(vert, camM);
     }
 
     // camera -> perspective
-    public static Point3D transToPerspective(Point3D vert, CameraEuler cam) {
+    public static Point3D transToPerspective(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create perspective matrix
 	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
@@ -141,7 +144,7 @@ public class Transfer {
     }
     
     // perspective -> screen
-    public static Point3D transToScreen(Point3D vert, CameraEuler cam) {
+    public static Point3D transToScreen(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create screen matrix
 	Matrix scrM = Matrix.buildScreenMatrix(cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
@@ -165,6 +168,4 @@ public class Transfer {
 	}
 	return (Point3D) res.divByW();
     }
-    
-  
 }

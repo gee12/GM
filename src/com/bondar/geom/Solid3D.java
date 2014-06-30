@@ -1,5 +1,12 @@
-package com.bondar.gm;
+package com.bondar.geom;
 
+import com.bondar.gm.Camera;
+import com.bondar.gm.Matrix;
+import com.bondar.gm.Transfer;
+import com.bondar.geom.BoundingBox3D;
+import com.bondar.geom.Point2D;
+import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Point3D;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
@@ -11,6 +18,9 @@ import java.util.Random;
  * @author truebondar
  */
 public class Solid3D {
+    
+    final double MAGIC_NUMBER_X = 2.3;
+    final double MAGIC_NUMBER_Y = 1.6;
     
     public enum States {
 	VISIBLE,
@@ -127,7 +137,7 @@ public class Solid3D {
 	return res;
     }
 
-    public void reinitTrianglesVertexes(Point3D[] verts) {
+    public void reinitPoliesVertexes(Point3D[] verts) {
 	if (polygons == null) return;
 	for (Polygon3D poly : polygons) {
 	    poly.setVertexes(verts);
@@ -203,7 +213,7 @@ public class Solid3D {
 
     /////////////////////////////////////////////////////////
     // Cull solid, if it's fully out of clip bounds.
-    public boolean isNeedCull(CameraEuler cam) {
+    public boolean isNeedCull(Camera cam) {
 	if (cam == null) return false;
 	Point3D spherePos = Transfer.transToCamera(pos, cam);
 	// by z
@@ -212,13 +222,13 @@ public class Solid3D {
 	    return true;
 	}
 	// by x
-	double zTest = 2*cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
+	double zTest = MAGIC_NUMBER_X * cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
 	if (((spherePos.getX() - maxRadius) > zTest)  || // right side
 	    ((spherePos.getX() + maxRadius) < -zTest) ) { // left side, note sign change
 	    return true;
 	}
 	// by y
-	zTest = 1.5*cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
+	zTest = MAGIC_NUMBER_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
 	if (((spherePos.getY() - maxRadius) > zTest)  || // right side
 	    ((spherePos.getY() + maxRadius) < -zTest) ) { // left side, note sign change
 	    return true;
@@ -228,7 +238,7 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
-    public void defineBackfaces(CameraEuler cam) {
+    public void defineBackfaces(Camera cam) {
 	for (Polygon3D poly: polygons) {
 	    poly.setIsBackFace(cam);
 	}
@@ -244,7 +254,7 @@ public class Solid3D {
 	attribute &= ~attr;
     }   
     
-    public void setIsNeedCulling(CameraEuler cam) {
+    public void setIsNeedCulling(Camera cam) {
 	if (isNeedCull(cam))
 	    state = States.CULLED;
 	else state = States.VISIBLE;

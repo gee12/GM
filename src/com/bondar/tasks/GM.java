@@ -1,5 +1,11 @@
 package com.bondar.tasks;
 
+import com.bondar.geom.Solid3D;
+import com.bondar.geom.Point2D;
+import com.bondar.geom.Vector3D;
+import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Point3D;
+import com.bondar.geom.Point3DOdn;
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
 import com.bondar.panels.OptionsPanelListener;
@@ -8,7 +14,6 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import javax.swing.Timer;
 
 /**
  * Вариант 8
@@ -17,6 +22,8 @@ import javax.swing.Timer;
  */
 public class GM extends Application implements OptionsPanelListener {
 
+    public static final int FPS = 30;
+    public static final int MSEC_TICK = 1000/FPS;
     private static final double SHIFT_STEP = 0.008;
     private static final double SHIFT_BY_Z_STEP = 0.1;
     private static final double ANGLE_UP = Math.toRadians(6);
@@ -24,11 +31,9 @@ public class GM extends Application implements OptionsPanelListener {
     private static final double SCALE_UP = 0.05;
     private static final double SCALE_DOWN = -SCALE_UP;
     private static final double CAMERA_SHIFT_STEP = 0.5;
-    private static final double CAMERA_ANGLE_UP = ANGLE_UP/7;
-    private static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/7;
+    private static final double CAMERA_ANGLE_UP = ANGLE_UP/3;
+    private static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/3;
     
-    private static final int FPS = 30;
-    private static final int MSEC_TICK = 1000/FPS;
     private static final int SCREEN_WIDTH = 1100;
     private static final int SCREEN_HEIGHT = 600;
     private static final double DX = 5;
@@ -49,6 +54,9 @@ public class GM extends Application implements OptionsPanelListener {
     private static final String GROUP_TITLE_PROJECTION_TEXT = "ПРОЕКЦИЯ:";
     private static final String RADIO_ORTOGON_TEXT = "Ортогональная";
     private static final String RADIO_CENTER_TEXT = "Центральная";
+    private static final String GROUP_TITLE_CAMERA_TEXT = "КАМЕРА:";
+    private static final String RADIO_CAMERA_EULER_TEXT = "Эйлера";
+    private static final String RADIO_CAMERA_UVN_TEXT = "UVN";
     private static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
     private static final String RADIO_PAINTER_TEXT = "Алгритм художника";
     private static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
@@ -60,12 +68,12 @@ public class GM extends Application implements OptionsPanelListener {
     
     private static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
     
-    private List<Solid3D> solids;
-    private List<Solid3D> focusedSolids;
-    private final Solid3D allSolid;
-    private final CameraEuler cameraEuler;
-    private final CameraUVN cameraUVN;
-    private final GraphicSystem g;
+    private List<Solid3D> solids = new ArrayList<>();;
+    private List<Solid3D> focusedSolids = new ArrayList<>();;
+    private Solid3D allSolid;
+    private Camera camera;
+    private CameraEuler cameraEuler;
+    private CameraUVN cameraUVN;
     private Solid3D selectedSolid;
     private boolean isMousePressed;
 	
@@ -76,11 +84,6 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     public GM(int width, int height) {
 	super(width, height);
-	this.isMousePressed = false;
-	this.solids = new ArrayList<>();
-	this.focusedSolids = new ArrayList<>();
-	this.g = getDrawablePanel().getGraphicSystem();
-	
 	requestFocus();
 	setFocusable(true);
 	setResizable(true);
@@ -89,36 +92,10 @@ public class GM extends Application implements OptionsPanelListener {
 	//
 	setClip(false);
 	setScale(false);
-	// listeners
 	addListeners();
-	// create radio buttons
 	addControls();
-	setRadioGroupListeners(this);
-	// radio button to select all models to move
-	this.allSolid = new Solid3D(RADIO_ALL_MODELS_TEXT, null);
-	
-	// camera
-	Point3D pos = new Point3D(0,10,-10);
-	Vector3D dir = new Vector3D(0,0,0);
-	Point3D target = new Point3D(0,0,10);
-	double near = 4, far = 1000, dist = 10, fov = 90;
-	Dimension vp = new Dimension((int)GraphicSystem.X_MAX, (int)GraphicSystem.Y_MAX);
-	this.cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp);
-	this.cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target);
-	
-	// load objects
-	loadSolids();
-	// timer for regular update and repeaint
-	ActionListener taskPerformer = new ActionListener() {
-	    @Override
-	    public void actionPerformed(ActionEvent evt) {
-		update();
-		paint(g);
-	    }
-	};
-	new Timer(MSEC_TICK, taskPerformer).start();
 	//
-	init();
+	start(MSEC_TICK);  
     }
     
     private void addListeners() {
@@ -191,32 +168,37 @@ public class GM extends Application implements OptionsPanelListener {
     }
     
     private void addControls() {
- 	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_ALL_MODELS_TEXT);
+	// radioButtons
+ 	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_ALL_MODELS_TEXT, this);
 
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT);
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT);
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT, this);
+	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT, this);
 
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT);
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT, this);
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT, this);
+	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT, this);
 
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT);
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT);
+	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT, this);
+	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT, this);
 
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT);
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT);
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT);
+	addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_EULER_TEXT, this);
+	addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_UVN_TEXT, this);
 
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT);
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT, this);
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT, this);
+	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT, this);
 
-	//addCheckBox(CHECKBOX_BACKFACES_EJECTION_TEXT, true);
-	addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
+	// checkBox
+	addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false, this);
     }
 
     /////////////////////////////////////////////////////////
-    private void loadSolids() {
+    @Override
+    protected final void load() {
+	// load models from .GMX files
 	try {
 	    solids = GMXFile.readGMXDir(MODELS_DIR);
 	} catch (Exception ex) {
@@ -229,14 +211,10 @@ public class GM extends Application implements OptionsPanelListener {
 	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) {
 		continue;
 	    }
-	    addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName());
+	    addRadio(GROUP_TITLE_OBJECTS_TEXT, solid.getName(), this);
 	}
-    }
-
-    public void init() {
-	
-	Random rand = new Random();
-	List<Solid3D> cubes = new ArrayList<>();
+	// clone models
+	/*List<Solid3D> cubes = new ArrayList<>();
 	for (Solid3D solid : solids) {
 	    if (solid.getName().equals(CUBE_TEXT)) {
 		for (int i = 0; i < 1000; i++) {
@@ -247,13 +225,30 @@ public class GM extends Application implements OptionsPanelListener {
 		break;
 	    }
 	}
-	solids.addAll(cubes);
-	
+	solids.addAll(cubes);*/
+    }
+
+    @Override
+    protected final void init() {
+	isMousePressed = false;
+	// radio button to select all models to move
+	allSolid = new Solid3D(RADIO_ALL_MODELS_TEXT, null);	
+	// camera
+	Point3D pos = new Point3D(0,0,-10);
+	Vector3D dir = new Vector3D(0,0,0);
+	Point3D target = new Point3D(0,0,10);
+	double near = 4, far = 1000, dist = 10, fov = 90;
+	Dimension vp = new Dimension((int)GraphicSystem.X_MAX, (int)GraphicSystem.Y_MAX);
+	cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp, CameraEuler.CAM_ROT_SEQ_ZYX);
+	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
+	camera = cameraEuler;
+	//
  	onProjection(getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT));
    }
     
     /////////////////////////////////////////////////////////
-    private void update() {
+    @Override
+    protected void update() {
 	// if there are not collisions OR objects were not moved ->
 	// objects are not changed ->
 	// then don't need to update the solid's vertexes
@@ -274,25 +269,25 @@ public class GM extends Application implements OptionsPanelListener {
    
     private void updateSolid(Solid3D solid) {
 	if (solid == null) return;
-	//1
 	// transferFull local vertexes to world
 	Point3D[] verts = Transfer.transToWorld(solid);
 	// culling solid if need
 	if (!solid.isSetAttribute(Solid3D.ATTR_NO_CULL))
-	    solid.setIsNeedCulling(cameraEuler);
+	    solid.setIsNeedCulling(camera);
 	if (solid.getState() != Solid3D.States.VISIBLE)
 	    return;
 	// define backfaces triangles
-	if (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equalsIgnoreCase(RADIO_BACKFACES_EJECTION_TEXT))
+	if (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT))
 	{
-	    solid.reinitTrianglesVertexes(verts);
-	    solid.defineBackfaces(cameraEuler);
+	    solid.reinitPoliesVertexes(verts);
+	    solid.defineBackfaces(camera);
 	}
 	// transferFull world vertexes to camera
-	verts = Transfer.transToCamera(verts, cameraEuler);
+	verts = Transfer.transToCamera(verts, camera);
 	if (solid.isNeedPerspective())
-	    verts = Transfer.transToPerspective(verts, cameraEuler);
-	solid.reinitTrianglesVertexes(verts);
+	    verts = Transfer.transToPerspective(verts, camera);
+	if (verts == null) return;
+	solid.reinitPoliesVertexes(verts);
 	solid.setTransVertexes(verts);
 	// 
 	solid.setBounds(verts);
@@ -364,10 +359,21 @@ public class GM extends Application implements OptionsPanelListener {
     }
     
     /////////////////////////////////////////////////////////
-    public void onCameraOperation(double angle, Matrix.AXIS axis,
+    private void onCameraOperation(double angle, Matrix.AXIS axis,
 	    double dx, double dy, double dz) {
-	cameraEuler.updateDirection(angle, axis);
-	cameraEuler.updatePosition(dx, dy, dz);
+	camera.updateDirection(angle, axis);
+	camera.updatePosition(dx, dy, dz);
+    }
+    
+    private void onCameraSelection(String cameraType) {
+	switch(cameraType) {
+	    case RADIO_CAMERA_EULER_TEXT:
+		camera = cameraEuler;
+		break;
+	    case RADIO_CAMERA_UVN_TEXT:
+		camera = cameraUVN;
+		break;
+	}
     }
 
     private void onRotate(List<Solid3D> solids, double angle, Matrix.AXIS axis) {
@@ -426,11 +432,18 @@ public class GM extends Application implements OptionsPanelListener {
 	    case GROUP_TITLE_OBJECTS_TEXT:
 		onSolidListSelection(radioText);
 		break;
+	    case GROUP_TITLE_CAMERA_TEXT:
+		onCameraSelection(radioText);
+		break;
 	}
     }
 
     @Override
     public void itemStateChanged(ItemEvent ie) {
+    }
+
+    @Override
+    public void onSliderChanged(String sliderName, int value) {
     }
     
     /////////////////////////////////////////////////////////
@@ -462,14 +475,14 @@ public class GM extends Application implements OptionsPanelListener {
     
     /////////////////////////////////////////////////////////
     public void onMouseMoved(Point curPoint) {
-	if (g == null) return;
+	if (curPoint == null) return;
 	// set cursor type
 	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
 	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 	    return;
 	}
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	Point2D p = g.convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+	Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 	for (Solid3D solid : solids) {
 	    if (solid.getState() != Solid3D.States.VISIBLE
 		    || solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
@@ -502,11 +515,12 @@ public class GM extends Application implements OptionsPanelListener {
 
     /////////////////////////////////////////////////////////
     public void onMousePressed(Point curPoint) {
+	if (curPoint == null) return;
 	isMousePressed = true;
 	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		Point2D p = g.convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D solid : solids) {
 		    boolean isPointInto = solid.getBounds().isPointInto(p);
 		    if (solid.getState() != Solid3D.States.VISIBLE
@@ -530,10 +544,12 @@ public class GM extends Application implements OptionsPanelListener {
 	}
     }
 
+    /////////////////////////////////////////////////////////
     public void onMouseReleased() {
 	isMousePressed = false;
 	focusedSolids.clear();
     }
+    
     /////////////////////////////////////////////////////////
     public void onKeyPressed(KeyEvent evt) {
 	double dx = 0, dy = 0, dz = 0, angle = 0;
@@ -593,7 +609,6 @@ public class GM extends Application implements OptionsPanelListener {
 	    //trias.addAll(Types.toList(solid.getPolygons()));
 	}
 	//g.painterAlgorithm(Types.toArray3(trias, Triangle3D.class));
- 	repaint();
    }
     /////////////////////////////////////////////////////////
     private void drawSolid(GraphicSystem g, Solid3D solid) {
@@ -614,6 +629,7 @@ public class GM extends Application implements OptionsPanelListener {
 	}
     }
 
+    /////////////////////////////////////////////////////////
     private void drawEdges(GraphicSystem g, Polygon3D[] polies) {
 	if (g == null || polies == null) return;
 	for (Polygon3D poly : polies) {

@@ -1,4 +1,7 @@
-package com.bondar.gm;
+package com.bondar.geom;
+
+import com.bondar.geom.Point2D;
+import com.bondar.geom.Bound;
 
 /**
  *

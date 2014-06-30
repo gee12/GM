@@ -5,7 +5,7 @@ import com.bondar.gm.GraphicSystem;
 import static com.bondar.gm.GraphicSystem.X_MAX;
 import static com.bondar.gm.GraphicSystem.Y_MAX;
 import com.bondar.gm.Matrix.AXIS;
-import com.bondar.gm.Point2D;
+import com.bondar.geom.Point2D;
 import java.awt.Color;
 
 /**
@@ -40,7 +40,7 @@ public class Lab3 extends Application {
 	setScale(true);
 	// 1 проход для масштабирвания (не рисуем)
 	curMode = DrawOrScale.Scale;
-	drawRecursiveEllipses(getDrawablePanel().getGraphicSystem());
+	drawRecursiveEllipses(/*getDrawablePanel().*/getGraphicSystem());
 	// далее - рисуем
  	curMode = DrawOrScale.Draw;
    }
@@ -129,5 +129,17 @@ public class Lab3 extends Application {
 		angle += ca;
 	    }
 	}
+    }
+
+    @Override
+    protected void load() {
+    }
+
+    @Override
+    protected void init() {
+    }
+
+    @Override
+    protected void update() {
     }
 }

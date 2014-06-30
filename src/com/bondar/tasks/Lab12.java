@@ -2,20 +2,23 @@ package com.bondar.tasks;
 
 import com.bondar.panels.Application;
 import com.bondar.gm.GraphicSystem;
-import com.bondar.gm.ClipBox2D;
+import com.bondar.geom.ClipBox2D;
 import static com.bondar.gm.GraphicSystem.X_MAX;
 import static com.bondar.gm.GraphicSystem.Y_MAX;
 import static com.bondar.gm.GraphicSystem.BORDER;
 import com.bondar.gm.Matrix.AXIS;
-import com.bondar.gm.Point2D;
+import com.bondar.geom.Point2D;
+import com.bondar.panels.OptionsPanelListener;
 import java.awt.Color;
+import java.awt.event.ItemEvent;
+import java.util.HashMap;
 
 /**
  * Вариант 8
  *
  * @author bondar
  */
-public class Lab12 extends Application {
+public class Lab12 extends Application implements OptionsPanelListener {
 
     private static final double ARROW_WIDTH = 0.6;
     private static final double ARROW_HEIGHT = 0.2;
@@ -30,7 +33,7 @@ public class Lab12 extends Application {
     private static final String FREQ_TEXT = "Частота:";
     private static final String AMPLITUDE_TEXT = "Амплитуда: ";
     private static final String SCALE_TEXT = "Масштаб:";
-
+    
     public static void main(String[] args) {
 	new Lab12(1000, 600);
     }
@@ -41,10 +44,10 @@ public class Lab12 extends Application {
 	setResizable(true);
 	setLocationByPlatform(false);
 	setTitle("LR_1_2 v8");
-	addSlider(ARROW_COUNT_TEXT, 0, 80, 30);
-	addSlider(FREQ_TEXT, 1, 200, 3);
-	addSlider(AMPLITUDE_TEXT, 1, 50, 30);
-	addSlider(SCALE_TEXT, 1, 300, 300);
+	addSlider(ARROW_COUNT_TEXT, 0, 80, 30, this);
+	addSlider(FREQ_TEXT, 1, 200, 3, this);
+	addSlider(AMPLITUDE_TEXT, 1, 50, 30, this);
+	addSlider(SCALE_TEXT, 1, 300, 300, this);
 	
 	setClipWindow();
    }
@@ -67,7 +70,7 @@ public class Lab12 extends Application {
 	    new Point2D(X_MAX, Y_MAX),
 	    new Point2D(X_MAX, 0)};
 
-	setClipWindow(paral);
+	//setClipWindow(paral);
 	System.out.println(getGraphicSystem().getClipWindow().getState());
     }
 
@@ -77,6 +80,7 @@ public class Lab12 extends Application {
 	g.clear();
 	drawSinArrows(g);
 	drawClipWindow(g);
+	repaint();
     }
 
     /////////////////////////////////////////////////////////
@@ -87,6 +91,7 @@ public class Lab12 extends Application {
 	final double freq = getSliderValue(FREQ_TEXT);
 	final double yScale = getSliderValue(AMPLITUDE_TEXT) / 100d;
 	final double mScale = getSliderValue(SCALE_TEXT) / 100d;
+		
 	double oldX = 2, oldY = 2;
 	for (int i = 0; i < count; i++) {
 	    scale = (i / freq);
@@ -136,6 +141,7 @@ public class Lab12 extends Application {
 	g.reset();
 	g.setColor(Color.BLACK);
 	final ClipBox2D cw = g.getClipWindow();
+	setClip(false);
 	if (cw.getType() == ClipBox2D.Type.Rectangle) {
 	    g.move(cw.getA());
 	    g.draw(cw.getB());
@@ -149,5 +155,30 @@ public class Lab12 extends Application {
 	    }
 	    g.draw(cw.getPoints()[0]);
 	}
+	setClip(true);
+    }
+
+    @Override
+    protected void load() {
+    }
+
+    @Override
+    protected void init() {
+    }
+
+    @Override
+    protected void update() {
+    }
+
+    @Override
+    public void onRadioSelected(String groupTitle, String radioText) {
+    }
+
+    @Override
+    public void onSliderChanged(String sliderName, int value) {
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent ie) {
     }
 }

@@ -1,5 +1,7 @@
 
-package com.bondar.gm;
+package com.bondar.geom;
+
+import com.bondar.gm.Matrix;
 
 /**
  *
