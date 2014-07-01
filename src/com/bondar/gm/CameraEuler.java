@@ -23,7 +23,7 @@ public class CameraEuler extends Camera{
     
     public CameraEuler(int attr, Point3D pos, Vector3D dir, double nearClipZ, 
 	    double farClipZ, double dist, double fov, Dimension vp, int mode) {
-	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, mode);
+	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, new Point3D(), mode);
 	this.fov = fov;
 	viewportCenter = new Point2D(viewPort.getWidth() / 2., viewPort.getHeight() / 2.);
 	

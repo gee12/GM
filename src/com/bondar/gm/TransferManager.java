@@ -11,7 +11,7 @@ import com.bondar.geom.Point3DOdn;
  * 
  * @author truebondar
  */
-public class Transfer {
+public class TransferManager {
 
     /////////////////////////////////////////////////////////
     // transfer with all vertexes
@@ -97,10 +97,11 @@ public class Transfer {
     }
     
     // perspective -> screen
-    public static Point3D[] transToScreen(Point3D[] verts, Camera cam) {
+    public static Point3D[] transPerspectToScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildScreenMatrix(cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
 	// transform all perspective vertexes
 	int size = verts.length;
 	Point3D[] res = new Point3D[size];
@@ -109,7 +110,22 @@ public class Transfer {
 	}
 	return res;
     }
-
+    
+    // camera -> screen
+    public static Point3D[] transCameraToScreen(Point3D[] verts, Camera cam) {
+	if (verts == null || cam == null) return null;
+	// create screen matrix
+	Matrix scrM = Matrix.buildCameraToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight(), cam.getViewDist());
+	// transform camera vertex
+	int size = verts.length;
+	Point3D[] res = new Point3D[size];
+	for (int i = 0; i < size; i++) {
+	    res[i] = transVertex(verts[i], scrM);
+	}
+	return res;
+    } 
+    
     /////////////////////////////////////////////////////////
     // transfer with 1 vertex 
     // local -> world
@@ -144,11 +160,22 @@ public class Transfer {
     }
     
     // perspective -> screen
-    public static Point3D transToScreen(Point3D vert, Camera cam) {
+    public static Point3D transPerspectToScreen(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildScreenMatrix(cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
 	// transform perspective vertex
+	return transVertex(vert, scrM);
+    }   
+     
+    // camera -> screen
+    public static Point3D transCameraToScreen(Point3D vert, Camera cam) {
+	if (vert == null || cam == null) return null;
+	// create screen matrix
+	Matrix scrM = Matrix.buildCameraToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight(), cam.getViewDist());
+	// transform camera vertex
 	return transVertex(vert, scrM);
     }   
     

@@ -2,11 +2,7 @@ package com.bondar.geom;
 
 import com.bondar.gm.Camera;
 import com.bondar.gm.Matrix;
-import com.bondar.gm.Transfer;
-import com.bondar.geom.BoundingBox3D;
-import com.bondar.geom.Point2D;
-import com.bondar.geom.Polygon3D;
-import com.bondar.geom.Point3D;
+import com.bondar.gm.TransferManager;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
@@ -19,8 +15,8 @@ import java.util.Random;
  */
 public class Solid3D {
     
-    final double MAGIC_NUMBER_X = 2.3;
-    final double MAGIC_NUMBER_Y = 1.6;
+    final double MAGIC_NUMBER_X = 0.5;//2.3;
+    final double MAGIC_NUMBER_Y = 0.5;//1.6;
     
     public enum States {
 	VISIBLE,
@@ -215,7 +211,7 @@ public class Solid3D {
     // Cull solid, if it's fully out of clip bounds.
     public boolean isNeedCull(Camera cam) {
 	if (cam == null) return false;
-	Point3D spherePos = Transfer.transToCamera(pos, cam);
+	Point3D spherePos = TransferManager.transToCamera(pos, cam);
 	// by z
 	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||
 	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {

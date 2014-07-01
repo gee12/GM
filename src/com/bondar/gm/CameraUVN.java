@@ -13,15 +13,13 @@ public class CameraUVN extends Camera{
     public static final int UVN_MODE_SIMPLE = 0;
     public static final int UVN_MODE_SPHERICAL = 1;
     
-    private Point3D target;	// look at target
     private Vector3D u;		// vectors to track the camera orientation
     private Vector3D v;
     private Vector3D n;
     
     public CameraUVN(int attr, Point3D pos, Vector3D dir, double nearClipZ, double farClipZ, 
 	    double dist, double fov, Dimension vp, Point3D target, int mode) {
-	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, mode);
-	this.target = target;
+	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, target, mode);
 	this.u = new Vector3D(1, 0, 0);
 	this.v = new Vector3D(0, 1, 0);
 	this.n = new Vector3D(0, 0, 1);
@@ -51,9 +49,5 @@ public class CameraUVN extends Camera{
 	n.normalize();
 	Matrix uvnM = Matrix.buildUVNMatrix(u, v, n);
 	return invM.multiply(uvnM);
-    }
-    
-    public void updateTarget(double dx, double dy, double dz) {
-	target.add(new Point3D(dx, dy, dz));
     }
 }

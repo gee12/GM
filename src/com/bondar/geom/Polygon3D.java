@@ -11,7 +11,7 @@ public class Polygon3D {
     
     public static enum States {
 	VISIBLE,
-	INVISIBLE
+	BACKFACE
     }
     public static enum Types {
 	POLYGON,
@@ -20,7 +20,8 @@ public class Polygon3D {
 	POINT
     }
     
-    public static final int ATTR_TWO_SIDES = 1;
+    public static final int ATTR_2_SIDES = 1;
+    public static final int ATTR_TRANSPARENT = 2;
     
     protected States state;
     protected Types type;
@@ -55,7 +56,7 @@ public class Polygon3D {
     /////////////////////////////////////////////////////////
     //
     public boolean isBackFace(Camera cam) {
-	if (isSetAttribute(ATTR_TWO_SIDES)
+	if (isSetAttribute(ATTR_2_SIDES)
 		|| type == Types.LINE
 		|| type == Types.POINT
 		|| cam == null) return false;
@@ -78,7 +79,7 @@ public class Polygon3D {
     
     public void setIsBackFace(Camera cam) {
 	if (isBackFace(cam))
-	    state = States.INVISIBLE;
+	    state = States.BACKFACE;
 	else state = States.VISIBLE;
     }
      

@@ -7,6 +7,7 @@ import com.bondar.geom.Line3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.gm.Matrix.AXIS;
+import com.bondar.tools.Mathem;
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -18,7 +19,7 @@ public class GraphicSystem {
 
     private static int TONE = 240;
     public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
-    public static double EPS = 0.0000001;
+    public static Color DEF_COLOR = Color.BLACK;
     public static final double MAX_POINT = 10;
     public static final double X_MAX = 10;
     public static final double Y_MAX = 7;
@@ -60,9 +61,15 @@ public class GraphicSystem {
     public void clear() {
 	g.setColor(BACK_COLOR);
 	g.fillRect(convXToScreen(0), convYToScreen(Y_MAX), convXToScreen(X_MAX), convYToScreen(0));
+	g.setColor(DEF_COLOR);
+    }
+    
+    public void drawBackground(Color col) {
+	g.setColor(col);
+	g.fillRect(0, 0, width, height);
 	g.setColor(Color.BLACK);
     }
-
+    
     //////////////////////////////////////////////////
     // Устанвка окна отсечения
     public void setClip(boolean isNeedClip) {
@@ -253,10 +260,8 @@ public class GraphicSystem {
 	int size = verts.length;
 	for (int i = 0; i < size-1; i++) {
 	    line(verts[i], verts[i+1]);
-	    //line(convPToScreen(verts[i]), convPToScreen(verts[i+1]));
 	}
 	line(verts[size-1], verts[0]);
-	//line(convPToScreen(verts[size-1]), convPToScreen(verts[0]));
     }
 
     //////////////////////////////////////////////////
@@ -386,9 +391,9 @@ public class GraphicSystem {
     // Область попадания точки
     private int code(double x, double y) {
 	int i = 0;
-	if (x < clipWindow.getXMin() + EPS) {
+	if (x < clipWindow.getXMin() + Mathem.EPSILON_E7) {
 	    ++i;
-	} else if (x > clipWindow.getXMax() - EPS) {
+	} else if (x > clipWindow.getXMax() - Mathem.EPSILON_E7) {
 	    i += 2;
 	}
 	if (y < clipWindow.getYMin()) {
@@ -498,25 +503,87 @@ public class GraphicSystem {
 	    return;
 	}
 	for (Polygon3D poly : sortPolies) {
-	    drawFilledPolygon(poly);
+	    drawFilledPolygon3D(poly);
 	}
     }
     
-    public void drawFilledPolygon(Polygon3D poly) {
+    public void drawFilledPolygon3D(Polygon3D poly) {
 	setColor(poly.getFillColor());
 	switch(poly.getType()) {
 	    case POINT:
-		line(poly.getVertex(0), poly.getVertex(0));
+		drawScreenPoint(poly.getVertex(0));
 		break;
 	    case LINE:
-		line(poly.getVertex(0), poly.getVertex(1));
+		drawScreenLine(poly.getVertex(0), poly.getVertex(1));
 		break;
 	    default:
-		fillPolygon(poly.getVertexes());
+		drawScreenFilledPolygon(poly.getVertexes());
 		break;
 	}
     }
+    
+    /////////////////////////////////////////////////////
+    // draw line
+    public void drawScreenLine(Point3D p1, Point3D p2) {
+	if (p1 == null || p2 == null) return;
+	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+    }
+    
+    public void drawScreenLine(Point2D p1, Point2D p2) {
+	if (p1 == null || p2 == null) return;
+	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+    }  
+    
+    public void drawScreenLine(double x1, double y1, double x2, double y2) {
+	g.drawLine((int)(x1 + 0.5), (int)(y1 + 0.5), (int)(x2 + 0.5), (int)(y2 + 0.5));
+    }
+    
+    /////////////////////////////////////////////////////
+    // draw point
+    public void drawScreenPoint(Point3D p) {
+	if (p == null) return;
+	drawScreenPoint(p.getX(), p.getY());
+    }
 
+    public void drawScreenPoint(double x, double y) {
+	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
+		(int)(x + 0.5), (int)(y + 0.5));	    
+     }
+    
+    public void drawScreenPoint(Point3D p, Color col) {
+	if (p == null) return;
+	drawScreenPoint(p.getX(), p.getY(), col);
+    }
+
+    public void drawScreenPoint(double x, double y, Color col) {
+	g.setColor(col);
+	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
+		(int)(x + 0.5), (int)(y + 0.5));	    
+    }
+    
+    /////////////////////////////////////////////////////
+    // draw filled polygon
+    public void drawScreenFilledPolygon(Point3D[] verts) {
+	if (verts == null) return;
+	int size = verts.length;
+	int xs[] = new int[size];
+	int ys[] = new int[size];
+	for (int i = 0; i < size; i++) {
+	    if (verts[i] == null) continue;
+	    xs[i] = (int)(verts[i].getX() + 0.5);
+	    ys[i] = (int)(verts[i].getY() + 0.5);
+	}
+	g.fillPolygon(xs, ys, size);
+    }
+    public void drawScreenPolygonBorder(Point3D[] verts) {
+	if (verts == null) return;
+	int size = verts.length;
+	for (int i = 0; i < size-1; i++) {
+	    drawScreenLine(verts[i], verts[i+1]);
+	}
+	drawScreenLine(verts[size-1], verts[0]);
+    }
+    
     // Сортировка граней по координате Z
     public static Polygon3D[] sortTrianglesByZ(Polygon3D[] polies) {
 	if (polies == null) {
@@ -573,17 +640,6 @@ public class GraphicSystem {
 	}
     }
 
-    public void setScreenPixel(Point3D p, Color col) {
-	g.setColor(col);
-	g.drawLine((int)p.getX(),height - (int)p.getY(), 
-		(int)p.getX(),height - (int)p.getY());
-    }
-
-    public void setScreenPixel(double x, double y, Color col) {
-	Point3D p = new Point3D(x, y, 0);
-	setScreenPixel(p,col);
-    }
-
     /////////////////////////////////////////////////////
     // Отрисовка треугольника (полинейно)
     private void drawBufferedPolygon(Polygon3D poly) {
@@ -597,19 +653,19 @@ public class GraphicSystem {
 	while (flag) {
 	    flag = false;
 	    if (b.getY() < a.getY()) {
-		Point3D d = b;
+		Point3D temp = b;
 		b = a;
-		a = d;
+		a = temp;
 		flag = true;
 	    }
 	    if (c.getY() < b.getY()) {
-		Point3D d = c;
+		Point3D temp = c;
 		c = b;
-		b = d;
+		b = temp;
 		flag = true;
 	    }
 	}
-	//закраска треугольника
+	// закраска треугольника
 	for (sy = (int) (a.getY()); sy < c.getY(); sy++) {
 	    x1 = (int) (a.getX()) + (sy - (int) (a.getY())) * ((int) (c.getX())
 		    - (int) (a.getX())) / ((int) (c.getY()) - (int) (a.getY()));
@@ -625,9 +681,9 @@ public class GraphicSystem {
 		}
 	    }
 	    if (x1 > x2) {
-		int tmp = x1;
+		int temp = x1;
 		x1 = x2;
-		x2 = tmp;
+		x2 = temp;
 	    }
 	    Point3DOdn p1 = new Point3DOdn(x1, sy, 0);
 	    Point3DOdn p2 = new Point3DOdn(x2, sy, 0);
@@ -655,7 +711,7 @@ public class GraphicSystem {
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
 		double z_b = poly.getZbyXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    setScreenPixel(xPix, yPix, poly.getFillColor()); //вывод первой точки на экране
+		    drawScreenPoint(xPix, yPix, poly.getFillColor()); //вывод первой точки на экране
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -673,7 +729,7 @@ public class GraphicSystem {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = poly.getZbyXY(xPix, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, poly.getFillColor());
+			drawScreenPoint(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -688,7 +744,7 @@ public class GraphicSystem {
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
 		double z_b = poly.getZbyXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    setScreenPixel(xPix, yPix, poly.getFillColor());
+		    drawScreenPoint(xPix, yPix, poly.getFillColor());
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -704,7 +760,7 @@ public class GraphicSystem {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = poly.getZbyXY(x, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			setScreenPixel(x, yPix, poly.getFillColor());
+			drawScreenPoint(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -824,5 +880,9 @@ public class GraphicSystem {
 
     public double getyMax() {
 	return yMax;
+    }
+    
+    public Graphics getGraphics() {
+	return g;
     }
 }

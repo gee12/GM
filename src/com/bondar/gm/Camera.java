@@ -27,14 +27,16 @@ public abstract class Camera {
     protected Dimension2D viewPlane;  // width and height of view plane to project onto
     protected ClipBox3D clipBox;	    // 3d clipping planes
     protected double fov;		    // field of view for both horizontal and vertical axes
+    protected Point3D target;	// look at target
    
     public Camera(int attr, Point3D pos, Vector3D dir, double nearClipZ, double farClipZ, 
-	    double dist, double fov, Dimension vp, int mode) {
+	    double dist, double fov, Dimension vp, Point3D target, int mode) {
 	this.attr = attr;
 	this.pos = pos;
 	this.dir = dir;
 	this.viewPort = vp;
 	this.buildMode = mode;
+	this.target = target;
 	// usually 2x2 for normalized projection or 
 	// the exact same size as the viewport (screen window)
 	viewPlane = new Dimension();
@@ -81,6 +83,10 @@ public abstract class Camera {
     
     public void updatePosition(double dx, double dy, double dz) {
 	pos.add(new Point3D(dx, dy, dz));
+    }
+    
+    public void updateTarget(double dx, double dy, double dz) {
+	target.add(new Point3D(dx, dy, dz));
     }
     
     // set

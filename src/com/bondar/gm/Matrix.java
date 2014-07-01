@@ -132,31 +132,13 @@ public class Matrix {
     public static Matrix buildPerspectiveMatrix(double d, double ar) {
 	return new Matrix(new double[][]{
 	    {d, 0, 0, 0},
-	    {0, d, 0, 0},
+	    {0, d*ar, 0, 0},
 	    {0, 0, 1, 1},
 	    {0, 0, 0, 0}});
     }
-	/*
-    public static Matrix getPerspectiveMatrix(double d) {
-	return new Matrix(new double[][]{
-	    {1, 0, 0, 0},
-	    {0, 1, 0, 0},
-	    {0, 0, 1, 1/d},
-	    {0, 0, 0, 0}});
-    }*/
-    
-    /*
-    public static Matrix getPerspective1Matrix(double r1, double r2) {
-	Matrix m = new Matrix(new double[][]{
-	    {1, 0, 0, r1},
-	    {0, 1, 0, r2},
-	    {0, 0, 1, 0},
-	    {0, 0, 0, 1}});
-	return m;
-    }*/
 
     //////////////////////////////////////////////////
-     public static Matrix buildScreenMatrix(double width, double height) {
+    public static Matrix buildPerspectToScreenMatrix(double width, double height) {
 	double alpha = (0.5 * width - 0.5);
 	double beta  = (0.5 * height - 0.5);
 	return new Matrix(new double[][]{
@@ -164,8 +146,18 @@ public class Matrix {
 	    {0, -beta, 0, 0},
 	    {alpha, beta, 1, 0},
 	    {0, 0, 0, 1}});
-    }   
+    }
      
+    public static Matrix buildCameraToScreenMatrix(double width, double height, double dist) {
+	double alpha = (0.5 * width - 0.5);
+	double beta  = (0.5 * height - 0.5);
+	return new Matrix(new double[][]{
+	    {dist, 0, 0, 0},
+	    {0, -dist, 0, 0},
+	    {alpha, beta, 1, 0},
+	    {0, 0, 0, 1}});
+    }   
+          
     //////////////////////////////////////////////////
      public static Matrix buildUVNMatrix(Vector3D u, Vector3D v, Vector3D n) {
 	return new Matrix(new double[][]{
@@ -215,12 +207,6 @@ public class Matrix {
 		res[i] += vector[j] * m[j][i];
 	    }
 	}
-	/*// ?
-	// делим на w
-	double w = 1 / res[3];
-	for (int i = 0; i < cols; i++) {
-	    res[i] *= w;
-	}*/
 	return res;
     }
 
