@@ -18,7 +18,7 @@ public class Solid3D {
     final double MAGIC_NUMBER_X = 0.5;//2.3;
     final double MAGIC_NUMBER_Y = 0.5;//1.6;
     
-    public enum States {
+    public static enum States {
 	VISIBLE,
 	CULLED
     }
@@ -27,7 +27,7 @@ public class Solid3D {
     public static final int ATTR_NO_CULL = 2;
     
     private States state;
-    private int attribute;
+    private int attributes;
     private Point3D[] localVerts;
     private Point3D[] transVerts;
     //private int[][] indexes;
@@ -48,7 +48,7 @@ public class Solid3D {
 
     public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3D[] polies) {
 	this.name = name;
-	this.attribute = attribs;
+	this.attributes = attribs;
 	this.localVerts = getVertexCopy(vertexes);
 	//this.indexes = indsToTrias;
 	this.polygons = getPolygonsCopy(polies);
@@ -57,7 +57,7 @@ public class Solid3D {
     
     public Solid3D(String name, int attribs, Point3D[] vertexes, int[][] indsToTrias, Color[] fills, Color[] borders, int attr) {
 	this.name = name;
-	this.attribute = attribs;
+	this.attributes = attribs;
 	this.localVerts = vertexes;
 	//this.indexes = indsToTrias;
 	this.polygons = buildPolygons(vertexes, indsToTrias, fills, borders, attr);
@@ -66,7 +66,7 @@ public class Solid3D {
 
     public Solid3D(String name, Point3D[] vertexes) {
 	this.name = name;
-	this.attribute = 0;
+	this.attributes = 0;
 	this.localVerts = vertexes;
 	//this.indexes = buildIndexes(vertexes);
 	this.polygons = buildPolygons(vertexes, buildIndexes(vertexes));
@@ -243,11 +243,11 @@ public class Solid3D {
     /////////////////////////////////////////////////////////
     // set
     public final void setAttributes(int attr) {
-	attribute |= attr;
+	attributes |= attr;
     }
 
     public final void unsetAttribute(int attr) {
-	attribute &= ~attr;
+	attributes &= ~attr;
     }   
     
     public void setIsNeedCulling(Camera cam) {
@@ -316,11 +316,11 @@ public class Solid3D {
     }
     
     public int getAttributes() {
-	return attribute;
+	return attributes;
     }
     
     public boolean isSetAttribute(int attr) {
-	return (attribute & attr) != 0;
+	return (attributes & attr) != 0;
     }   
     
     public BoundingBox3D getBounds() {
@@ -382,6 +382,6 @@ public class Solid3D {
     }
         
     public Solid3D getCopy() {
-	return new Solid3D(name, attribute, localVerts, polygons);
+	return new Solid3D(name, attributes, localVerts, polygons);
     }
 }

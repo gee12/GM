@@ -14,22 +14,53 @@ import com.bondar.geom.Point3DOdn;
 public class TransferManager {
 
     /////////////////////////////////////////////////////////
+    //
+    public static void fullModeltransfer(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+	if (model == null) return;
+	// transferFull local vertexes to world
+	Point3D[] verts = TransferManager.transToWorld(model);
+	// culling solid if need
+	if (!model.isSetAttribute(Solid3D.ATTR_NO_CULL))
+	    model.setIsNeedCulling(camera);
+	if (model.getState() != Solid3D.States.VISIBLE)
+	    return;
+	// define backfaces triangles
+	if (isNeedDefineBackfaces)
+	{
+	    model.reinitPoliesVertexes(verts);
+	    model.defineBackfaces(camera);
+	}
+	// transferFull world vertexes to camera
+	verts = TransferManager.transToCamera(verts, camera);
+	if (model.isNeedPerspective()) {
+	    verts = TransferManager.transToPerspective(verts, camera);
+	    //
+	    verts = TransferManager.transPerspectToScreen(verts, camera);
+	}
+	else verts = TransferManager.transCameraToScreen(verts, camera);
+	
+	if (verts == null) return;
+	model.reinitPoliesVertexes(verts);
+	model.setTransVertexes(verts);
+    }
+    
+    /////////////////////////////////////////////////////////
     // transfer with all vertexes
     // local -> world -> camera -> perspective
-    public static Point3D[] transferFull(Solid3D solid, Camera cam) {
-	if (solid == null) return null;
-	return transferFull(solid.getLocalVertexes(), solid.getDirection(), 
-		solid.getPosition(), solid.getScale(), cam, solid.isNeedPerspective());
+    public static Point3D[] transferFull(Solid3D model, Camera cam) {
+	if (model == null) return null;
+	return transferFull(model.getLocalVertexes(), model.getDirection(), 
+		model.getPosition(), model.getScale(), cam, model.isNeedPerspective());
     }
     
     public static Point3D[] transferFull(Point3D[] verts, Point3D dir, Point3D pos, Point3D scale,
 	    Camera cam, boolean isNeedPerspective) {
 	if (verts == null || dir == null || pos == null || scale == null || cam == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationMatrix(dir.getX(), Matrix.AXIS.X);
-	Matrix rotateYM = Matrix.buildRotationMatrix(dir.getY(), Matrix.AXIS.Y);
-	Matrix rotateZM = Matrix.buildRotationMatrix(dir.getZ(), Matrix.AXIS.Z);
-	Matrix transM = Matrix.buildTransferMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
 	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
 	Matrix camM = cam.builtMatrix(cam.getBuildMode());
@@ -44,19 +75,19 @@ public class TransferManager {
     }
 
     // local -> world
-     public static Point3D[] transToWorld(Solid3D solid) {
-	if (solid == null) return null;
-	return transToWorld(solid.getLocalVertexes(), solid.getDirection(), 
-		solid.getPosition(), solid.getScale());
+     public static Point3D[] transToWorld(Solid3D model) {
+	if (model == null) return null;
+	return transToWorld(model.getLocalVertexes(), model.getDirection(), 
+		model.getPosition(), model.getScale());
      }
      
      public static Point3D[] transToWorld(Point3D[] verts, Point3D dir, Point3D pos, Point3D scale) {
 	if (verts == null || dir == null || pos == null || scale == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationMatrix(dir.getX(), Matrix.AXIS.X);
-	Matrix rotateYM = Matrix.buildRotationMatrix(dir.getY(), Matrix.AXIS.Y);
-	Matrix rotateZM = Matrix.buildRotationMatrix(dir.getZ(), Matrix.AXIS.Z);
-	Matrix transM = Matrix.buildTransferMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
 	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM};
 	// transform all local vertexes
@@ -132,10 +163,10 @@ public class TransferManager {
     public static Point3D transToWorld(Point3D vert, Point3D dir, Point3D pos, Point3D scale) {
 	if (vert == null || dir == null || pos == null || scale == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationMatrix(dir.getX(), Matrix.AXIS.X);
-	Matrix rotateYM = Matrix.buildRotationMatrix(dir.getY(), Matrix.AXIS.Y);
-	Matrix rotateZM = Matrix.buildRotationMatrix(dir.getZ(), Matrix.AXIS.Z);
-	Matrix transM = Matrix.buildTransferMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
 	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM};
 	// transform local vertex

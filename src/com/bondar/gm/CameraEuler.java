@@ -32,32 +32,33 @@ public class CameraEuler extends Camera{
     @Override
     public Matrix builtMatrix(int camRotSeq) {
 	Matrix res = new Matrix();
-	Matrix invM = Matrix.buildTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
-	Matrix rotateXM = Matrix.buildRotationMatrix(-dir.getX(), Matrix.AXIS.X);
-	Matrix rotateYM = Matrix.buildRotationMatrix(-dir.getY(), Matrix.AXIS.Y);
-	Matrix rotateZM = Matrix.buildRotationMatrix(-dir.getZ(), Matrix.AXIS.Z);
-
+	Matrix invM = Matrix.buildTranlateMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
+	Matrix rotateXM = Matrix.buildRotationXMatrix(-dir.getX());
+	Matrix rotateYM = Matrix.buildRotationYMatrix(-dir.getY());
+	Matrix rotateZM = Matrix.buildRotationZMatrix(-dir.getZ());
+	
 	// now compute inverse camera rotation sequence
 	switch (camRotSeq) {
 	    case CAM_ROT_SEQ_XYZ:
-		res = rotateXM.multiply(rotateYM).multiply(rotateZM);
+		res = res.multiply(rotateXM).multiply(rotateYM).multiply(rotateZM);
 		break;
 	    case CAM_ROT_SEQ_YXZ:
-		res = rotateYM.multiply(rotateXM).multiply(rotateZM);
+		res = res.multiply(rotateYM).multiply(rotateXM).multiply(rotateZM);
 		break;
 	    case CAM_ROT_SEQ_XZY:
-		res = rotateXM.multiply(rotateZM).multiply(rotateYM);
+		res = res.multiply(rotateXM).multiply(rotateZM).multiply(rotateYM);
 		break;
 	    case CAM_ROT_SEQ_YZX:
-		res = rotateYM.multiply(rotateZM).multiply(rotateXM);
+		res = res.multiply(rotateYM).multiply(rotateZM).multiply(rotateXM);
 		break;
 	    case CAM_ROT_SEQ_ZYX:
-		res = rotateZM.multiply(rotateYM).multiply(rotateXM);
+		res = res.multiply(rotateZM).multiply(rotateYM).multiply(rotateXM);
 		break;
 	    case CAM_ROT_SEQ_ZXY:
-		res = rotateZM.multiply(rotateXM).multiply(rotateYM);
+		res = res.multiply(rotateZM).multiply(rotateXM).multiply(rotateYM);
 		break;
 	}
+	//return invM.multiply(res);
 	return res.multiply(invM);
     }
 }

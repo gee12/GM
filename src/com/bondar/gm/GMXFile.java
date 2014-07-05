@@ -26,6 +26,7 @@ public class GMXFile {
     private static final String VERTEXES_PARAM = "verts:";
     private static final String POLYGONS_PARAM = "polyns:";
     private static final String ATTRIBUTES_PARAM = "attr:";
+    private static final String ATTRIBUTES_MATERIAL = "mater:";
     
     /////////////////////////////////////////////////////////
     public static List<Solid3D> readGMXDir(String dirName) throws Exception {

@@ -1,5 +1,6 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Point3D;
 import com.bondar.geom.Vector3D;
 import com.bondar.geom.Point3DOdn;
 
@@ -81,9 +82,48 @@ public class Matrix {
 		{0, -Math.sin(a), Math.cos(a), 0},
 		{0, 0, 0, 1}});
     }
-
+    
     //////////////////////////////////////////////////
-    public static Matrix buildTransferMatrix(double tx, double ty, double tz) {
+    public static Matrix buildRotationTransMatrix(double angle, Point3D p0, AXIS axis) {
+	switch (axis) {
+	    case X: 
+		return Matrix.buildRotationTransXMatrix(angle, p0);
+	    case Y:
+		return Matrix.buildRotationTransYMatrix(angle, p0);
+	    case Z:
+		return Matrix.buildRotationTransZMatrix(angle, p0);
+	    default: return new Matrix();
+	}
+    }
+    public static Matrix buildRotationTransZMatrix(double a, Point3D p0) {
+	return new Matrix(new double[][] {
+		{Math.cos(a), Math.sin(a), 0, 0},
+		{-Math.sin(a), Math.cos(a), 0, 0},
+		{0, 0, 1, 0},
+		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
+		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+    }
+
+    public static Matrix buildRotationTransYMatrix(double a, Point3D p0) {
+	return new Matrix(new double[][] {
+		{Math.cos(a), 0, -Math.sin(a), 0},
+		{0, 1, 0, 0},
+		{Math.sin(a), 0, Math.cos(a), 0},
+		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
+		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+    }
+
+    public static Matrix buildRotationTransXMatrix(double a, Point3D p0) {
+	return new Matrix(new double[][] {
+		{1, 0, 0, 0},
+		{0, Math.cos(a), Math.sin(a), 0},
+		{0, -Math.sin(a), Math.cos(a), 0},
+		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
+		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+    }    
+    
+    //////////////////////////////////////////////////
+    public static Matrix buildTranlateMatrix(double tx, double ty, double tz) {
 	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},

@@ -27,7 +27,7 @@ public class CameraUVN extends Camera{
 
     @Override
     public Matrix builtMatrix(int mode) {
-	Matrix invM = Matrix.buildTransferMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
+	Matrix invM = Matrix.buildTranlateMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
 	if (mode == UVN_MODE_SPHERICAL) {
 	    double phi = dir.getX();	// elevation
 	    double theta = dir.getY();	// heading
@@ -44,6 +44,7 @@ public class CameraUVN extends Camera{
 	u = v.mul(n);
 	// Step 4: v = (n x u)
 	v = n.mul(u);
+	
 	u.normalize();
 	v.normalize();
 	n.normalize();
