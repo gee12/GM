@@ -15,7 +15,7 @@ public class ModelsManager {
     private static final String MODELS_DIR = "models/";
     private static final String CUBE_TEXT = "Куб";
    
-    private Solid3D[] models = null;
+    private Solid3D[] models;
     
     public ModelsManager() {
 	
@@ -30,7 +30,7 @@ public class ModelsManager {
 	    ex.printStackTrace();
 	}
 	// clone models
-	Random rand = new Random();
+	/*Random rand = new Random();
 	for (Solid3D model : loaded) {
 	    if (model.getName().equals(CUBE_TEXT)) {
 		for (int i = 0; i < 1000; i++) {
@@ -40,7 +40,7 @@ public class ModelsManager {
 		}
 		break;
 	    }
-	}
+	}*/
 	models = Types.toArray(loaded, Solid3D.class);
     }
     

@@ -28,11 +28,11 @@ public class Triangle3D extends Polygon3D {
 	return ((s1 + s2 + s3) - getSquare(v1,v2,v3) < Mathem.EPSILON_E6);
     }
     
-    public double getZbyXY(double x, double y) {
-	return getZbyXY(getV1(), getV2(), getV3(), x, y);
+    public double zByXY(double x, double y) {
+	return zByXY(getV1(), getV2(), getV3(), x, y);
     }
     
-    public static double getZbyXY(Point3D v1, Point3D v2, Point3D v3, double x, double y) {
+    public static double zByXY(Point3D v1, Point3D v2, Point3D v3, double x, double y) {
 	double A = v1.getY() * (v2.getZ() - v3.getZ()) 
 		+ v2.getY() * (v3.getZ() - v1.getZ()) 
 		+ v3.getY() * (v1.getZ() - v2.getZ());
@@ -81,6 +81,6 @@ public class Triangle3D extends Polygon3D {
     
     @Override
     public Triangle3D getCopy() {
-	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], fillColor, borderColor, attributes);
+	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], srcColor, borderColor, attributes);
     }
 }

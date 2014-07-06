@@ -3,6 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
+import com.bondar.geom.Polygon3D;
 
 /**
  *
@@ -15,7 +16,7 @@ public class TransferManager {
 
     /////////////////////////////////////////////////////////
     //
-    public static void fullModeltransfer(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+    public static void transLocalToCamera(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
 	if (model == null) return;
 	// transferFull local vertexes to world
 	Point3D[] verts = TransferManager.transToWorld(model);
@@ -32,12 +33,56 @@ public class TransferManager {
 	}
 	// transferFull world vertexes to camera
 	verts = TransferManager.transToCamera(verts, camera);
+	/*// to perspective
 	if (model.isNeedPerspective()) {
 	    verts = TransferManager.transToPerspective(verts, camera);
 	    //
 	    verts = TransferManager.transPerspectToScreen(verts, camera);
 	}
-	else verts = TransferManager.transCameraToScreen(verts, camera);
+	else verts = TransferManager.transToScreen(verts, camera);*/
+	
+	if (verts == null) return;
+	model.reinitPoliesVertexes(verts);
+	model.setTransVertexes(verts);
+    }
+    
+    public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera, boolean isNeedPerspective) {
+	if (polies == null) return;
+	if (isNeedPerspective) {
+	    for (Polygon3D poly: polies) {
+		poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+	    }
+	} else {
+	    for (Polygon3D poly: polies) {
+		poly.setVertexes(transToScreen(poly.getVertexes(), camera));
+	    }
+	}
+    }
+    
+    public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+	if (model == null) return;
+	// transferFull local vertexes to world
+	Point3D[] verts = TransferManager.transToWorld(model);
+	// culling solid if need
+	if (!model.isSetAttribute(Solid3D.ATTR_NO_CULL))
+	    model.setIsNeedCulling(camera);
+	if (model.getState() != Solid3D.States.VISIBLE)
+	    return;
+	// define backfaces triangles
+	if (isNeedDefineBackfaces)
+	{
+	    model.reinitPoliesVertexes(verts);
+	    model.defineBackfaces(camera);
+	}
+	// transferFull world vertexes to camera
+	verts = TransferManager.transToCamera(verts, camera);
+	// to perspective
+	if (model.isNeedPerspective()) {
+	    verts = TransferManager.transToPerspective(verts, camera);
+	    //
+	    verts = TransferManager.transPerspectToScreen(verts, camera);
+	}
+	else verts = TransferManager.transToScreen(verts, camera);
 	
 	if (verts == null) return;
 	model.reinitPoliesVertexes(verts);
@@ -142,8 +187,24 @@ public class TransferManager {
 	return res;
     }
     
+    public static Point3D[] transToPerspectAndScreen(Point3D[] verts, Camera cam) {
+	if (verts == null || cam == null) return null;
+	// create matrixes
+	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform all camera vertexes
+	int size = verts.length;
+	Point3D[] res = new Point3D[size];
+	for (int i = 0; i < size; i++) {
+	    res[i] = transVertex(verts[i], ms);
+	}
+	return res;
+    }
+    
     // camera -> screen
-    public static Point3D[] transCameraToScreen(Point3D[] verts, Camera cam) {
+    public static Point3D[] transToScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create screen matrix
 	Matrix scrM = Matrix.buildCameraToScreenMatrix(

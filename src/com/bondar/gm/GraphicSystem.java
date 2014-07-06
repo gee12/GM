@@ -595,7 +595,7 @@ public class GraphicSystem {
 	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
 	    Polygon3D poly = polies[i];
-	    dists[i] = poly.getAverageZ();
+	    dists[i] = poly.averageZ();
 	    indexes[i] = i;
 	}
 	Polygon3D[] res = new Polygon3D[size];
@@ -709,7 +709,7 @@ public class GraphicSystem {
 	    int xPix = (int) p1.getX();
 	    int yPix = (int) (height - p1.getY());
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = poly.getZbyXY(xPix, yPix);
+		double z_b = poly.zByXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
 		    drawScreenPoint(xPix, yPix, poly.getFillColor()); //вывод первой точки на экране
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
@@ -727,7 +727,7 @@ public class GraphicSystem {
 		yPix = (int) (height - y);
 
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = poly.getZbyXY(xPix, yPix);
+		    double z_b = poly.zByXY(xPix, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
 			drawScreenPoint(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
@@ -742,7 +742,7 @@ public class GraphicSystem {
 	    int xPix = (int) p1.getX();
 	    int yPix = (int) (height - p1.getY());
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = poly.getZbyXY(xPix, yPix);
+		double z_b = poly.zByXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
 		    drawScreenPoint(xPix, yPix, poly.getFillColor());
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
@@ -758,7 +758,7 @@ public class GraphicSystem {
 		yPix = (int) (height - y);
 
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = poly.getZbyXY(x, yPix);
+		    double z_b = poly.zByXY(x, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
 			drawScreenPoint(x, yPix, poly.getFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);

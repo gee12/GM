@@ -73,6 +73,7 @@ public class GM extends Application implements OptionsPanelListener {
     private boolean isMousePressed;
     private LightsManager lightsManager = new LightsManager();
     private ModelsManager modelsManager = new ModelsManager();
+    private RenderManager renderManager = new RenderManager();
 	
     public static void main(String[] args) {
 	new GM(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -221,7 +222,7 @@ public class GM extends Application implements OptionsPanelListener {
 	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
 	camera = cameraEuler;
 	//
- 	onIsNeedPerspective(getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT));
+ 	//onIsNeedPerspective(getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT));
 	
 	//
 	
@@ -235,11 +236,23 @@ public class GM extends Application implements OptionsPanelListener {
 	// then don't need to update the solid's vertexes
 	// if (!isCollisions && !isObjectsMoved) return;
 	
+	// 1 - work with isolated objects
 	for (Solid3D model : modelsManager.getModels()) {
 	    animateModel(model);
 	    updateModel(model);
 	}
+	
+	// 2 - work with render array (visible polygons)
+	renderManager.buildRenderArray(modelsManager.getModels());
+	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
+	Polygon3D[] polies = renderManager.getRenderArray();
+	boolean isNeedPerspect = 
+		getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT).equals(RADIO_CENTER_TEXT);
 	//
+	TransferManager.transToPerspectAndScreen(polies, camera, isNeedPerspect);
+	renderManager.setRenderArray(polies);
+	
+	// 3 - 
 	onCollision();
     }
     
@@ -253,7 +266,9 @@ public class GM extends Application implements OptionsPanelListener {
 	//
 	boolean isNeedDefineBackfaces = 
 		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
-	TransferManager.fullModeltransfer(model, camera, isNeedDefineBackfaces);
+	
+	//TransferManager.transferFull(model, camera, isNeedDefineBackfaces);
+	TransferManager.transLocalToCamera(model, camera, isNeedDefineBackfaces);
 	// 
 	model.setBounds(model.getTransVertexes());
     }
@@ -327,7 +342,7 @@ public class GM extends Application implements OptionsPanelListener {
 	}
     }
     
-    private void onIsNeedPerspective(String selectedRadioText) {
+    /*private void onIsNeedPerspective(String selectedRadioText) {
 	boolean isPerspective = false;
 	switch (selectedRadioText) {
 	    case RADIO_ORTOGON_TEXT:
@@ -340,7 +355,7 @@ public class GM extends Application implements OptionsPanelListener {
 	for (Solid3D model : modelsManager.getModels()) {
 	    model.setPerspective(isPerspective);
 	}
-    }
+    }*/
     
     private void onSolidListSelection(String selectedRadioText) {
 	for (Solid3D model : modelsManager.getModels()) {
@@ -356,9 +371,9 @@ public class GM extends Application implements OptionsPanelListener {
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
 	switch(groupTitle) {
-	    case GROUP_TITLE_PROJECTION_TEXT:
+	    /*case GROUP_TITLE_PROJECTION_TEXT:
 		onIsNeedPerspective(radioText);
-		break;
+		break;*/
 	    case GROUP_TITLE_OBJECTS_TEXT:
 		onSolidListSelection(radioText);
 		break;
@@ -405,7 +420,7 @@ public class GM extends Application implements OptionsPanelListener {
     
     /////////////////////////////////////////////////////////
     public void onMouseMoved(Point curPoint) {
-	if (curPoint == null) return;
+	if (curPoint == null || modelsManager == null || modelsManager.getModels() == null) return;
 	// set cursor type
 	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
 	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -547,21 +562,47 @@ public class GM extends Application implements OptionsPanelListener {
     @Override
     protected void paint(GraphicSystem g) {
 	g.drawBackground(GraphicSystem.BACK_COLOR);
-	//List<Polygon3D> polies = new ArrayList<>();
 	if (modelsManager.getModels() == null) return;
-	for (Solid3D model : modelsManager.getModels()) {
+	
+	/*for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;
 	    drawModel(g, model);
-	    //polies.addAll(Types.toList(solid.getPolygons()));
-	}
-	//Polygon3D[] array = Types.toArray(polies, Polygon3D.class);
-	//fillSolid(g, array);
-	//drawEdges(g, array);
-	
+	}*/
+	drawBorderedPolies(g, renderManager.getRenderArray());
     }
     
     /////////////////////////////////////////////////////////
-    private void drawModel(GraphicSystem g, Solid3D model) {
+    /*private void drawPolies(GraphicSystem g, Polygon3D[] polies) {
+	if (polies == null) return;
+	
+	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
+	    /*case RADIO_FACES_TEXT:
+		fillModel(g, polies);
+		break;
+	    case RADIO_EDGES_TEXT:
+		drawEdges(g, polies);
+		break;*/
+	   /* case RADIO_EDGES_FACES_TEXT:
+		drawBorderedPolies(g, polies);
+		break;
+	}
+    }*/
+    
+    /////////////////////////////////////////////////////////
+    private void drawBorderedPolies(GraphicSystem g, Polygon3D[] polies) {
+	if (g == null || polies == null) return;
+	for (Polygon3D poly : polies) {
+	    // shading
+	    //g.setColor(poly.getFillColor());
+	    g.drawFilledPolygon3D(poly);
+	    // border
+	    g.setColor(poly.getBorderColor());
+	    g.drawScreenPolygonBorder(poly.getVertexes());
+	}
+    }
+  
+    /////////////////////////////////////////////////////////
+    /*private void drawModel(GraphicSystem g, Solid3D model) {
 	if (model == null) return;
 	Polygon3D[] polies = model.getPolygons();
 	
@@ -577,7 +618,7 @@ public class GM extends Application implements OptionsPanelListener {
 		drawEdges(g, polies);
 		break;
 	}
-    }
+    }*/
 
     /////////////////////////////////////////////////////////
     private void drawEdges(GraphicSystem g, Polygon3D[] polies) {
