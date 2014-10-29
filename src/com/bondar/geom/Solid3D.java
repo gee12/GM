@@ -31,7 +31,7 @@ public class Solid3D {
     private Point3D[] localVerts;
     private Point3D[] transVerts;
     //private int[][] indexes;
-    private Polygon3D[] polygons = null;
+    private Polygon3DInds[] polygons = null;
     private String name;
     private BoundingBox3D bounds;
     
@@ -46,7 +46,7 @@ public class Solid3D {
 	this(solid.getName(), solid.getAttributes(), solid.getLocalVertexes(), solid.getPolygons());
     }
 
-    public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3D[] polies) {
+    public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3DInds[] polies) {
 	this.name = name;
 	this.attributes = attribs;
 	this.localVerts = getVertexCopy(vertexes);
@@ -103,7 +103,7 @@ public class Solid3D {
 	return res;
     }
    
-    private static Polygon3D[] buildPolygons(Point3D[] vertexes, int[][] indsToTrias) {
+    private static Polygon3DInds[] buildPolygons(Point3D[] vertexes, int[][] indsToTrias) {
 	if (indsToTrias == null) return null;
 	int size = indsToTrias.length;
 	Color[] fills = new Color[size];
@@ -118,12 +118,12 @@ public class Solid3D {
 	return buildPolygons(vertexes, indsToTrias, fills, borders, 0);
     }
     
-    private static Polygon3D[] buildPolygons(Point3D[] vertexes, int[][] inds, Color[] fills, Color[] borders, int attr) {
+    private static Polygon3DInds[] buildPolygons(Point3D[] vertexes, int[][] inds, Color[] fills, Color[] borders, int attr) {
 	if (vertexes == null || inds == null || fills == null || borders == null) return null;
 	int size = inds.length;
-	Polygon3D[] res = new Polygon3D[size];
+	Polygon3DInds[] res = new Polygon3DInds[size];
 	for (int i = 0; i < size; i++) {
-	    res[i] = new Polygon3D(
+	    res[i] = new Polygon3DInds(
 		    vertexes,
 		    inds[i],
 		    fills[i],
@@ -135,7 +135,7 @@ public class Solid3D {
 
     public void reinitPoliesVertexes(Point3D[] verts) {
 	if (polygons == null) return;
-	for (Polygon3D poly : polygons) {
+	for (Polygon3DInds poly : polygons) {
 	    poly.setVertexes(verts);
 	}
     }
@@ -235,7 +235,7 @@ public class Solid3D {
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
     public void defineBackfaces(Camera cam) {
-	for (Polygon3D poly: polygons) {
+	for (Polygon3DInds poly: polygons) {
 	    poly.setIsBackFace(cam);
 	}
     }
@@ -303,7 +303,7 @@ public class Solid3D {
 	return res;
     }
 
-    public Polygon3D[] getPolygons() {
+    public Polygon3DInds[] getPolygons() {
 	return polygons;
     }
     
@@ -372,9 +372,9 @@ public class Solid3D {
 	return res;
     }
     
-    public static Polygon3D[] getPolygonsCopy(Polygon3D[] polies) {
+    public static Polygon3DInds[] getPolygonsCopy(Polygon3DInds[] polies) {
 	int size = polies.length;
-	Polygon3D[] res = new Polygon3D[size];
+	Polygon3DInds[] res = new Polygon3DInds[size];
 	for (int i = 0; i < size; i++) {
 	    res[i] = polies[i].getCopy();
 	}

@@ -4,7 +4,7 @@ import com.bondar.gm.Camera;
 import java.awt.Color;
 
 /**
- * Polygon with indexes for vertexes.
+ * All-sufficient polygon (without indexes for vertexes).
  * @author truebondar
  */
 public class Polygon3D /*implements Comparable<Polygon3D>*/ {
@@ -27,22 +27,19 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
     protected Types type;
     protected int attributes;
     protected Point3D[] vertexes;
-    protected int indexes[];
     protected int size;
     protected Color srcColor;
     protected Color borderColor;
     protected Color shadeColor;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(Point3D[] verts, int[] inds, Color fill, Color border, int attr) {
+    public Polygon3D(Point3D[] verts, Color fill, Color border, int attr) {
 	this.vertexes = verts;
-	this.indexes = inds;
 	this.srcColor = fill;
 	this.shadeColor = fill;
 	this.borderColor = border;
 	this.attributes = attr;
-	if (inds == null) return;
-	this.size = inds.length;
+	this.size = verts.length;
 	this.state = States.VISIBLE;
 	switch (size) {
 	    case 1: type = Types.POINT;
@@ -157,17 +154,12 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
     }
 
     public Point3D getVertex(int i) {
-	if (vertexes == null || indexes == null
-		|| (i < 0 || i >= size) || (indexes[i] >= vertexes.length)) return null;
-	return vertexes[indexes[i]];
+	if (vertexes == null || i < 0 || i >= size) return null;
+	return vertexes[i];
     }
     
     public boolean isSetAttribute(int attr) {
 	return (attributes & attr) != 0;
-    }
-    
-    public int[] getIndexes() {
-	return indexes;
     }
     
     public int getSize() {
@@ -183,12 +175,7 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
     }
 
     public Point3D[] getVertexes() {
-	if (vertexes == null) return null;
-	Point3D[] res = new Point3D[size];
-	for (int i = 0; i < size; i++) {
-	    res[i] = vertexes[indexes[i]];
-	}
-	return res;
+	return vertexes;
     }
     
     public States getState() {
@@ -200,6 +187,6 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
     }
     
     public Polygon3D getCopy() {
-	return new Polygon3D(vertexes, indexes, srcColor, borderColor, attributes);
+	return new Polygon3D(vertexes, srcColor, borderColor, attributes);
     }
 }

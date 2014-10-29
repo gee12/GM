@@ -1,7 +1,7 @@
 package com.bondar.gm;
 
 import com.bondar.geom.Solid3D;
-import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Point3D;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -54,7 +54,7 @@ public class GMXFile {
 	Color[] fillColors = null;
 	Color[] borderColors = null;
 	int[] polyAttribs = null;*/
-	Polygon3D[] polies = null;
+	Polygon3DInds[] polies = null;
 	
 	String line = null;
 	int fileLineNum = 0;
@@ -110,7 +110,7 @@ public class GMXFile {
 		    fillColors = new Color[poliesNum];
 		    borderColors = new Color[poliesNum];
 		    polyAttribs = new int[poliesNum];*/
-		    polies = new Polygon3D[poliesNum];
+		    polies = new Polygon3DInds[poliesNum];
 		    lineNum = 0;
 		    while (lineNum < poliesNum) {
 			if ((line = reader.readLine()) == null) {
@@ -147,7 +147,7 @@ public class GMXFile {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
 			//polyAttribs[lineNum] = attr;
-			polies[lineNum] = new Polygon3D(vertexes, indexes, fillColor, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(vertexes, indexes, fillColor, borderColor, attr);
 			lineNum++;
 		    }		    
 		    break;
@@ -158,7 +158,7 @@ public class GMXFile {
 	}
 	reader.close();
 	//
-	for (Polygon3D poly : polies) {
+	for (Polygon3DInds poly : polies) {
 	    poly.setVertexes(vertexes);
 	}
 	Solid3D res = new Solid3D(name, attribs, vertexes, polies);

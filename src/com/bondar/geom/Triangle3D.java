@@ -7,7 +7,7 @@ import java.awt.Color;
  * Polygon as triangle with indexes for 3 vertexes.
  * @author truebondar
  */
-public class Triangle3D extends Polygon3D {
+public class Triangle3D extends Polygon3DInds {
     
     public Triangle3D(Point3D[] verts, int i1, int i2, int i3, Color fill, Color border, int attr) {
 	super(verts, new int[] { i1,i2,i3 }, fill, border, attr);

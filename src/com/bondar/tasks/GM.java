@@ -3,9 +3,10 @@ package com.bondar.tasks;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Vector3D;
-import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
+import com.bondar.geom.Polygon3D;
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
 import com.bondar.panels.OptionsPanelListener;
@@ -245,13 +246,15 @@ public class GM extends Application implements OptionsPanelListener {
 	// 2 - work with render array (visible polygons)
 	renderManager.buildRenderArray(modelsManager.getModels());
 	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
-	Polygon3D[] polies = renderManager.getRenderArray();
-	boolean isNeedPerspect = 
-		getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT).equals(RADIO_CENTER_TEXT);
-	//
+        
+	/* переместили эти стороки в renderManager
+        Polygon3D[] polies = renderManager.getRenderArray();
+	boolean isNeedPerspect = true;
+		//getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT).equals(RADIO_CENTER_TEXT);
 	TransferManager.transToPerspectAndScreen(polies, camera, isNeedPerspect);
 	renderManager.setRenderArray(polies);
-	
+	*/
+        renderManager.transToPerspectAndScreen(camera);
 	// 3 - 
 	onCollision();
     }
@@ -621,10 +624,10 @@ public class GM extends Application implements OptionsPanelListener {
     }*/
 
     /////////////////////////////////////////////////////////
-    private void drawEdges(GraphicSystem g, Polygon3D[] polies) {
+    private void drawEdges(GraphicSystem g, Polygon3DInds[] polies) {
 	if (g == null || polies == null) return;
-	for (Polygon3D poly : polies) {
-	    if (poly.getState() == Polygon3D.States.VISIBLE) {
+	for (Polygon3DInds poly : polies) {
+	    if (poly.getState() == Polygon3DInds.States.VISIBLE) {
 		g.setColor(poly.getBorderColor());
 		g.drawScreenPolygonBorder(poly.getVertexes());
 	    }
@@ -632,15 +635,15 @@ public class GM extends Application implements OptionsPanelListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void fillModel(GraphicSystem g, Polygon3D[] polies) {
+    private void fillModel(GraphicSystem g, Polygon3DInds[] polies) {
 	if (g == null || polies == null)  return;
 	switch (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT)) {
 	    case RADIO_PAINTER_TEXT:
 		g.painterAlgorithm(polies);
 		break;
 	    case RADIO_BACKFACES_EJECTION_TEXT:
-		for (Polygon3D poly : polies) {
-		    if (poly.getState() == Polygon3D.States.VISIBLE) {
+		for (Polygon3DInds poly : polies) {
+		    if (poly.getState() == Polygon3DInds.States.VISIBLE) {
 			g.setColor(poly.getFillColor());
 			g.fillPolygon(poly.getVertexes());
 		    }

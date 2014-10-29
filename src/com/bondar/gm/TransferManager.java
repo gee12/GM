@@ -4,6 +4,7 @@ import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DInds;
 
 /**
  *
@@ -26,8 +27,7 @@ public class TransferManager {
 	if (model.getState() != Solid3D.States.VISIBLE)
 	    return;
 	// define backfaces triangles
-	if (isNeedDefineBackfaces)
-	{
+	if (isNeedDefineBackfaces) {
 	    model.reinitPoliesVertexes(verts);
 	    model.defineBackfaces(camera);
 	}
@@ -41,12 +41,11 @@ public class TransferManager {
 	}
 	else verts = TransferManager.transToScreen(verts, camera);*/
 	
-	if (verts == null) return;
 	model.reinitPoliesVertexes(verts);
 	model.setTransVertexes(verts);
     }
     
-    public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera, boolean isNeedPerspective) {
+    /*public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera, boolean isNeedPerspective) {
 	if (polies == null) return;
 	if (isNeedPerspective) {
 	    for (Polygon3D poly: polies) {
@@ -57,9 +56,21 @@ public class TransferManager {
 		poly.setVertexes(transToScreen(poly.getVertexes(), camera));
 	    }
 	}
+    }*/
+    public static void transToPerspectAndScreen(Polygon3DInds[] polies, Camera camera) {
+	if (polies == null) return;
+        for (Polygon3DInds poly : polies) {
+            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+        }
     }
     
-    public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+    public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera) {
+	if (polies == null) return;
+        for (Polygon3D poly : polies) {
+            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+        }
+    }   
+    /*public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
 	if (model == null) return;
 	// transferFull local vertexes to world
 	Point3D[] verts = TransferManager.transToWorld(model);
@@ -87,7 +98,7 @@ public class TransferManager {
 	if (verts == null) return;
 	model.reinitPoliesVertexes(verts);
 	model.setTransVertexes(verts);
-    }
+    }*/
     
     /////////////////////////////////////////////////////////
     // transfer with all vertexes
@@ -146,7 +157,7 @@ public class TransferManager {
 
     // world -> camera
     public static Point3D[] transToCamera(Point3D[] verts, Camera cam) {
-	if (verts == null || cam == null)return null;
+	if (verts == null || cam == null) return null;
 	// create camera matrix
 	Matrix camM = cam.builtMatrix(cam.getBuildMode());
 	// transform all world vertexes

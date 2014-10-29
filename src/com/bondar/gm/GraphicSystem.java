@@ -2,10 +2,11 @@ package com.bondar.gm;
 
 import com.bondar.geom.ClipBox2D;
 import com.bondar.geom.Point2D;
-import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Line3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
+import com.bondar.geom.Polygon3D;
 import com.bondar.gm.Matrix.AXIS;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
@@ -497,12 +498,12 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // Алгоритм художника
-    public void painterAlgorithm(Polygon3D[] polies) {
-	Polygon3D[] sortPolies = sortTrianglesByZ(polies);
+    public void painterAlgorithm(Polygon3DInds[] polies) {
+	Polygon3DInds[] sortPolies = sortTrianglesByZ(polies);
 	if (sortPolies == null) {
 	    return;
 	}
-	for (Polygon3D poly : sortPolies) {
+	for (Polygon3DInds poly : sortPolies) {
 	    drawFilledPolygon3D(poly);
 	}
     }
@@ -585,7 +586,7 @@ public class GraphicSystem {
     }
     
     // Сортировка граней по координате Z
-    public static Polygon3D[] sortTrianglesByZ(Polygon3D[] polies) {
+    public static Polygon3DInds[] sortTrianglesByZ(Polygon3DInds[] polies) {
 	if (polies == null) {
 	    return null;
 	}
@@ -594,11 +595,11 @@ public class GraphicSystem {
 	int[] indexes = new int[size];
 	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
-	    Polygon3D poly = polies[i];
+	    Polygon3DInds poly = polies[i];
 	    dists[i] = poly.averageZ();
 	    indexes[i] = i;
 	}
-	Polygon3D[] res = new Polygon3D[size];
+	Polygon3DInds[] res = new Polygon3DInds[size];
 	// сортировка граней по удаленности
 	for (int i = 0; i < size - 1; i++) {
 	    for (int j = 0; j < size - 1; j++) {
@@ -621,11 +622,11 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения невидимых граней с использованием z-буффера
-    public void zBufferAlgorithm(Polygon3D[] polies) {
+    public void zBufferAlgorithm(Polygon3DInds[] polies) {
 	if (polies == null) {
 	    return;
 	}
-	for (Polygon3D poly : polies) {
+	for (Polygon3DInds poly : polies) {
 	    switch(poly.getType()) {
 		case POINT:
 		    line(poly.getVertex(0), poly.getVertex(0));
@@ -642,7 +643,7 @@ public class GraphicSystem {
 
     /////////////////////////////////////////////////////
     // Отрисовка треугольника (полинейно)
-    private void drawBufferedPolygon(Polygon3D poly) {
+    private void drawBufferedPolygon(Polygon3DInds poly) {
 	if (poly == null) return;
 	Point3D a = convPToScreen(poly.getVertex(0));
 	Point3D b = convPToScreen(poly.getVertex(1));
@@ -694,7 +695,7 @@ public class GraphicSystem {
     /////////////////////////////////////////////////////
     // Алгритм Брезинхема
     // (поточечная отрисовка линии треугольника с использованием Z-буффера)
-    private void drawBufferedLine(Polygon3D poly, Point3DOdn p1, Point3DOdn p2) {
+    private void drawBufferedLine(Polygon3DInds poly, Point3DOdn p1, Point3DOdn p2) {
 	float d, d1, d2;
 	int dx = (int) (Math.abs(p2.getX() - p1.getX()));
 	int dy = (int) (Math.abs(p2.getY() - p1.getY()));

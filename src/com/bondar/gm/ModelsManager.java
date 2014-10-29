@@ -4,7 +4,6 @@ import com.bondar.geom.Solid3D;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  *
@@ -18,7 +17,7 @@ public class ModelsManager {
     private Solid3D[] models;
     
     public ModelsManager() {
-	
+
     }
     
     public void load() {

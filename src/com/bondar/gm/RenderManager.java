@@ -1,6 +1,7 @@
 package com.bondar.gm;
 
 import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Solid3D;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
@@ -31,11 +32,13 @@ public class RenderManager {
     public static Polygon3D[] toRenderArray(Solid3D[] models) {
 	if (models == null) return null;
 	List<Polygon3D> res = new ArrayList<>();
+        
 	for (Solid3D model : models) {
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;
-	    for (Polygon3D poly : model.getPolygons()) {
+	    for (Polygon3DInds poly : model.getPolygons()) {
 		if (poly.getState() != Polygon3D.States.VISIBLE) continue;
-		res.add(poly);
+                // to all-sufficient polygon
+		res.add(poly.toPolygon3D());
 	    }
 	    //polies.addAll(Types.toList(model.getPolygons()));
 	}
@@ -62,6 +65,12 @@ public class RenderManager {
 		Arrays.sort(polies, compFarZ);
 		break;
 	}
+    }
+    
+    /////////////////////////////////////////////////////////
+    // 
+    public void transToPerspectAndScreen(Camera camera) {
+        TransferManager.transToPerspectAndScreen(renderArray, camera);
     }
     
     /////////////////////////////////////////////////////////
