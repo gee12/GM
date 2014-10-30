@@ -1,7 +1,7 @@
 package com.bondar.tasks;
 
 import com.bondar.panels.Application;
-import com.bondar.gm.GraphicSystem;
+import com.bondar.gm.GraphicSystem2D;
 import com.bondar.geom.Line3D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Solid2D;
@@ -30,9 +30,9 @@ public class Lab4 extends Application {
 	setClip(false);
 	setScale(false);
 	
-	final double indent = GraphicSystem.BORDER;
-	final double xMax = GraphicSystem.X_MAX;
-	final double yMax = GraphicSystem.Y_MAX;
+	final double indent = GraphicSystem2D.BORDER;
+	final double xMax = GraphicSystem2D.X_MAX;
+	final double yMax = GraphicSystem2D.Y_MAX;
 	final double thikness = 1d;
 	// обход точек ПРОТИВ часовой стрелки
 	polygon = new Solid2D(new Point2D[] {
@@ -68,14 +68,14 @@ public class Lab4 extends Application {
 
     /////////////////////////////////////////////////////////
     @Override
-    protected void paint(GraphicSystem g) {
+    protected void paint(GraphicSystem2D g) {
 	g.clear();
 	g.setColor(Color.GRAY);
 	drawPolygon(g, polygon);
 	drawLines(g, decompLines);
     }
 
-    private void drawPolygon(GraphicSystem g, Solid2D poly) {
+    private void drawPolygon(GraphicSystem2D g, Solid2D poly) {
 	if (poly == null) return;
 	int size = poly.getSize();
 	if (size == 0) return;
@@ -88,7 +88,7 @@ public class Lab4 extends Application {
 	}
     }
     
-    private void drawLines(GraphicSystem g, Line3D[] lines) {
+    private void drawLines(GraphicSystem2D g, Line3D[] lines) {
 	if (lines == null) return;
 	g.reset();
 	g.setColor(Color.RED);

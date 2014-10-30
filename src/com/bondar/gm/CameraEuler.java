@@ -32,10 +32,10 @@ public class CameraEuler extends Camera{
     @Override
     public Matrix builtMatrix(int camRotSeq) {
 	Matrix res = new Matrix();
-	Matrix invM = Matrix.buildTranlateMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
-	Matrix rotateXM = Matrix.buildRotationXMatrix(-dir.getX());
-	Matrix rotateYM = Matrix.buildRotationYMatrix(-dir.getY());
-	Matrix rotateZM = Matrix.buildRotationZMatrix(-dir.getZ());
+	Matrix invM = Matrix.tranlateMatrix(-pos.getX(), -pos.getY(), -pos.getZ());
+	Matrix rotateXM = Matrix.rotationXMatrix(-dir.getX());
+	Matrix rotateYM = Matrix.rotationYMatrix(-dir.getY());
+	Matrix rotateZM = Matrix.rotationZMatrix(-dir.getZ());
 	
 	// now compute inverse camera rotation sequence
 	switch (camRotSeq) {

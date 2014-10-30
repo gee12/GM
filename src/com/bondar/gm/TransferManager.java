@@ -113,12 +113,12 @@ public class TransferManager {
 	    Camera cam, boolean isNeedPerspective) {
 	if (verts == null || dir == null || pos == null || scale == null || cam == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
-	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
-	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
-	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
-	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
-	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix rotateXM = Matrix.rotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.rotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.rotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.tranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix scaleM = Matrix.scaleMatrix(scale.getX(), scale.getY(), scale.getZ());
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
 	Matrix camM = cam.builtMatrix(cam.getBuildMode());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM,perspM,camM};
 	// transform all local vertexes
@@ -140,11 +140,11 @@ public class TransferManager {
      public static Point3D[] transToWorld(Point3D[] verts, Point3D dir, Point3D pos, Point3D scale) {
 	if (verts == null || dir == null || pos == null || scale == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
-	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
-	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
-	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
-	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
+	Matrix rotateXM = Matrix.rotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.rotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.rotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.tranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix scaleM = Matrix.scaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM};
 	// transform all local vertexes
 	int size = verts.length;
@@ -173,7 +173,7 @@ public class TransferManager {
     public static Point3D[] transToPerspective(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create perspective matrix
-	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
 	// transform all camera vertexes
 	int size = verts.length;
 	Point3D[] res = new Point3D[size];
@@ -187,7 +187,7 @@ public class TransferManager {
     public static Point3D[] transPerspectToScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+	Matrix scrM = Matrix.perspectToScreenMatrix(
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
 	// transform all perspective vertexes
 	int size = verts.length;
@@ -201,8 +201,8 @@ public class TransferManager {
     public static Point3D[] transToPerspectAndScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create matrixes
-	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
-	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
 	Matrix[] ms = new Matrix[] {perspM,scrM};
 	// transform all camera vertexes
@@ -218,7 +218,7 @@ public class TransferManager {
     public static Point3D[] transToScreen(Point3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildCameraToScreenMatrix(
+	Matrix scrM = Matrix.cameraToScreenMatrix(
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight(), cam.getViewDist());
 	// transform camera vertex
 	int size = verts.length;
@@ -235,11 +235,11 @@ public class TransferManager {
     public static Point3D transToWorld(Point3D vert, Point3D dir, Point3D pos, Point3D scale) {
 	if (vert == null || dir == null || pos == null || scale == null) return null;
 	// create matrixes
-	Matrix rotateXM = Matrix.buildRotationXMatrix(dir.getX());
-	Matrix rotateYM = Matrix.buildRotationYMatrix(dir.getY());
-	Matrix rotateZM = Matrix.buildRotationZMatrix(dir.getZ());
-	Matrix transM = Matrix.buildTranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
-	Matrix scaleM = Matrix.buildScaleMatrix(scale.getX(), scale.getY(), scale.getZ());
+	Matrix rotateXM = Matrix.rotationXMatrix(dir.getX());
+	Matrix rotateYM = Matrix.rotationYMatrix(dir.getY());
+	Matrix rotateZM = Matrix.rotationZMatrix(dir.getZ());
+	Matrix transM = Matrix.tranlateMatrix(pos.getX(), pos.getY(), pos.getZ());
+	Matrix scaleM = Matrix.scaleMatrix(scale.getX(), scale.getY(), scale.getZ());
 	Matrix[] ms = new Matrix[] {rotateXM,rotateYM,rotateZM,transM,scaleM};
 	// transform local vertex
 	return transVertex(vert, ms);
@@ -257,7 +257,7 @@ public class TransferManager {
     public static Point3D transToPerspective(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create perspective matrix
-	Matrix perspM = Matrix.buildPerspectiveMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
 	// transform camera vertex
 	return transVertex(vert, perspM);
     }
@@ -266,7 +266,7 @@ public class TransferManager {
     public static Point3D transPerspectToScreen(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildPerspectToScreenMatrix(
+	Matrix scrM = Matrix.perspectToScreenMatrix(
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
 	// transform perspective vertex
 	return transVertex(vert, scrM);
@@ -276,7 +276,7 @@ public class TransferManager {
     public static Point3D transCameraToScreen(Point3D vert, Camera cam) {
 	if (vert == null || cam == null) return null;
 	// create screen matrix
-	Matrix scrM = Matrix.buildCameraToScreenMatrix(
+	Matrix scrM = Matrix.cameraToScreenMatrix(
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight(), cam.getViewDist());
 	// transform camera vertex
 	return transVertex(vert, scrM);

@@ -1,9 +1,9 @@
 package com.bondar.tasks;
 
 import com.bondar.panels.Application;
-import com.bondar.gm.GraphicSystem;
-import static com.bondar.gm.GraphicSystem.X_MAX;
-import static com.bondar.gm.GraphicSystem.Y_MAX;
+import com.bondar.gm.GraphicSystem2D;
+import static com.bondar.gm.GraphicSystem2D.X_MAX;
+import static com.bondar.gm.GraphicSystem2D.Y_MAX;
 import com.bondar.gm.Matrix.AXIS;
 import com.bondar.geom.Point2D;
 import java.awt.Color;
@@ -47,14 +47,14 @@ public class Lab3 extends Application {
 
     /////////////////////////////////////////////////////////
     @Override
-    protected void paint(GraphicSystem g) {
+    protected void paint(GraphicSystem2D g) {
 	g.clear();
 	g.setColor(Color.GRAY);
 	drawRecursiveEllipses(g);
     }
 
     /////////////////////////////////////////////////////////
-    private void drawRecursiveEllipses(GraphicSystem g) {
+    private void drawRecursiveEllipses(GraphicSystem2D g) {
 	final int depth = 5;
 	final double scale = 1;
 	final double x0 = X_MAX / 2;
@@ -65,7 +65,7 @@ public class Lab3 extends Application {
 	drawRecursiveEllipses(g, scale, center, coord, depth);
     }
  
-    private void drawRecursiveEllipses(GraphicSystem g, 
+    private void drawRecursiveEllipses(GraphicSystem2D g, 
 	    double scale, Point2D center, Point2D coord, int depth) {
 	if (depth-- < 0) return;
 	//
@@ -87,7 +87,7 @@ public class Lab3 extends Application {
 	}
     }
     
-    private void draw3Ellipses(GraphicSystem g, double scale, Point2D center, Point2D coord) {
+    private void draw3Ellipses(GraphicSystem2D g, double scale, Point2D center, Point2D coord) {
 	double x0 = center.getX();
 	double y0 = center.getY();
 	double x = coord.getX();
@@ -109,7 +109,7 @@ public class Lab3 extends Application {
 	}
     }
 
-    private void drawEllipse(GraphicSystem g, double r1, double r2) {
+    private void drawEllipse(GraphicSystem2D g, double r1, double r2) {
 	final double sides = 30;
 	final double ca = Math.toRadians(RADIAN_PI / sides); // 12
 	double x = r1 * Math.cos(ca);

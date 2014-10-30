@@ -1,11 +1,11 @@
 package com.bondar.tasks;
 
 import com.bondar.panels.Application;
-import com.bondar.gm.GraphicSystem;
+import com.bondar.gm.GraphicSystem2D;
 import com.bondar.geom.ClipBox2D;
-import static com.bondar.gm.GraphicSystem.X_MAX;
-import static com.bondar.gm.GraphicSystem.Y_MAX;
-import static com.bondar.gm.GraphicSystem.BORDER;
+import static com.bondar.gm.GraphicSystem2D.X_MAX;
+import static com.bondar.gm.GraphicSystem2D.Y_MAX;
+import static com.bondar.gm.GraphicSystem2D.BORDER;
 import com.bondar.gm.Matrix.AXIS;
 import com.bondar.geom.Point2D;
 import com.bondar.panels.OptionsPanelListener;
@@ -76,7 +76,7 @@ public class Lab12 extends Application implements OptionsPanelListener {
 
     /////////////////////////////////////////////////////////
     @Override
-    protected void paint(GraphicSystem g) {
+    protected void paint(GraphicSystem2D g) {
 	g.clear();
 	drawSinArrows(g);
 	drawClipWindow(g);
@@ -84,7 +84,7 @@ public class Lab12 extends Application implements OptionsPanelListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void drawSinArrows(GraphicSystem g) {
+    private void drawSinArrows(GraphicSystem2D g) {
 	final double xShift = 1.5d, yShift = 0d;
 	double scale;
 	final double count = getSliderValue(ARROW_COUNT_TEXT);
@@ -122,7 +122,7 @@ public class Lab12 extends Application implements OptionsPanelListener {
 	}
     }
 
-    private void drawArrow(GraphicSystem g, double scale) {
+    private void drawArrow(GraphicSystem2D g, double scale) {
 	final int length = ARROW_PTS.length;
 	double[][] points = new double[length][2];
 	for (int i = 0; i < length; i++) {
@@ -137,7 +137,7 @@ public class Lab12 extends Application implements OptionsPanelListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void drawClipWindow(GraphicSystem g) {
+    private void drawClipWindow(GraphicSystem2D g) {
 	g.reset();
 	g.setColor(Color.BLACK);
 	final ClipBox2D cw = g.getClipWindow();

@@ -1,7 +1,8 @@
 package com.bondar.panels;
 
-import com.bondar.gm.GraphicSystem;
+import com.bondar.gm.GraphicSystem2D;
 import com.bondar.geom.Point2D;
+import com.bondar.gm.DrawManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
@@ -62,20 +63,20 @@ public abstract class Application extends JFrame {
     
     /////////////////////////////////////////////////////
     // set
-    protected void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
-	drawablePanel.getGraphicSystem().setClipWindow(xmin,ymin,xmax,ymax);
+    /*protected void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
+	drawablePanel.getDrawManager().setClipWindow(xmin,ymin,xmax,ymax);
     }
     protected void setClipWindow(Point2D[] points) {
-	drawablePanel.getGraphicSystem().setClipWindow(points);
+	drawablePanel.getDrawManager().setClipWindow(points);
     }
     
     protected void setClip(boolean isNeedClip) {
-	drawablePanel.getGraphicSystem().setClip(isNeedClip);
+	drawablePanel.getDrawManager().setClip(isNeedClip);
     }
     
     protected void setScale(boolean isNeedScale) {
-	drawablePanel.getGraphicSystem().setScale(isNeedScale);
-    }
+	drawablePanel.getDrawManager().setScale(isNeedScale);
+    }*/
     
     // get
     protected OptionsPanel getOptionsPanel() {
@@ -86,8 +87,8 @@ public abstract class Application extends JFrame {
 	return drawablePanel;
     }
     
-    protected GraphicSystem getGraphicSystem() {
-	return drawablePanel.getGraphicSystem();
+    protected DrawManager getDrawManager() {
+	return drawablePanel.getDrawManager();
     }
 
     protected int getSliderValue(String sliderName) {
@@ -106,7 +107,7 @@ public abstract class Application extends JFrame {
     protected abstract void load();
     protected abstract void init();
     protected abstract void update();
-    protected abstract void paint(GraphicSystem g);
+    protected abstract void paint(DrawManager g);
     
     // timer for regular update and repaint
     ActionListener taskPerformer = new ActionListener() {

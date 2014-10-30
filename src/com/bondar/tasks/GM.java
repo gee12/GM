@@ -28,6 +28,8 @@ public class GM extends Application implements OptionsPanelListener {
     public static final int SCREEN_WIDTH = 1100;
     public static final int SCREEN_HEIGHT = 600;
     public static final String TITLE_TEXT = "GM";
+    private static int TONE = 240;
+    public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
     
     public static final double SHIFT_STEP = 0.008;
     public static final double SHIFT_BY_Z_STEP = 0.1;
@@ -89,8 +91,8 @@ public class GM extends Application implements OptionsPanelListener {
 	setTitle(TITLE_TEXT);
 	setLocation(50, 50);
 	//
-	setClip(false);
-	setScale(false);
+//	setClip(false);
+//	setScale(false);
 	addListeners();
 	addControls();
 	//
@@ -430,7 +432,7 @@ public class GM extends Application implements OptionsPanelListener {
 	    return;
 	}
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+	Point2D p = new Point2D();//getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 	for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
@@ -468,7 +470,7 @@ public class GM extends Application implements OptionsPanelListener {
 	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		Point2D p = new Point2D();//getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D model : modelsManager.getModels()) {
 		    boolean isPointInto = model.getBounds().isPointInto(p);
 		    if (model.getState() != Solid3D.States.VISIBLE
@@ -563,8 +565,8 @@ public class GM extends Application implements OptionsPanelListener {
     
     /////////////////////////////////////////////////////////
     @Override
-    protected void paint(GraphicSystem g) {
-	g.drawBackground(GraphicSystem.BACK_COLOR);
+    protected void paint(DrawManager g) {
+	g.drawBackground(BACK_COLOR);
 	if (modelsManager.getModels() == null) return;
 	
 	/*for (Solid3D model : modelsManager.getModels()) {
@@ -592,7 +594,7 @@ public class GM extends Application implements OptionsPanelListener {
     }*/
     
     /////////////////////////////////////////////////////////
-    private void drawBorderedPolies(GraphicSystem g, Polygon3D[] polies) {
+    private void drawBorderedPolies(DrawManager g, Polygon3D[] polies) {
 	if (g == null || polies == null) return;
 	for (Polygon3D poly : polies) {
 	    // shading
@@ -622,9 +624,9 @@ public class GM extends Application implements OptionsPanelListener {
 		break;
 	}
     }*/
-
+/*
     /////////////////////////////////////////////////////////
-    private void drawEdges(GraphicSystem g, Polygon3DInds[] polies) {
+    private void drawEdges(DrawManager g, Polygon3DInds[] polies) {
 	if (g == null || polies == null) return;
 	for (Polygon3DInds poly : polies) {
 	    if (poly.getState() == Polygon3DInds.States.VISIBLE) {
@@ -635,7 +637,7 @@ public class GM extends Application implements OptionsPanelListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void fillModel(GraphicSystem g, Polygon3DInds[] polies) {
+    private void fillModel(DrawManager g, Polygon3DInds[] polies) {
 	if (g == null || polies == null)  return;
 	switch (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT)) {
 	    case RADIO_PAINTER_TEXT:
@@ -653,5 +655,5 @@ public class GM extends Application implements OptionsPanelListener {
 		g.zBufferAlgorithm(polies);
 		break;
 	}
-    }
+    }*/
 }

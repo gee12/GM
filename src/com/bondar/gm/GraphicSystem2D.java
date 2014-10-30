@@ -16,7 +16,7 @@ import java.awt.Graphics;
  *
  * @author bondar
  */
-public class GraphicSystem {
+public class GraphicSystem2D {
 
     private static int TONE = 240;
     public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
@@ -40,7 +40,7 @@ public class GraphicSystem {
     private double c1, c2;
     private ZBuffer zBuffer;
 
-    public GraphicSystem() {
+    public GraphicSystem2D() {
 	old = new Point2D();
 	transMatrix = new Matrix();
 	clipWindow = new ClipBox2D(0,0,0,0);
@@ -54,9 +54,7 @@ public class GraphicSystem {
 	this.height = g.getClipBounds().height;
 	zBuffer = new ZBuffer(width, height);
 
-	g.setColor(Color.WHITE);
-	g.fillRect(0, 0, width, height);
-	g.setColor(Color.BLACK);
+	drawBackground(Color.WHITE);
     }
     
     public void clear() {
@@ -153,7 +151,7 @@ public class GraphicSystem {
     }
 
     public void rotate(double angle, AXIS axis) {
-	transMatrix = transMatrix.multiply(Matrix.buildRotationMatrix(angle, axis));
+	transMatrix = transMatrix.multiply(Matrix.rotationMatrix(angle, axis));
     }
 
     public void translate(double tx, double ty) {
@@ -497,130 +495,6 @@ public class GraphicSystem {
     }
 
     /////////////////////////////////////////////////////
-    // Алгоритм художника
-    public void painterAlgorithm(Polygon3DInds[] polies) {
-	Polygon3DInds[] sortPolies = sortTrianglesByZ(polies);
-	if (sortPolies == null) {
-	    return;
-	}
-	for (Polygon3DInds poly : sortPolies) {
-	    drawFilledPolygon3D(poly);
-	}
-    }
-    
-    public void drawFilledPolygon3D(Polygon3D poly) {
-	setColor(poly.getFillColor());
-	switch(poly.getType()) {
-	    case POINT:
-		drawScreenPoint(poly.getVertex(0));
-		break;
-	    case LINE:
-		drawScreenLine(poly.getVertex(0), poly.getVertex(1));
-		break;
-	    default:
-		drawScreenFilledPolygon(poly.getVertexes());
-		break;
-	}
-    }
-    
-    /////////////////////////////////////////////////////
-    // draw line
-    public void drawScreenLine(Point3D p1, Point3D p2) {
-	if (p1 == null || p2 == null) return;
-	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
-    }
-    
-    public void drawScreenLine(Point2D p1, Point2D p2) {
-	if (p1 == null || p2 == null) return;
-	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
-    }  
-    
-    public void drawScreenLine(double x1, double y1, double x2, double y2) {
-	g.drawLine((int)(x1 + 0.5), (int)(y1 + 0.5), (int)(x2 + 0.5), (int)(y2 + 0.5));
-    }
-    
-    /////////////////////////////////////////////////////
-    // draw point
-    public void drawScreenPoint(Point3D p) {
-	if (p == null) return;
-	drawScreenPoint(p.getX(), p.getY());
-    }
-
-    public void drawScreenPoint(double x, double y) {
-	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
-		(int)(x + 0.5), (int)(y + 0.5));	    
-     }
-    
-    public void drawScreenPoint(Point3D p, Color col) {
-	if (p == null) return;
-	drawScreenPoint(p.getX(), p.getY(), col);
-    }
-
-    public void drawScreenPoint(double x, double y, Color col) {
-	g.setColor(col);
-	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
-		(int)(x + 0.5), (int)(y + 0.5));	    
-    }
-    
-    /////////////////////////////////////////////////////
-    // draw filled polygon
-    public void drawScreenFilledPolygon(Point3D[] verts) {
-	if (verts == null) return;
-	int size = verts.length;
-	int xs[] = new int[size];
-	int ys[] = new int[size];
-	for (int i = 0; i < size; i++) {
-	    if (verts[i] == null) continue;
-	    xs[i] = (int)(verts[i].getX() + 0.5);
-	    ys[i] = (int)(verts[i].getY() + 0.5);
-	}
-	g.fillPolygon(xs, ys, size);
-    }
-    public void drawScreenPolygonBorder(Point3D[] verts) {
-	if (verts == null) return;
-	int size = verts.length;
-	for (int i = 0; i < size-1; i++) {
-	    drawScreenLine(verts[i], verts[i+1]);
-	}
-	drawScreenLine(verts[size-1], verts[0]);
-    }
-    
-    // Сортировка граней по координате Z
-    public static Polygon3DInds[] sortTrianglesByZ(Polygon3DInds[] polies) {
-	if (polies == null) {
-	    return null;
-	}
-	int size = polies.length;
-	double[] dists = new double[size];
-	int[] indexes = new int[size];
-	// нахождение средней величины Z - удаленности грани
-	for (int i = 0; i < size; i++) {
-	    Polygon3DInds poly = polies[i];
-	    dists[i] = poly.averageZ();
-	    indexes[i] = i;
-	}
-	Polygon3DInds[] res = new Polygon3DInds[size];
-	// сортировка граней по удаленности
-	for (int i = 0; i < size - 1; i++) {
-	    for (int j = 0; j < size - 1; j++) {
-		if (dists[j] < dists[j + 1]) {
-		    double distTemp = dists[j];
-		    dists[j] = dists[j + 1];
-		    dists[j + 1] = distTemp;
-
-		    int indTemp = indexes[j];
-		    indexes[j] = indexes[j + 1];
-		    indexes[j + 1] = indTemp;
-		}
-	    }
-	}
-	for (int i = 0; i < size; i++) {
-	    res[i] = polies[indexes[i]].getCopy();
-	}
-	return res;
-    }
-
-    /////////////////////////////////////////////////////
     // Алгоритм отсечения невидимых граней с использованием z-буффера
     public void zBufferAlgorithm(Polygon3DInds[] polies) {
 	if (polies == null) {
@@ -768,7 +642,12 @@ public class GraphicSystem {
 	    }
 	}
     }
-
+    public void drawScreenPoint(double x, double y, Color col) {
+	g.setColor(col);
+	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
+		(int)(x + 0.5), (int)(y + 0.5));	    
+    }
+    
     /////////////////////////////////////////////////////
     // проверки и преобразования
     public static double[] decartToSpherical(double x, double y, double z) {
@@ -814,7 +693,7 @@ public class GraphicSystem {
     }
 
     private int convXToScreen(double x) {
-	return GraphicSystem.convXToScreen(width, x);
+	return GraphicSystem2D.convXToScreen(width, x);
     }
 
     public static int convYToScreen(double height, double y) {
@@ -822,13 +701,13 @@ public class GraphicSystem {
     }
 
     private int convYToScreen(double y) {
-	return GraphicSystem.convYToScreen(height, y);
+	return GraphicSystem2D.convYToScreen(height, y);
     }
 
     public static Point3D convPToScreen(double width, double height, Point3D p) {
 	return new Point3D(
-		GraphicSystem.convXToScreen(width, p.getX()),
-		GraphicSystem.convYToScreen(height, p.getY()),
+		GraphicSystem2D.convXToScreen(width, p.getX()),
+		GraphicSystem2D.convYToScreen(height, p.getY()),
 		p.getZ());
     }
     

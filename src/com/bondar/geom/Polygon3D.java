@@ -39,20 +39,21 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	this.shadeColor = fill;
 	this.borderColor = border;
 	this.attributes = attr;
-	this.size = verts.length;
 	this.state = States.VISIBLE;
-	switch (size) {
-	    case 1: type = Types.POINT;
-		break;
-	    case 2: type = Types.LINE;
-		break;
-	    case 3: type = Types.TRIANGLE;
-		break;
-	    default: type = Types.POLYGON;
-	}
+	this.size = verts.length;
+        this.type = type(size);
     }
     
     /////////////////////////////////////////////////////////
+    public static Types type(int size) {
+	switch (size) {
+	    case 1: return Types.POINT;
+	    case 2: return Types.LINE;
+	    case 3: return Types.TRIANGLE;
+	    default: return Types.POLYGON;
+	}
+    }
+    
     //
     public boolean isBackFace(Camera cam) {
 	if (cam == null) return true;

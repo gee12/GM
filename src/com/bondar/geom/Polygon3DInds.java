@@ -15,6 +15,7 @@ public class Polygon3DInds extends Polygon3D {
         super(verts,fill,border,attr);
 	this.indexes = inds;
         this.size = inds.length;
+        this.type = type(size);
     }
     
     /////////////////////////////////////////////////////////

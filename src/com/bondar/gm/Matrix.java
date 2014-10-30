@@ -23,6 +23,15 @@ public class Matrix {
     public Matrix() {
 	reinit();
     }
+    
+    public Matrix(int cols, int rows) {
+        this.cols = cols;
+        this.rows = rows;
+        m = new double[rows][];
+        for (int i = 0; i < rows; i++) {
+            m[i] = new double[cols];
+        }
+    }
 
     public Matrix(double[][] m) {
 	if (m == null) {
@@ -47,19 +56,19 @@ public class Matrix {
     }
 
     //////////////////////////////////////////////////
-    public static Matrix buildRotationMatrix(double angle, AXIS axis) {
+    public static Matrix rotationMatrix(double angle, AXIS axis) {
 	switch (axis) {
 	    case X: 
-		return Matrix.buildRotationXMatrix(angle);
+		return Matrix.rotationXMatrix(angle);
 	    case Y:
-		return Matrix.buildRotationYMatrix(angle);
+		return Matrix.rotationYMatrix(angle);
 	    case Z:
-		return Matrix.buildRotationZMatrix(angle);
+		return Matrix.rotationZMatrix(angle);
 	    default: return new Matrix();
 	}
     }
     
-    public static Matrix buildRotationZMatrix(double a) {
+    public static Matrix rotationZMatrix(double a) {
 	return new Matrix(new double[][] {
 		{Math.cos(a), Math.sin(a), 0, 0},
 		{-Math.sin(a), Math.cos(a), 0, 0},
@@ -67,7 +76,7 @@ public class Matrix {
 		{0, 0, 0, 1}});
     }
 
-    public static Matrix buildRotationYMatrix(double a) {
+    public static Matrix rotationYMatrix(double a) {
 	return new Matrix(new double[][] {
 		{Math.cos(a), 0, -Math.sin(a), 0},
 		{0, 1, 0, 0},
@@ -75,7 +84,7 @@ public class Matrix {
 		{0, 0, 0, 1}});
     }
 
-    public static Matrix buildRotationXMatrix(double a) {
+    public static Matrix rotationXMatrix(double a) {
 	return new Matrix(new double[][] {
 		{1, 0, 0, 0},
 		{0, Math.cos(a), Math.sin(a), 0},
@@ -84,18 +93,18 @@ public class Matrix {
     }
     
     //////////////////////////////////////////////////
-    public static Matrix buildRotationTransMatrix(double angle, Point3D p0, AXIS axis) {
+    public static Matrix rotationTransMatrix(double angle, Point3D p0, AXIS axis) {
 	switch (axis) {
 	    case X: 
-		return Matrix.buildRotationTransXMatrix(angle, p0);
+		return Matrix.rotationTransXMatrix(angle, p0);
 	    case Y:
-		return Matrix.buildRotationTransYMatrix(angle, p0);
+		return Matrix.rotationTransYMatrix(angle, p0);
 	    case Z:
-		return Matrix.buildRotationTransZMatrix(angle, p0);
+		return Matrix.rotationTransZMatrix(angle, p0);
 	    default: return new Matrix();
 	}
     }
-    public static Matrix buildRotationTransZMatrix(double a, Point3D p0) {
+    public static Matrix rotationTransZMatrix(double a, Point3D p0) {
 	return new Matrix(new double[][] {
 		{Math.cos(a), Math.sin(a), 0, 0},
 		{-Math.sin(a), Math.cos(a), 0, 0},
@@ -104,7 +113,7 @@ public class Matrix {
 		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
     }
 
-    public static Matrix buildRotationTransYMatrix(double a, Point3D p0) {
+    public static Matrix rotationTransYMatrix(double a, Point3D p0) {
 	return new Matrix(new double[][] {
 		{Math.cos(a), 0, -Math.sin(a), 0},
 		{0, 1, 0, 0},
@@ -113,7 +122,7 @@ public class Matrix {
 		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
     }
 
-    public static Matrix buildRotationTransXMatrix(double a, Point3D p0) {
+    public static Matrix rotationTransXMatrix(double a, Point3D p0) {
 	return new Matrix(new double[][] {
 		{1, 0, 0, 0},
 		{0, Math.cos(a), Math.sin(a), 0},
@@ -123,7 +132,7 @@ public class Matrix {
     }    
     
     //////////////////////////////////////////////////
-    public static Matrix buildTranlateMatrix(double tx, double ty, double tz) {
+    public static Matrix tranlateMatrix(double tx, double ty, double tz) {
 	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
@@ -145,7 +154,7 @@ public class Matrix {
     }
      
     //////////////////////////////////////////////////
-    public static Matrix buildScaleMatrix(double sx, double sy, double sz) {
+    public static Matrix scaleMatrix(double sx, double sy, double sz) {
 	return new Matrix(new double[][]{
 	    {sx, 0, 0, 0},
 	    {0, sy, 0, 0},
@@ -153,7 +162,7 @@ public class Matrix {
 	    {0, 0, 0, 1}});
     }
     
-    public static Matrix buildScaleMatrix(double s) {
+    public static Matrix scaleMatrix(double s) {
 	return new Matrix(new double[][]{
 	    {1, 0, 0, 0},
 	    {0, 1, 0, 0},
@@ -162,14 +171,14 @@ public class Matrix {
     }
     
     //////////////////////////////////////////////////
-    public static Matrix buildViewMatrix(double ro, double theta, double phi) {
+    public static Matrix viewMatrix(double ro, double theta, double phi) {
 	return new Matrix(new double[][]{
 	    {-Math.sin(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.cos(theta)), 0},
 	    {Math.cos(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.sin(theta)), 0},
 	    {0, Math.sin(phi), -(Math.cos(phi)), 0},
 	    {0, 0, ro, 1}});
     }
-    public static Matrix buildPerspectiveMatrix(double d, double ar) {
+    public static Matrix perspectMatrix(double d, double ar) {
 	return new Matrix(new double[][]{
 	    {d, 0, 0, 0},
 	    {0, d*ar, 0, 0},
@@ -178,7 +187,7 @@ public class Matrix {
     }
 
     //////////////////////////////////////////////////
-    public static Matrix buildPerspectToScreenMatrix(double width, double height) {
+    public static Matrix perspectToScreenMatrix(double width, double height) {
 	double alpha = (0.5 * width - 0.5);
 	double beta  = (0.5 * height - 0.5);
 	return new Matrix(new double[][]{
@@ -188,7 +197,7 @@ public class Matrix {
 	    {0, 0, 0, 1}});
     }
      
-    public static Matrix buildCameraToScreenMatrix(double width, double height, double dist) {
+    public static Matrix cameraToScreenMatrix(double width, double height, double dist) {
 	double alpha = (0.5 * width - 0.5);
 	double beta  = (0.5 * height - 0.5);
 	return new Matrix(new double[][]{
@@ -199,7 +208,7 @@ public class Matrix {
     }   
           
     //////////////////////////////////////////////////
-     public static Matrix buildUVNMatrix(Vector3D u, Vector3D v, Vector3D n) {
+     public static Matrix UVNMatrix(Vector3D u, Vector3D v, Vector3D n) {
 	return new Matrix(new double[][]{
 	    {u.getX(), v.getX(), n.getX(), 0},
 	    {u.getY(), v.getY(), n.getY(), 0},
@@ -215,7 +224,16 @@ public class Matrix {
 	    }
 	}
     }
-
+    
+    public Matrix multiplyConst(double s) {
+	for (int i = 0; i < rows; i++) {
+	    for (int j = 0; j < cols; j++) {
+		m[i][j] *= s;
+	    }
+	}
+        return new Matrix(m);
+    }
+    
     public Matrix multiply(Matrix other) {
 	if (other == null) {
 	    return null;
@@ -271,6 +289,14 @@ public class Matrix {
     
     public void setAt(int i, int j, double value) {
 	m[i][j] = value;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
     }
     
     public Point3DOdn getTranslate() {
