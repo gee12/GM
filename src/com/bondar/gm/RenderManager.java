@@ -53,7 +53,6 @@ public class RenderManager {
     }
     
     public static void sortByZ(Polygon3D[] polies, SortByZTypes sortType) {
-	if (polies == null) return;
 	switch (sortType) {
 	    case AVERAGE_Z:
 		Arrays.sort(polies, compAverageZ);
@@ -87,25 +86,31 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     //
-    public static Comparator<Polygon3D> compAverageZ= new Comparator<Polygon3D>() {
+    public static Comparator<Polygon3D> compAverageZ = new Comparator<Polygon3D>() {
 	@Override
 	public int compare(Polygon3D poly1, Polygon3D poly2) {
-	    return (poly1.averageZ() > poly2.averageZ()) ? 1 :
-		    (poly1.averageZ() < poly2.averageZ()) ? -1 : 0;
+            final double averageZ1 = poly1.averageZ();
+            final double averageZ2 = poly2.averageZ();
+	    return (averageZ1 < averageZ2) ? 1 :
+		    (averageZ1 > averageZ2) ? -1 : 0;
 	}
     };    
     public static Comparator<Polygon3D> compNearZ = new Comparator<Polygon3D>() {
 	@Override
 	public int compare(Polygon3D poly1, Polygon3D poly2) {
-	    return (poly1.minZ() > poly2.minZ()) ? 1 :
-		    (poly1.minZ() < poly2.minZ()) ? -1 : 0;
+            final double minZ1 = poly1.minZ();
+            final double minZ2 = poly2.minZ();
+	    return (minZ1 < minZ2) ? 1 :
+		    (minZ1 > minZ2) ? -1 : 0;
 	}
     };    
     public static Comparator<Polygon3D> compFarZ = new Comparator<Polygon3D>() {
 	@Override
 	public int compare(Polygon3D poly1, Polygon3D poly2) {
-	    return (poly1.maxZ() > poly2.maxZ()) ? 1 :
-		    (poly1.maxZ() < poly2.maxZ()) ? -1 : 0;
+            final double maxZ1 = poly1.maxZ();
+            final double maxZ2 = poly2.maxZ();
+	    return (maxZ1 < maxZ2) ? 1 :
+		    (maxZ1 > maxZ2) ? -1 : 0;
 	}
     };    
 }

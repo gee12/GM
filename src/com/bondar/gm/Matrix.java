@@ -13,7 +13,8 @@ public class Matrix {
     public static enum AXIS {
 	X,
 	Y,
-	Z
+	Z,
+        None
     }
     private static final int DEF_SIZE = 4;
     private double[][] m;
@@ -139,7 +140,7 @@ public class Matrix {
 	    {0, 0, 1, 0},
 	    {tx, ty, tz, 1}});
     }
-
+  
     public void translate(double tx, double ty) {
 	translate(tx, ty, 0);
     }
@@ -213,7 +214,7 @@ public class Matrix {
 	    {u.getX(), v.getX(), n.getX(), 0},
 	    {u.getY(), v.getY(), n.getY(), 0},
 	    {u.getZ(), v.getZ(), n.getZ(), 0},
-	    {0, 0, 0, 1}});
+            {0, 0, 0, 1}});
     }
      
     //////////////////////////////////////////////////

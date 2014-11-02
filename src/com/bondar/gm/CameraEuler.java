@@ -3,6 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Vector3D;
 import com.bondar.geom.Point3D;
+import com.bondar.geom.Point3DOdn;
 import java.awt.Dimension;
 import java.awt.geom.Dimension2D;
 
@@ -21,7 +22,7 @@ public class CameraEuler extends Camera{
     
     private Point2D viewportCenter; // center of view port (final image destination)
     
-    public CameraEuler(int attr, Point3D pos, Vector3D dir, double nearClipZ, 
+    public CameraEuler(int attr, Point3DOdn pos, Vector3D dir, double nearClipZ, 
 	    double farClipZ, double dist, double fov, Dimension vp, int mode) {
 	super(attr, pos, dir, nearClipZ, farClipZ, dist, fov, vp, new Point3D(), mode);
 	this.fov = fov;
@@ -36,26 +37,26 @@ public class CameraEuler extends Camera{
 	Matrix rotateXM = Matrix.rotationXMatrix(-dir.getX());
 	Matrix rotateYM = Matrix.rotationYMatrix(-dir.getY());
 	Matrix rotateZM = Matrix.rotationZMatrix(-dir.getZ());
-	
+	//res = res.multiply(invM);
 	// now compute inverse camera rotation sequence
 	switch (camRotSeq) {
 	    case CAM_ROT_SEQ_XYZ:
-		res = res.multiply(rotateXM).multiply(rotateYM).multiply(rotateZM);
+		res = rotateXM.multiply(rotateYM).multiply(rotateZM);
 		break;
 	    case CAM_ROT_SEQ_YXZ:
-		res = res.multiply(rotateYM).multiply(rotateXM).multiply(rotateZM);
+		res = rotateYM.multiply(rotateXM).multiply(rotateZM);
 		break;
 	    case CAM_ROT_SEQ_XZY:
-		res = res.multiply(rotateXM).multiply(rotateZM).multiply(rotateYM);
+		res = rotateXM.multiply(rotateZM).multiply(rotateYM);
 		break;
 	    case CAM_ROT_SEQ_YZX:
-		res = res.multiply(rotateYM).multiply(rotateZM).multiply(rotateXM);
+		res = rotateYM.multiply(rotateZM).multiply(rotateXM);
 		break;
 	    case CAM_ROT_SEQ_ZYX:
-		res = res.multiply(rotateZM).multiply(rotateYM).multiply(rotateXM);
+		res = rotateZM.multiply(rotateYM).multiply(rotateXM);
 		break;
 	    case CAM_ROT_SEQ_ZXY:
-		res = res.multiply(rotateZM).multiply(rotateXM).multiply(rotateYM);
+		res = rotateZM.multiply(rotateXM).multiply(rotateYM);
 		break;
 	}
 	//return invM.multiply(res);

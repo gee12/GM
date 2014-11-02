@@ -13,8 +13,11 @@ import com.bondar.panels.OptionsPanelListener;
 import com.bondar.tools.Types;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Вариант 8
@@ -23,7 +26,7 @@ import java.util.List;
  */
 public class GM extends Application implements OptionsPanelListener {
 
-    public static final int FPS = 30;
+    public static final int FPS = 60;
     public static final int MSEC_TICK = 1000/FPS;
     public static final int SCREEN_WIDTH = 1100;
     public static final int SCREEN_HEIGHT = 600;
@@ -38,8 +41,11 @@ public class GM extends Application implements OptionsPanelListener {
     public static final double SCALE_UP = 0.05;
     public static final double SCALE_DOWN = -SCALE_UP;
     public static final double CAMERA_SHIFT_STEP = 0.5;
-    public static final double CAMERA_ANGLE_UP = ANGLE_UP/3;
-    public static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/3;
+    //public static final double CAMERA_ANGLE_UP = ANGLE_UP/3;
+    //public static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/3;
+    public static final double CAMERA_ANGLE = Math.toRadians(1) / 10;
+    
+    public static final int VIEW_MODE_KEY = KeyEvent.VK_TAB;
     
     private static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
     private static final String RADIO_ALL_MODELS_TEXT = "Все";
@@ -74,6 +80,7 @@ public class GM extends Application implements OptionsPanelListener {
     private CameraEuler cameraEuler;
     private CameraUVN cameraUVN;
     private boolean isMousePressed;
+    private boolean isGameViewModeEnabled;
     private LightsManager lightsManager = new LightsManager();
     private ModelsManager modelsManager = new ModelsManager();
     private RenderManager renderManager = new RenderManager();
@@ -90,9 +97,8 @@ public class GM extends Application implements OptionsPanelListener {
 	setResizable(true);
 	setTitle(TITLE_TEXT);
 	setLocation(50, 50);
-	//
-//	setClip(false);
-//	setScale(false);
+        // for VK_TAB working
+        setFocusTraversalKeysEnabled(false);
 	addListeners();
 	addControls();
 	//
@@ -106,22 +112,37 @@ public class GM extends Application implements OptionsPanelListener {
 	    public void keyPressed(KeyEvent evt) {
 		onKeyPressed(evt);
 	    }
+
+            @Override
+            public void keyReleased(KeyEvent evt) {
+                onKeyReleased(evt);
+            }
+            
 	});
 	//
 	addMouseMotionListener(new MouseMotionListener() {
 	    // while be called mouseDragged() method, 
 	    // mouseMoved() will not be called
-	    private Point p = new Point();
+	    private Point oldPoint = new Point();
+            
 	    @Override
 	    public void mouseDragged(MouseEvent me) {
 		Point curPoint = me.getPoint();
-		onMouseDragged(curPoint, p);
-		p = curPoint;
+		onMouseDragged(curPoint, oldPoint);
+		oldPoint = curPoint;
 	    }
 	    @Override
 	    public void mouseMoved(MouseEvent me) {
-		p = me.getPoint();
-		onMouseMoved(p);
+                Point curPoint = me.getPoint();
+                
+                // return mouse cursor to center of screen (if need)
+                if (isGameViewModeEnabled) {
+                    //onMouseMoved(oldPoint, curPoint);
+                    onTurnScene(curPoint);
+                }
+                else onCursorSwitch(oldPoint);
+                
+		oldPoint = curPoint;
 	    }
 	});
 	//
@@ -216,7 +237,7 @@ public class GM extends Application implements OptionsPanelListener {
 	// radio button to select all models to move
 	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT, null);	
 	// camera
-	Point3D pos = new Point3D(0,0,-10);
+	Point3DOdn pos = new Point3DOdn(0,0,-10);
 	Vector3D dir = new Vector3D(0,0,0);
 	Point3D target = new Point3D(0,0,10);
 	double near = 3, far = 1000, dist = 3, fov = 90;
@@ -224,11 +245,6 @@ public class GM extends Application implements OptionsPanelListener {
 	cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp, CameraEuler.CAM_ROT_SEQ_ZYX);
 	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
 	camera = cameraEuler;
-	//
- 	//onIsNeedPerspective(getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT));
-	
-	//
-	
     }
     
     /////////////////////////////////////////////////////////
@@ -263,7 +279,7 @@ public class GM extends Application implements OptionsPanelListener {
     
     private void animateModel(Solid3D model) {
 	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
-	model.updateAngle(ANGLE_UP, Matrix.AXIS.Y);
+	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
     }
    
     private void updateModel(Solid3D model) {
@@ -271,6 +287,11 @@ public class GM extends Application implements OptionsPanelListener {
 	//
 	boolean isNeedDefineBackfaces = 
 		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
+        // restore backfaces if don't need to rejection
+        if (!isNeedDefineBackfaces) {
+            for (Polygon3D p : model.getPolygons())
+                p.setState(Polygon3D.States.VISIBLE);
+        }
 	
 	//TransferManager.transferFull(model, camera, isNeedDefineBackfaces);
 	TransferManager.transLocalToCamera(model, camera, isNeedDefineBackfaces);
@@ -312,7 +333,7 @@ public class GM extends Application implements OptionsPanelListener {
 	    double dx, double dy, double dz, double tx, double ty, double tz) {
 	camera.updateDirection(angle, axis);
 	camera.updatePosition(dx, dy, dz);
-	camera.updateTarget(tx, ty, tz);
+	//camera.updateTarget(tx, ty, tz);
     }
     
     private void onCameraSelection(String cameraType) {
@@ -347,21 +368,6 @@ public class GM extends Application implements OptionsPanelListener {
 	}
     }
     
-    /*private void onIsNeedPerspective(String selectedRadioText) {
-	boolean isPerspective = false;
-	switch (selectedRadioText) {
-	    case RADIO_ORTOGON_TEXT:
-		isPerspective = false;
-		break;
-	    case RADIO_CENTER_TEXT:
-		isPerspective = true;
-		break;
-	}
-	for (Solid3D model : modelsManager.getModels()) {
-	    model.setPerspective(isPerspective);
-	}
-    }*/
-    
     private void onSolidListSelection(String selectedRadioText) {
 	for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getName().equals(selectedRadioText)) {
@@ -376,9 +382,6 @@ public class GM extends Application implements OptionsPanelListener {
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
 	switch(groupTitle) {
-	    /*case GROUP_TITLE_PROJECTION_TEXT:
-		onIsNeedPerspective(radioText);
-		break;*/
 	    case GROUP_TITLE_OBJECTS_TEXT:
 		onSolidListSelection(radioText);
 		break;
@@ -424,7 +427,19 @@ public class GM extends Application implements OptionsPanelListener {
     }
     
     /////////////////////////////////////////////////////////
-    public void onMouseMoved(Point curPoint) {
+    public void onTurnScene(Point curPoint) {
+        if (curPoint == null) return;
+        
+        int dx = curPoint.x - SCREEN_WIDTH/2;
+        int dy = curPoint.y - SCREEN_HEIGHT/2;
+        camera.updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
+        camera.updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
+        //
+        moveMouseToCenter();
+    }
+
+    /////////////////////////////////////////////////////////
+    public void onCursorSwitch(Point curPoint) {
 	if (curPoint == null || modelsManager == null || modelsManager.getModels() == null) return;
 	// set cursor type
 	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
@@ -441,7 +456,7 @@ public class GM extends Application implements OptionsPanelListener {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		return;
 	    }
-	}	    
+        }
     }
     
     /////////////////////////////////////////////////////////
@@ -500,14 +515,37 @@ public class GM extends Application implements OptionsPanelListener {
 	focusedModels.clear();
     }
     
+    public void moveMouseToCenter() {
+        try {
+            Robot r = new Robot();
+            Point p = getWindowCenter();
+            r.mouseMove(p.x, p.y);
+        } catch (AWTException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    public Point getWindowCenter() {
+        Point p = getLocationOnScreen();
+        int cx = (int) (p.x + SCREEN_WIDTH / 2);
+        int cy = (int) (p.y + SCREEN_HEIGHT / 2);
+        return new Point(cx, cy);
+    }
+    
+    public boolean isCursonInWindowCenter(Point point) {
+        if (point == null) return false;
+        Point center = getWindowCenter();
+        return (point.x == center.x && point.y == center.y);
+    }
+
     /////////////////////////////////////////////////////////
     public void onKeyPressed(KeyEvent evt) {
 	double dx = 0, dy = 0, dz = 0, angle = 0,
 		tx = 0, ty = 0, tz = 0;
-	Matrix.AXIS axis = Matrix.AXIS.X;
+	Matrix.AXIS axis = Matrix.AXIS.None;
 	int keyCode = evt.getKeyCode();
 	switch(keyCode) {
-	    // position to the sides
+            // position to the sides
 	    case KeyEvent.VK_RIGHT:
 		dx = CAMERA_SHIFT_STEP;
 		break;
@@ -529,40 +567,60 @@ public class GM extends Application implements OptionsPanelListener {
 		break;
 	    // direction/target
 	    case KeyEvent.VK_NUMPAD8:
-		angle = CAMERA_ANGLE_DOWN;
+		angle = -CAMERA_ANGLE;
 		axis = Matrix.AXIS.X;
 		ty = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_NUMPAD2:
-		angle = CAMERA_ANGLE_UP;
+		angle = CAMERA_ANGLE;
 		axis = Matrix.AXIS.X;
 		ty = -CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_NUMPAD4:
-		angle = CAMERA_ANGLE_DOWN;
+		angle = -CAMERA_ANGLE;
 		axis = Matrix.AXIS.Y;
 		tx = -CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_NUMPAD6:
-		angle = CAMERA_ANGLE_UP;
+		angle = CAMERA_ANGLE;
 		axis = Matrix.AXIS.Y;
 		tx = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_NUMPAD9:
-		angle = CAMERA_ANGLE_UP;
+		angle = CAMERA_ANGLE;
 		axis = Matrix.AXIS.Z;
 		tz = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_NUMPAD3:
-		angle = CAMERA_ANGLE_DOWN;
+		angle = -CAMERA_ANGLE;
 		axis = Matrix.AXIS.Z;
 		tz = -CAMERA_SHIFT_STEP;
-		break;	}
+		break;
+        }
 	onCameraOperation(angle, axis, 
 		dx, dy, dz, 
 		tx, ty, tz);
     }
     
+    public void onKeyReleased(KeyEvent evt) {
+	int keyCode = evt.getKeyCode();
+	switch(keyCode) {
+            // screen focus
+            case VIEW_MODE_KEY:
+                switchViewMode();
+            break;
+        }
+    }
+    public void switchViewMode() {
+        if (isGameViewModeEnabled) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        } else {
+            //setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            setCursor(getToolkit().createCustomCursor(
+                new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
+        }
+        isGameViewModeEnabled = !isGameViewModeEnabled;
+    }
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(DrawManager g) {

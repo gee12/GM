@@ -3,7 +3,9 @@ package com.bondar.geom;
 import java.awt.Color;
 
 /**
- * Polygon with indexes for vertexes.
+ * Polygon with indexes for vertexes (no all-sufficient polygon).
+ * Field 'vertexes' - all solid vertexes (not only polygon).
+ * Field 'indexes' - array of indexes of polygon's vertexes in all solid vertexes.
  * @author truebondar
  */
 public class Polygon3DInds extends Polygon3D {
@@ -34,6 +36,7 @@ public class Polygon3DInds extends Polygon3D {
 	return indexes;
     }
     
+    // Return only polygon's vertexes (not all solid vertexes)
     @Override
     public Point3D[] getVertexes() {
 	if (vertexes == null) return null;
@@ -49,11 +52,8 @@ public class Polygon3DInds extends Polygon3D {
 	return new Polygon3DInds(vertexes, indexes, srcColor, borderColor, attributes);
     }
     
-    // 
+    // To all-sufficient polygon
     public Polygon3D toPolygon3D() {
-        Polygon3D res = new Polygon3D(vertexes, srcColor, borderColor, size);
-        Point3D[] ps = getVertexes();
-        res.setVertexes(ps);
-        return res;
+        return new Polygon3D(getVertexes(), srcColor, borderColor, attributes);
     }
 }

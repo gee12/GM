@@ -19,7 +19,7 @@ public abstract class Camera {
     protected int state;
     protected int attr;
     protected int buildMode;
-    protected Point3D pos;    // world position of camera used 
+    protected Point3DOdn pos;    // world position of camera used 
     protected Vector3D dir;   // angles or look at direction of camera 
     protected double viewDist;	    // focal length 
     protected double aspectRatio;
@@ -29,7 +29,7 @@ public abstract class Camera {
     protected double fov;		    // field of view for both horizontal and vertical axes
     protected Point3D target;	// look at target
    
-    public Camera(int attr, Point3D pos, Vector3D dir, double nearClipZ, double farClipZ, 
+    public Camera(int attr, Point3DOdn pos, Vector3D dir, double nearClipZ, double farClipZ, 
 	    double dist, double fov, Dimension vp, Point3D target, int mode) {
 	this.attr = attr;
 	this.pos = pos;
@@ -75,6 +75,7 @@ public abstract class Camera {
 		break;
 	}
 	dir.add(new Point3D(ax, ay, az));
+        pos.mul(Matrix.rotationMatrix(-a, axis));
     }
     
     public void updateDirection(double ax, double ay, double az) {

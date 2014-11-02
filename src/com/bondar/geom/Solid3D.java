@@ -213,8 +213,8 @@ public class Solid3D {
 	if (cam == null) return false;
 	Point3D spherePos = TransferManager.transToCamera(pos, cam);
 	// by z
-	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||
-	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {
+	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||    // far side
+	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {   // near side
 	    return true;
 	}
 	// by x

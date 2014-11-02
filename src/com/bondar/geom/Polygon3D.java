@@ -71,7 +71,7 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	double res = Vector3D.dot(n, view);
 	return (res <= 0.0);*/
 	//
-	return !isPointInHalfspace(this, cam.getPosition());
+	return isPointInHalfspace(this, cam.getPosition());
     }
 
     public static boolean isPointInHalfspace(Polygon3D poly, Point3D p) {
@@ -100,7 +100,7 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 
     public double averageZ() {
 	double sumZ = 0;
-	for (Point3D v : getVertexes()) {
+	for (Point3D v : vertexes) {
 	    sumZ += v.getZ();
 	}
 	return sumZ / size;
@@ -146,6 +146,10 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
      
     public void setLightColor(Color col) {
 	this.shadeColor = col;
+    }
+    
+    public void setState(States state) {
+        this.state = state;
     }
 
     /////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@ import com.bondar.geom.Solid3D;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -29,7 +30,7 @@ public class ModelsManager {
 	    ex.printStackTrace();
 	}
 	// clone models
-	/*Random rand = new Random();
+        Random rand = new Random();
 	for (Solid3D model : loaded) {
 	    if (model.getName().equals(CUBE_TEXT)) {
 		for (int i = 0; i < 1000; i++) {
@@ -39,7 +40,7 @@ public class ModelsManager {
 		}
 		break;
 	    }
-	}*/
+	}
 	models = Types.toArray(loaded, Solid3D.class);
     }
     

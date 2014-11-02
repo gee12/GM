@@ -1,12 +1,14 @@
 package com.bondar.geom;
 
+import com.bondar.gm.Matrix;
 import com.bondar.tools.Mathem;
 
 /**
  *
  * @author truebondar
  */
-public class Vector3D extends Point3D {
+public class Vector3D extends Point3DOdn {
+    
     public Vector3D() {
 	super();
     }
@@ -45,6 +47,11 @@ public class Vector3D extends Point3D {
 	double y = (v1.getX() * v2.getZ()) - (v1.getZ() * v2.getX());
 	double z = (v1.getX() * v2.getY()) - (v1.getY() * v2.getX());
 	return new Vector3D(x, y, z);
+    }
+    
+    public Vector3D mul(Matrix other) {
+	vector = vector.multiply(other);
+	return this;
     }
      
     public double dot(Vector3D v) {

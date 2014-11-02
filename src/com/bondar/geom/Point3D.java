@@ -107,4 +107,8 @@ public class Point3D {
     public double[] toArray3() {
         return vector.getMatrix()[0];
     }
+    
+    public Vector3D toVector3D() {
+        return new Vector3D(getX(), getY(), getZ());
+    }
 }
