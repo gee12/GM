@@ -41,9 +41,7 @@ public class GM extends Application implements OptionsPanelListener {
     public static final double SCALE_UP = 0.05;
     public static final double SCALE_DOWN = -SCALE_UP;
     public static final double CAMERA_SHIFT_STEP = 0.5;
-    //public static final double CAMERA_ANGLE_UP = ANGLE_UP/3;
-    //public static final double CAMERA_ANGLE_DOWN = ANGLE_DOWN/3;
-    public static final double CAMERA_ANGLE = Math.toRadians(1) / 10;
+    public static final double CAMERA_ANGLE = Math.toRadians(1) / 20;
     
     public static final int VIEW_MODE_KEY = KeyEvent.VK_TAB;
     
@@ -70,7 +68,11 @@ public class GM extends Application implements OptionsPanelListener {
     private static final String RADIO_EDGES_TEXT = "Ребра";
     private static final String RADIO_FACES_TEXT = "Грани";
     private static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
-    
+    private static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
+    private static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
+    private static final String RADIO_SHADE_FLAT_TEXT = "FLAT";
+    private static final String RADIO_SHADE_GOURAUD_TEXT = "GOURAUD";
+
     private static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
     
     private List<Solid3D> focusedModels = new ArrayList<>();
@@ -81,7 +83,7 @@ public class GM extends Application implements OptionsPanelListener {
     private CameraUVN cameraUVN;
     private boolean isMousePressed;
     private boolean isGameViewModeEnabled;
-    private LightsManager lightsManager = new LightsManager();
+    private ShadeManager shadeManager = new ShadeManager();
     private ModelsManager modelsManager = new ModelsManager();
     private RenderManager renderManager = new RenderManager();
 	
@@ -99,9 +101,9 @@ public class GM extends Application implements OptionsPanelListener {
 	setLocation(50, 50);
         // for VK_TAB working
         setFocusTraversalKeysEnabled(false);
+        //
 	addListeners();
 	addControls();
-	//
 	start(MSEC_TICK);
     }
     
@@ -137,8 +139,7 @@ public class GM extends Application implements OptionsPanelListener {
                 
                 // return mouse cursor to center of screen (if need)
                 if (isGameViewModeEnabled) {
-                    //onMouseMoved(oldPoint, curPoint);
-                    onTurnScene(curPoint);
+                    onTurnSceneWithMouse(curPoint);
                 }
                 else onCursorSwitch(oldPoint);
                 
@@ -200,21 +201,25 @@ public class GM extends Application implements OptionsPanelListener {
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT, this);
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT, this);
 
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT, this);
-	addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT, this);
+	//addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT, this);
+	//addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT, this);
 
-	addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_EULER_TEXT, this);
-	addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_UVN_TEXT, this);
+	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_EULER_TEXT, this);
+	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_UVN_TEXT, this);
 
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT, this);
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT, this);
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT, this);
+	//addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT, this);
 
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
+	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
+	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
+	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
 	// checkBox
-	addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false, this);
+	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false, this);
+        
+        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_CONST_TEXT, this);
+        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FLAT_TEXT, this);
+        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_GOURAUD_TEXT, this);
     }
 
     /////////////////////////////////////////////////////////
@@ -228,7 +233,7 @@ public class GM extends Application implements OptionsPanelListener {
 	    }
 	}
 	//
-	lightsManager.load();
+	shadeManager.load();
     }
 
     @Override
@@ -263,25 +268,40 @@ public class GM extends Application implements OptionsPanelListener {
 	
 	// 2 - work with render array (visible polygons)
 	renderManager.buildRenderArray(modelsManager.getModels());
-	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
         
-	/* переместили эти стороки в renderManager
-        Polygon3D[] polies = renderManager.getRenderArray();
-	boolean isNeedPerspect = true;
-		//getSelectedRadioText(GROUP_TITLE_PROJECTION_TEXT).equals(RADIO_CENTER_TEXT);
-	TransferManager.transToPerspectAndScreen(polies, camera, isNeedPerspect);
-	renderManager.setRenderArray(polies);
-	*/
+        switchShadingType();
+        
+	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
         renderManager.transToPerspectAndScreen(camera);
+        
 	// 3 - 
 	onCollision();
     }
     
+    private void switchShadingType() {
+        switch(getSelectedRadioText(GROUP_TITLE_SHADE_TEXT)) {
+            
+            case RADIO_SHADE_CONST_TEXT:
+                break;
+                
+            case RADIO_SHADE_FLAT_TEXT:
+                renderManager.setRenderArray(
+                        shadeManager.shade(renderManager.getRenderArray(), camera));
+                break;
+                
+            case RADIO_SHADE_GOURAUD_TEXT:
+                
+                break;
+        }
+    }
+    
+    /////////////////////////////////////////////////////////
     private void animateModel(Solid3D model) {
 	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
 	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
     }
    
+    /////////////////////////////////////////////////////////
     private void updateModel(Solid3D model) {
 	if (model == null) return;
 	//
@@ -298,7 +318,8 @@ public class GM extends Application implements OptionsPanelListener {
 	// 
 	model.setBounds(model.getTransVertexes());
     }
-     
+    
+    /////////////////////////////////////////////////////////
     private void onCollision() {
 	// if collision check is off
 	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT)
@@ -427,7 +448,7 @@ public class GM extends Application implements OptionsPanelListener {
     }
     
     /////////////////////////////////////////////////////////
-    public void onTurnScene(Point curPoint) {
+    public void onTurnSceneWithMouse(Point curPoint) {
         if (curPoint == null) return;
         
         int dx = curPoint.x - SCREEN_WIDTH/2;
@@ -618,6 +639,7 @@ public class GM extends Application implements OptionsPanelListener {
             //setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             setCursor(getToolkit().createCustomCursor(
                 new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
+            moveMouseToCenter();
         }
         isGameViewModeEnabled = !isGameViewModeEnabled;
     }
@@ -633,34 +655,15 @@ public class GM extends Application implements OptionsPanelListener {
 	}*/
 	drawBorderedPolies(g, renderManager.getRenderArray());
     }
-    
-    /////////////////////////////////////////////////////////
-    /*private void drawPolies(GraphicSystem g, Polygon3D[] polies) {
-	if (polies == null) return;
-	
-	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
-	    /*case RADIO_FACES_TEXT:
-		fillModel(g, polies);
-		break;
-	    case RADIO_EDGES_TEXT:
-		drawEdges(g, polies);
-		break;*/
-	   /* case RADIO_EDGES_FACES_TEXT:
-		drawBorderedPolies(g, polies);
-		break;
-	}
-    }*/
-    
+
     /////////////////////////////////////////////////////////
     private void drawBorderedPolies(DrawManager g, Polygon3D[] polies) {
 	if (g == null || polies == null) return;
 	for (Polygon3D poly : polies) {
 	    // shading
-	    //g.setColor(poly.getFillColor());
 	    g.drawFilledPolygon3D(poly);
 	    // border
-	    g.setColor(poly.getBorderColor());
-	    g.drawScreenPolygonBorder(poly.getVertexes());
+	    g.drawPolygonBorder(poly);
 	}
     }
   
@@ -679,38 +682,6 @@ public class GM extends Application implements OptionsPanelListener {
 	    case RADIO_EDGES_FACES_TEXT:
 		fillModel(g, polies);
 		drawEdges(g, polies);
-		break;
-	}
-    }*/
-/*
-    /////////////////////////////////////////////////////////
-    private void drawEdges(DrawManager g, Polygon3DInds[] polies) {
-	if (g == null || polies == null) return;
-	for (Polygon3DInds poly : polies) {
-	    if (poly.getState() == Polygon3DInds.States.VISIBLE) {
-		g.setColor(poly.getBorderColor());
-		g.drawScreenPolygonBorder(poly.getVertexes());
-	    }
-	}
-    }
-
-    /////////////////////////////////////////////////////////
-    private void fillModel(DrawManager g, Polygon3DInds[] polies) {
-	if (g == null || polies == null)  return;
-	switch (getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT)) {
-	    case RADIO_PAINTER_TEXT:
-		g.painterAlgorithm(polies);
-		break;
-	    case RADIO_BACKFACES_EJECTION_TEXT:
-		for (Polygon3DInds poly : polies) {
-		    if (poly.getState() == Polygon3DInds.States.VISIBLE) {
-			g.setColor(poly.getFillColor());
-			g.fillPolygon(poly.getVertexes());
-		    }
-		}
-		break;
-	    case RADIO_Z_BUFFER_TEXT:
-		g.zBufferAlgorithm(polies);
 		break;
 	}
     }*/

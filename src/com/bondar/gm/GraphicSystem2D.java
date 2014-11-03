@@ -586,7 +586,7 @@ public class GraphicSystem2D {
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
 		double z_b = poly.zByXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    drawScreenPoint(xPix, yPix, poly.getFillColor()); //вывод первой точки на экране
+		    drawScreenPoint(xPix, yPix, poly.getSrcFillColor()); //вывод первой точки на экране
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -604,7 +604,7 @@ public class GraphicSystem2D {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = poly.zByXY(xPix, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			drawScreenPoint(x, yPix, poly.getFillColor());
+			drawScreenPoint(x, yPix, poly.getSrcFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}
@@ -619,7 +619,7 @@ public class GraphicSystem2D {
 	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
 		double z_b = poly.zByXY(xPix, yPix);
 		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    drawScreenPoint(xPix, yPix, poly.getFillColor());
+		    drawScreenPoint(xPix, yPix, poly.getSrcFillColor());
 		    zBuffer.setBufferAt(xPix, yPix, z_b);
 		}
 	    }
@@ -635,7 +635,7 @@ public class GraphicSystem2D {
 		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
 		    double z_b = poly.zByXY(x, yPix);
 		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			drawScreenPoint(x, yPix, poly.getFillColor());
+			drawScreenPoint(x, yPix, poly.getSrcFillColor());
 			zBuffer.setBufferAt(x, yPix, z_b);
 		    }
 		}

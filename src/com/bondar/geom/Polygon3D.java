@@ -71,7 +71,7 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	double res = Vector3D.dot(n, view);
 	return (res <= 0.0);*/
 	//
-	return isPointInHalfspace(this, cam.getPosition());
+	return !isPointInHalfspace(this, cam.getPosition());
     }
 
     public static boolean isPointInHalfspace(Polygon3D poly, Point3D p) {
@@ -80,8 +80,10 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 		|| poly.getType() == Types.POINT) return false;
 	// build poly normal
 	Vector3D n = normal(poly.getVertex(0), poly.getVertex(1), poly.getVertex(2));
+        //n.normalize();
 	// build vector from poly to target point
-	Vector3D view = new Vector3D(poly.getVertex(0), p);
+	Vector3D view = new Vector3D(poly.getVertex(1), p);
+        //view.normalize();
 	// scalar multiply
 	double res = Vector3D.dot(n, view);
 	return (res > 0.0);
@@ -93,11 +95,6 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	return Vector3D.mul(u, v);
     }
  
-    /*@Override
-    public int compareTo(Polygon3D t) {
-	return 0;
-    }*/
-
     public double averageZ() {
 	double sumZ = 0;
 	for (Point3D v : vertexes) {
@@ -144,7 +141,7 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	this.vertexes = verts;
     }
      
-    public void setLightColor(Color col) {
+    public void setShadeColor(Color col) {
 	this.shadeColor = col;
     }
     
@@ -171,10 +168,14 @@ public class Polygon3D /*implements Comparable<Polygon3D>*/ {
 	return size;
     }
     
-    public Color getFillColor() {
+    public Color getSrcFillColor() {
 	return srcColor;
     }
-     
+    
+    public Color getShadeFillColor() {
+	return shadeColor;
+    }
+          
     public Color getBorderColor() {
 	return borderColor;
     }

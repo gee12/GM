@@ -209,7 +209,7 @@ public class Solid3D {
 
     /////////////////////////////////////////////////////////
     // Cull solid, if it's fully out of clip bounds.
-    public boolean isNeedCull(Camera cam) {
+    public boolean isCulled(Camera cam) {
 	if (cam == null) return false;
 	Point3D spherePos = TransferManager.transToCamera(pos, cam);
 	// by z
@@ -250,8 +250,8 @@ public class Solid3D {
 	attributes &= ~attr;
     }   
     
-    public void setIsNeedCulling(Camera cam) {
-	if (isNeedCull(cam))
+    public void setIsCulled(Camera cam) {
+	if (isCulled(cam))
 	    state = States.CULLED;
 	else state = States.VISIBLE;
     }

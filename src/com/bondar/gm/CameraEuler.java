@@ -37,7 +37,6 @@ public class CameraEuler extends Camera{
 	Matrix rotateXM = Matrix.rotationXMatrix(-dir.getX());
 	Matrix rotateYM = Matrix.rotationYMatrix(-dir.getY());
 	Matrix rotateZM = Matrix.rotationZMatrix(-dir.getZ());
-	//res = res.multiply(invM);
 	// now compute inverse camera rotation sequence
 	switch (camRotSeq) {
 	    case CAM_ROT_SEQ_XYZ:
@@ -59,7 +58,7 @@ public class CameraEuler extends Camera{
 		res = rotateZM.multiply(rotateXM).multiply(rotateYM);
 		break;
 	}
-	//return invM.multiply(res);
-	return res.multiply(invM);
+        res = res.multiply(invM);
+	return res;
     }
 }

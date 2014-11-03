@@ -16,8 +16,8 @@ public class Light {
     }
     
     public static enum Types {
-	AMBIENT,
-	//INFINITE,
+	AMBIENT,        // общий
+	INFINITE,       // бесконечно удаленный
 	DIRECTIONAL,
 	POINT,
 	SPOTLIGHT1,
@@ -107,8 +107,20 @@ public class Light {
 	return pos;
     }
 
-    public Vector3D getDir() {
+    public Vector3D getDirection() {
 	return dir;
+    }
+
+    public Color getC_ambient() {
+        return c_ambient;
+    }
+
+    public Color getC_diffuse() {
+        return c_diffuse;
+    }
+
+    public Color getC_specular() {
+        return c_specular;
     }
     
 }

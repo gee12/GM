@@ -14,7 +14,7 @@ public class Triangle3D extends Polygon3DInds {
     }
     
     public Triangle3D(Triangle3D tria) {
-	super(tria.getVertexes(), tria.getIndexes(), tria.getFillColor(), tria.getBorderColor(), tria.getAttributes());
+	super(tria.getVertexes(), tria.getIndexes(), tria.getSrcFillColor(), tria.getBorderColor(), tria.getAttributes());
     }
 
     public boolean isPointInto(Point3D point) {

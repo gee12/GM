@@ -1,0 +1,13 @@
+﻿name: Пол
+attr: 1
+pos: 0 0 0
+angles: 0 0 0
+scale: 0 0 0
+verts: 4
+-50 0 -50
+-50 0 50
+50 0 50
+50 0 -50
+polyns: 2
+3 0 1 2 aaaaaa 000000
+3 0 2 3 aaaaaa 000000

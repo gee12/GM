@@ -100,6 +100,7 @@ public class OptionsPanel extends JPanel {
     }
     
     public boolean isSelectedCheckBox(String text) {
-	return checkBoxes.get(text).isSelected();
+        JCheckBox checkBox = checkBoxes.get(text);
+	return (checkBox != null && checkBox.isSelected());
     }
 }

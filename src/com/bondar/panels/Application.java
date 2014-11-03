@@ -96,7 +96,9 @@ public abstract class Application extends JFrame {
     }
     
     protected String getSelectedRadioText(final String titleText) {
-	return optionsPanel.getGroupPanel(titleText).getSelectedRadioText();
+        GroupPanel panel = optionsPanel.getGroupPanel(titleText);
+        if (panel == null) return "";
+	return panel.getSelectedRadioText();
     }
     
     protected boolean isSelectedCheckBox(String text) {

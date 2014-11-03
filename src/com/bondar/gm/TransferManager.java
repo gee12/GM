@@ -23,7 +23,7 @@ public class TransferManager {
 	Point3D[] verts = TransferManager.transToWorld(model);
 	// culling solid if need
 	if (!model.isSetAttribute(Solid3D.ATTR_NO_CULL))
-	    model.setIsNeedCulling(camera);
+	    model.setIsCulled(camera);
 	if (model.getState() != Solid3D.States.VISIBLE)
 	    return;
 	// define backfaces triangles

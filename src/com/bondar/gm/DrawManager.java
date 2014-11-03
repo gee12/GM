@@ -49,38 +49,38 @@ public class DrawManager {
     }
     
     public void drawFilledPolygon3D(Polygon3D poly) {
-	g.setColor(poly.getFillColor());
+	g.setColor(poly.getShadeFillColor());
 	switch(poly.getType()) {
 	    case POINT:
-		drawScreenPoint(poly.getVertex(0));
+		drawPoint(poly.getVertex(0));
 		break;
 	    case LINE:
-		drawScreenLine(poly.getVertex(0), poly.getVertex(1));
+		drawLine(poly.getVertex(0), poly.getVertex(1));
 		break;
 	    default:
-		drawScreenFilledPolygon(poly.getVertexes());
+		drawFilledPolygon(poly.getVertexes());
 		break;
 	}
     }
     
     /////////////////////////////////////////////////////
     // draw point
-    public void drawScreenPoint(Point3D p) {
+    public void drawPoint(Point3D p) {
 	if (p == null) return;
-	drawScreenPoint(p.getX(), p.getY());
+	drawPoint(p.getX(), p.getY());
     }
 
-    public void drawScreenPoint(double x, double y) {
+    public void drawPoint(double x, double y) {
 	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
 		(int)(x + 0.5), (int)(y + 0.5));	    
      }
     
-    public void drawScreenPoint(Point3D p, Color col) {
+    public void drawPoint(Point3D p, Color col) {
 	if (p == null) return;
-	drawScreenPoint(p.getX(), p.getY(), col);
+	drawPoint(p.getX(), p.getY(), col);
     }
 
-    public void drawScreenPoint(double x, double y, Color col) {
+    public void drawPoint(double x, double y, Color col) {
 	g.setColor(col);
 	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
 		(int)(x + 0.5), (int)(y + 0.5));	    
@@ -88,23 +88,23 @@ public class DrawManager {
         
     /////////////////////////////////////////////////////
     // draw line
-    public void drawScreenLine(Point3D p1, Point3D p2) {
+    public void drawLine(Point3D p1, Point3D p2) {
 	if (p1 == null || p2 == null) return;
-	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+	drawLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
     
-    public void drawScreenLine(Point2D p1, Point2D p2) {
+    public void drawLine(Point2D p1, Point2D p2) {
 	if (p1 == null || p2 == null) return;
-	drawScreenLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+	drawLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }  
     
-    public void drawScreenLine(double x1, double y1, double x2, double y2) {
+    public void drawLine(double x1, double y1, double x2, double y2) {
 	g.drawLine((int)(x1 + 0.5), (int)(y1 + 0.5), (int)(x2 + 0.5), (int)(y2 + 0.5));
     }
     
-/////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////
     // draw filled polygon
-    public void drawScreenFilledPolygon(Point3D[] verts) {
+    public void drawFilledPolygon(Point3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
 	int xs[] = new int[size];
@@ -116,16 +116,24 @@ public class DrawManager {
 	}
 	g.fillPolygon(xs, ys, size);
     }
-    public void drawScreenPolygonBorder(Point3D[] verts) {
-	if (verts == null) return;
-	int size = verts.length;
-	for (int i = 0; i < size-1; i++) {
-	    drawScreenLine(verts[i], verts[i+1]);
-	}
-	drawScreenLine(verts[size-1], verts[0]);
+    
+    public void drawPolygonBorder(Polygon3D poly) {
+        if (poly == null) return;
+        g.setColor(poly.getBorderColor());
+        drawPolygonBorder(poly.getVertexes());
     }
     
-   // Сортировка граней по координате Z
+    public void drawPolygonBorder(Point3D[] verts) {
+	if (verts == null) return;
+	int size = verts.length;
+        if (size == 0) return;
+	for (int i = 0; i < size-1; i++) {
+	    drawLine(verts[i], verts[i+1]);
+	}
+	drawLine(verts[size-1], verts[0]);
+    }
+    
+    // Сортировка граней по координате Z
     public static Polygon3DInds[] sortTrianglesByZ(Polygon3DInds[] polies) {
 	if (polies == null) {
 	    return null;
