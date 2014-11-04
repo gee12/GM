@@ -18,16 +18,19 @@ public class ShadeManager {
     }
     
     public void load() {
+        //
 	Light ambient = new Light(0, "Ambient white", Light.Types.AMBIENT, 0, Light.States.ON,
-		Color.GRAY, null, null,
+		Color.BLACK, null, null,
 		null, null,
 		0, 0, 0, 0, 0, 0);
 	lights.put(ambient.getIndex(), ambient);
-	Light infinite = new Light(1, "Infinite yellow", Light.Types.DIRECTIONAL, 0, Light.States.ON,
-		Color.YELLOW, null, null,
-		null, new Vector3D(0, -1, 0),
+        //
+	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
+		null, Color.WHITE, null,
+		null, new Vector3D(0, 0, 1),
 		0, 0, 0, 0, 0, 0);
-	lights.put(infinite.getIndex(), infinite);   
+	lights.put(infinite.getIndex(), infinite); 
+        //
  	Light point = new Light(2, "Point yellow", Light.Types.POINT, 0, Light.States.ON,
 		Color.YELLOW, null, null,
 		null, new Vector3D(0, -1, 0),
@@ -46,7 +49,7 @@ public class ShadeManager {
     public Polygon3D shade(Polygon3D poly, Camera cam) {
         if (poly == null || cam == null) return null;
         
-        Color scrColor = poly.getSrcFillColor();
+        Color scrColor = poly.getSrcColor();
         int rBase = scrColor.getRed();
         int gBase = scrColor.getGreen();
         int bBase = scrColor.getBlue();
@@ -64,6 +67,9 @@ public class ShadeManager {
                     break;
 
                 case INFINITE:
+                    if (poly.getType() == Polygon3D.Types.LINE
+                        || poly.getType() == Polygon3D.Types.POINT) return null;
+                    
                     Vector3D n = normal(poly.getVertex(0), poly.getVertex(1), poly.getVertex(2));
                     double nl = n.length();
                     double dp = Vector3D.dot(n, light.getDirection());

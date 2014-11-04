@@ -10,21 +10,21 @@ import com.bondar.gm.Matrix;
 public class Point3D {
     
     public final static Point3D Zero = new Point3D(0, 0, 0);
-    protected Matrix vector;
+    protected Matrix m;
     
     //////////////////////////////////////////////////
     public Point3D() {
-	vector = new Matrix(new double[][] {{0,0,0}});
+	m = new Matrix(new double[][] {{0,0,0}});
     }
     
     public Point3D(double a, double b, double c) {
-	vector = new Matrix(new double[][] {{a,b,c}});
+	m = new Matrix(new double[][] {{a,b,c}});
     }
     
     public Point3D(double[] v) {
 	if (v == null) return;
 	if (v.length < 3) throw new RuntimeException("Размер массива < 3");
-	vector = new Matrix(new double[][] {{v[0],v[1],v[2]}});
+	m = new Matrix(new double[][] {{v[0],v[1],v[2]}});
     }
     
     public Point3D(Point3D p3D) {
@@ -39,26 +39,26 @@ public class Point3D {
     // operations
     public Point3D add(Point3D other) {
 	for (int i = 0; i < 3; i++) {
-	    vector.getMatrix()[0][i] += other.vector.getAt(0, i);
+	    m.getMatrix()[0][i] += other.m.getAt(0, i);
 	}
 	return this;
     }
     
     public Point3D sub(Point3D other) {
 	for (int i = 0; i < 3; i++) {
-	    vector.getMatrix()[0][i] -= other.vector.getAt(0, i);
+	    m.getMatrix()[0][i] -= other.m.getAt(0, i);
 	}
 	return this;
     }
     
     public Point3D mul(Matrix other) {
-	vector = vector.multiply(other);
+	m = m.multiply(other);
 	return this;
     }
     
     public Point3D mul(double s) {
 	for (int i = 0; i < 3; i++) {
-	    vector.getMatrix()[0][i] *= s;
+	    m.getMatrix()[0][i] *= s;
 	}
 	return this;
     }
@@ -66,29 +66,29 @@ public class Point3D {
     //////////////////////////////////////////////////
     // set
     public void setX(double x) {
-	vector.setAt(0, 0, x);
+	m.setAt(0, 0, x);
     }
 
     public void setY(double y) {
-	vector.setAt(0, 1, y);
+	m.setAt(0, 1, y);
     }
     
     public void setZ(double z) {
-	vector.setAt(0, 2, z);
+	m.setAt(0, 2, z);
     }
    
     //////////////////////////////////////////////////
     // get
     public double getX() {
-	return vector.getAt(0, 0);
+	return m.getAt(0, 0);
     }
     
     public double getY() {
-	return vector.getAt(0, 1);
+	return m.getAt(0, 1);
     }
     
     public double getZ() {
-	return vector.getAt(0, 2);
+	return m.getAt(0, 2);
     }
 	
     public Point3D getCopy() {
@@ -101,11 +101,11 @@ public class Point3D {
     }
     
     public Point3DOdn toPoint3DOdn() {
-	return new Point3DOdn(vector.getMatrix()[0]);
+	return new Point3DOdn(m.getMatrix()[0]);
     }
     
     public double[] toArray3() {
-        return vector.getMatrix()[0];
+        return m.getMatrix()[0];
     }
     
     public Vector3D toVector3D() {

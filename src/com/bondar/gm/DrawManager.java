@@ -49,7 +49,7 @@ public class DrawManager {
     }
     
     public void drawFilledPolygon3D(Polygon3D poly) {
-	g.setColor(poly.getShadeFillColor());
+	g.setColor(poly.getShadeColor());
 	switch(poly.getType()) {
 	    case POINT:
 		drawPoint(poly.getVertex(0));

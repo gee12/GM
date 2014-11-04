@@ -15,7 +15,7 @@ import com.bondar.tools.Files;
  *
  * @author truebondar
  */
-public class GMXFile {
+public class FileLoader {
     
     private static final String MODELS_EXTENSION = ".gmx";
     private static final String SEPARATOR = " ";
@@ -33,7 +33,7 @@ public class GMXFile {
 	List<Solid3D> res = new ArrayList<>();
 	String[] solidsFiles = Files.getMaskedFilesInDir(dirName, MODELS_EXTENSION);
 	for (String fileName : solidsFiles) {
-	    Solid3D solid = GMXFile.readGMXFile(dirName + fileName);
+	    Solid3D solid = FileLoader.readGMXFile(dirName + fileName);
 	    res.add(solid);
 	}
 	return res;

@@ -267,7 +267,11 @@ public class Solid3D {
     public void setBounds(Point3D[] verts) {
 	bounds.setBounds(verts);
     }
-
+    
+    public void resetBounds() {
+	bounds.setBounds(transVerts);
+    }
+    
     /////////////////////////////////////////////////////////
     // get
     public int getSize() {

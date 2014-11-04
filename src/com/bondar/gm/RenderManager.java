@@ -89,8 +89,10 @@ public class RenderManager {
     public static Comparator<Polygon3D> compAverageZ = new Comparator<Polygon3D>() {
 	@Override
 	public int compare(Polygon3D poly1, Polygon3D poly2) {
-            final double averageZ1 = poly1.averageZ();
-            final double averageZ2 = poly2.averageZ();
+            //final double averageZ1 = poly1.averageZ();
+            //final double averageZ2 = poly2.averageZ();
+            final double averageZ1 = (poly1.isSetAttribute(Polygon3D.ATTR_FIXED)) ? poly1.getAverageZ() : poly1.averageZ();
+            final double averageZ2 = (poly2.isSetAttribute(Polygon3D.ATTR_FIXED)) ? poly2.getAverageZ() : poly2.averageZ();
 	    return (averageZ1 < averageZ2) ? 1 :
 		    (averageZ1 > averageZ2) ? -1 : 0;
 	}
@@ -109,6 +111,18 @@ public class RenderManager {
 	public int compare(Polygon3D poly1, Polygon3D poly2) {
             final double maxZ1 = poly1.maxZ();
             final double maxZ2 = poly2.maxZ();
+	    return (maxZ1 < maxZ2) ? 1 :
+		    (maxZ1 > maxZ2) ? -1 : 0;
+	}
+    };
+    
+    /////////////////////////////////////////////////////////
+    // 
+    public Comparator<Integer> compInds = new Comparator<Integer>() {
+	@Override
+	public int compare(Integer i1, Integer i2) {
+            final double maxZ1 = renderArray[i1].averageZ();
+            final double maxZ2 = renderArray[i2].averageZ();
 	    return (maxZ1 < maxZ2) ? 1 :
 		    (maxZ1 > maxZ2) ? -1 : 0;
 	}

@@ -130,8 +130,8 @@ public class GM extends Application implements OptionsPanelListener {
 	    @Override
 	    public void mouseDragged(MouseEvent me) {
 		Point curPoint = me.getPoint();
-		onMouseDragged(curPoint, oldPoint);
-		oldPoint = curPoint;
+                onMouseDragged(curPoint, oldPoint);
+                oldPoint = curPoint;
 	    }
 	    @Override
 	    public void mouseMoved(MouseEvent me) {
@@ -140,6 +140,7 @@ public class GM extends Application implements OptionsPanelListener {
                 // return mouse cursor to center of screen (if need)
                 if (isGameViewModeEnabled) {
                     onTurnSceneWithMouse(curPoint);
+                    moveMouseToCenter();
                 }
                 else onCursorSwitch(oldPoint);
                 
@@ -227,11 +228,11 @@ public class GM extends Application implements OptionsPanelListener {
     protected final void load() {
 	modelsManager.load();
 	//
-	for (Solid3D model : modelsManager.getModels()) {
+	/*for (Solid3D model : modelsManager.getModels()) {
 	    if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
 		addRadio(GROUP_TITLE_OBJECTS_TEXT, model.getName(), this);
 	    }
-	}
+	}*/
 	//
 	shadeManager.load();
     }
@@ -250,6 +251,15 @@ public class GM extends Application implements OptionsPanelListener {
 	cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp, CameraEuler.CAM_ROT_SEQ_ZYX);
 	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
 	camera = cameraEuler;
+        
+        // define fixed values
+        for (Solid3D model : modelsManager.getModels()) {
+            model.resetBounds();
+            for (Polygon3D poly: model.getPolygons()) {
+                poly.resetNormal();
+                poly.resetAverageZ();
+            }
+        }
     }
     
     /////////////////////////////////////////////////////////
@@ -278,6 +288,7 @@ public class GM extends Application implements OptionsPanelListener {
 	onCollision();
     }
     
+    /////////////////////////////////////////////////////////
     private void switchShadingType() {
         switch(getSelectedRadioText(GROUP_TITLE_SHADE_TEXT)) {
             
@@ -315,8 +326,15 @@ public class GM extends Application implements OptionsPanelListener {
 	
 	//TransferManager.transferFull(model, camera, isNeedDefineBackfaces);
 	TransferManager.transLocalToCamera(model, camera, isNeedDefineBackfaces);
-	// 
-	model.setBounds(model.getTransVertexes());
+	
+        // if object not fixed - redefine it's fields
+        if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
+            model.resetBounds();
+            for (Polygon3D poly: model.getPolygons()) {
+                poly.resetNormal();
+                poly.resetAverageZ();
+            }
+        }
     }
     
     /////////////////////////////////////////////////////////
@@ -454,9 +472,9 @@ public class GM extends Application implements OptionsPanelListener {
         int dx = curPoint.x - SCREEN_WIDTH/2;
         int dy = curPoint.y - SCREEN_HEIGHT/2;
         camera.updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
-        camera.updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
+        //camera.updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
         //
-        moveMouseToCenter();
+        //moveMouseToCenter();
     }
 
     /////////////////////////////////////////////////////////
@@ -506,7 +524,7 @@ public class GM extends Application implements OptionsPanelListener {
 	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		Point2D p = new Point2D();//getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		Point2D p = new Point2D(0, 0);//getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D model : modelsManager.getModels()) {
 		    boolean isPointInto = model.getBounds().isPointInto(p);
 		    if (model.getState() != Solid3D.States.VISIBLE
@@ -534,6 +552,7 @@ public class GM extends Application implements OptionsPanelListener {
     public void onMouseReleased() {
 	isMousePressed = false;
 	focusedModels.clear();
+        moveMouseToCenter();
     }
     
     public void moveMouseToCenter() {
@@ -568,9 +587,11 @@ public class GM extends Application implements OptionsPanelListener {
 	switch(keyCode) {
             // position to the sides
 	    case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
 		dx = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
 		dx = -CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_SPACE:
@@ -581,9 +602,11 @@ public class GM extends Application implements OptionsPanelListener {
 		break;
 	    // position to up/down
 	    case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
 		dz = CAMERA_SHIFT_STEP;
 		break;
 	    case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_S:
 		dz = -CAMERA_SHIFT_STEP;
 		break;
 	    // direction/target
@@ -654,6 +677,17 @@ public class GM extends Application implements OptionsPanelListener {
 	    drawModel(g, model);
 	}*/
 	drawBorderedPolies(g, renderManager.getRenderArray());
+        
+        //
+        Point2D cx = new Point2D(getWindowCenter());
+        cx = cx.sub(new Point2D(50,50));
+        final int SIZE = 10;
+        Point2D up = new Point2D(cx.getX(), cx.getY() + SIZE);
+        Point2D down = new Point2D(cx.getX(), cx.getY() - SIZE);
+        g.drawLine(up, down);
+        Point2D left = new Point2D(cx.getX() - SIZE, cx.getY());
+        Point2D rignt = new Point2D(cx.getX() + SIZE, cx.getY());
+        g.drawLine(left, rignt);
     }
 
     /////////////////////////////////////////////////////////

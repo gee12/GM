@@ -1,5 +1,7 @@
 package com.bondar.geom;
 
+import java.awt.Point;
+
 /**
  *
  * @author bondar
@@ -12,6 +14,10 @@ public class Point2D {
     //////////////////////////////////////////////////
     public Point2D() {
         x = y = 0;
+    }
+    
+    public Point2D(Point point) {
+        this(point.x, point.y);
     }
     
     public Point2D(Point2D point) {

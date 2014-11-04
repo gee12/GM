@@ -25,7 +25,7 @@ public class ModelsManager {
 	List<Solid3D> loaded = new ArrayList<>();
 	// load models from .GMX files
 	try {
-	    loaded = GMXFile.readGMXDir(MODELS_DIR);
+	    loaded = FileLoader.readGMXDir(MODELS_DIR);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
