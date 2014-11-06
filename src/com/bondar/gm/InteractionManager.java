@@ -1,5 +1,6 @@
 package com.bondar.gm;
 
+import com.bondar.geom.BoundingBox3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
 import com.bondar.tasks.GM;
@@ -14,7 +15,7 @@ public class InteractionManager {
 	
     }
     
-    public static void collision(Solid3D[] models) {
+    /*public static void collision(Solid3D[] models) {
 	if (models == null) return;
 	for (Solid3D model1 : models) {
 	    for (Solid3D model2 : models) {
@@ -27,8 +28,8 @@ public class InteractionManager {
 		    //
 		    double dx1=0,dy1=0,dz1=0,
 			    dx2=0,dy2=0,dz2=0;
-		    Point3D cp1 = Solid3D.getCenter(model1.getBounds());
-		    Point3D cp2 = Solid3D.getCenter(model2.getBounds());
+		    Point3D cp1 = BoundingBox3D.center(model1.getBounds());
+		    Point3D cp2 = BoundingBox3D.center(model2.getBounds());
 		    // shift to X axis
 		    if (cp2.getX() > cp1.getX()) {
 			dx2 = GM.SHIFT_STEP;
@@ -53,5 +54,5 @@ public class InteractionManager {
 		}
 	    }
 	}
-    }
+    }*/
 }

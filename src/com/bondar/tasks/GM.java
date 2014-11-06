@@ -3,7 +3,6 @@ package com.bondar.tasks;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Vector3D;
-import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
@@ -16,8 +15,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jdk.net.Sockets;
 
 /**
  * Вариант 8
@@ -31,14 +29,14 @@ public class GM extends Application implements OptionsPanelListener {
     public static final int SCREEN_WIDTH = 1100;
     public static final int SCREEN_HEIGHT = 600;
     public static final String TITLE_TEXT = "GM";
-    private static int TONE = 240;
+    private static int TONE = 40;
     public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
     
     public static final double SHIFT_STEP = 0.008;
     public static final double SHIFT_BY_Z_STEP = 0.1;
     public static final double ANGLE_UP = Math.toRadians(6);
     public static final double ANGLE_DOWN = Math.toRadians(-6);
-    public static final double SCALE_UP = 0.05;
+    public static final double SCALE_UP = 0.5;
     public static final double SCALE_DOWN = -SCALE_UP;
     public static final double CAMERA_SHIFT_STEP = 0.5;
     public static final double CAMERA_ANGLE = Math.toRadians(1) / 20;
@@ -74,6 +72,14 @@ public class GM extends Application implements OptionsPanelListener {
     private static final String RADIO_SHADE_GOURAUD_TEXT = "GOURAUD";
 
     private static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
+    
+    private static Cursor EMPTY_CURSOR;
+    private static final Point2D ZERO_POINT = new Point2D();
+    private static Point2D[] CROSSHAIR = new Point2D[4];
+    private static Color CROSSHAIR_COLOR_NORM = Color.WHITE;
+    private static Color CROSSHAIR_COLOR_ALLERT = Color.RED;
+    private static Color crosshairColor = CROSSHAIR_COLOR_NORM;
+    
     
     private List<Solid3D> focusedModels = new ArrayList<>();
     private Solid3D selectedModel;
@@ -142,7 +148,7 @@ public class GM extends Application implements OptionsPanelListener {
                     onTurnSceneWithMouse(curPoint);
                     moveMouseToCenter();
                 }
-                else onCursorSwitch(oldPoint);
+                else onCursorSwitch();
                 
 		oldPoint = curPoint;
 	    }
@@ -240,9 +246,11 @@ public class GM extends Application implements OptionsPanelListener {
     @Override
     protected final void init() {
 	isMousePressed = false;
+        EMPTY_CURSOR = getToolkit().createCustomCursor(
+                new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null");
 	// radio button to select all models to move
 	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT, null);	
-	// camera
+	// init camera
 	Point3DOdn pos = new Point3DOdn(0,0,-10);
 	Vector3D dir = new Vector3D(0,0,0);
 	Point3D target = new Point3D(0,0,10);
@@ -252,16 +260,24 @@ public class GM extends Application implements OptionsPanelListener {
 	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
 	camera = cameraEuler;
         
-        // define fixed values
+        /*// init fixed values in models
         for (Solid3D model : modelsManager.getModels()) {
             model.resetBounds();
             for (Polygon3D poly: model.getPolygons()) {
                 poly.resetNormal();
                 poly.resetAverageZ();
             }
-        }
+        }*/
+        // init crosshair 
+        Point2D cx = new Point2D(getWindowCenter());
+        cx = cx.sub(new Point2D(50,50));
+        final int SIZE = 10;
+        CROSSHAIR[0] = new Point2D(cx.getX(), cx.getY() + SIZE);
+        CROSSHAIR[1] = new Point2D(cx.getX(), cx.getY() - SIZE);
+        CROSSHAIR[2] = new Point2D(cx.getX() - SIZE, cx.getY());
+        CROSSHAIR[3] = new Point2D(cx.getX() + SIZE, cx.getY());
     }
-    
+
     /////////////////////////////////////////////////////////
     @Override
     protected void update() {
@@ -286,6 +302,9 @@ public class GM extends Application implements OptionsPanelListener {
         
 	// 3 - 
 	onCollision();
+        
+        //
+        //onCrosshair();
     }
     
     /////////////////////////////////////////////////////////
@@ -326,13 +345,15 @@ public class GM extends Application implements OptionsPanelListener {
 	
 	//TransferManager.transferFull(model, camera, isNeedDefineBackfaces);
 	TransferManager.transLocalToCamera(model, camera, isNeedDefineBackfaces);
-	
-        // if object not fixed - redefine it's fields
-        if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
-            model.resetBounds();
-            for (Polygon3D poly: model.getPolygons()) {
-                poly.resetNormal();
-                poly.resetAverageZ();
+        if (model.getState() == Solid3D.States.VISIBLE) {
+            // if object not fixed - redefine it's fields
+            //model.resetBounds();
+            if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
+
+                for (Polygon3D poly: model.getPolygons()) {
+                    poly.resetNormal();
+                    poly.resetAverageZ();
+                }
             }
         }
     }
@@ -342,7 +363,7 @@ public class GM extends Application implements OptionsPanelListener {
 	// if collision check is off
 	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT)
 		|| isMousePressed) return;
-	InteractionManager.collision(modelsManager.getModels());
+	//InteractionManager.collision(modelsManager.getModels());
     }
   
     /////////////////////////////////////////////////////////
@@ -388,21 +409,21 @@ public class GM extends Application implements OptionsPanelListener {
 
     private void onRotate(List<Solid3D> models, double angle, Matrix.AXIS axis) {
 	for (Solid3D model : models) {
-	    if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    model.updateAngle(angle, axis);
 	}
     }
 
     private void onTransfer(List<Solid3D> models, double dx, double dy, double dz) {
 	for (Solid3D model : models) {
-	    if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    model.updateTransfers(dx, dy, dz);
 	}
     }
 
     private void onScale(List<Solid3D> models, double scale) {
 	for (Solid3D solid : models) {
-	    if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    //if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    solid.updateScale(scale);
 	}
     }
@@ -477,21 +498,34 @@ public class GM extends Application implements OptionsPanelListener {
         //moveMouseToCenter();
     }
 
+    protected void onCrosshair() {
+	for (Solid3D model : modelsManager.getModels()) {
+	    if (model.getState() != Solid3D.States.VISIBLE
+		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    // find object borders & check the cursor hit into borders
+	    if (model.isCameraPointInto(ZERO_POINT, camera)) {
+		crosshairColor = CROSSHAIR_COLOR_ALLERT;
+		return;
+	    }
+        }
+        crosshairColor = CROSSHAIR_COLOR_NORM;
+    }
+    
     /////////////////////////////////////////////////////////
-    public void onCursorSwitch(Point curPoint) {
-	if (curPoint == null || modelsManager == null || modelsManager.getModels() == null) return;
+    public void onCursorSwitch(/*Point curPoint*/) {
+	if (/*curPoint == null || */modelsManager == null || modelsManager.getModels() == null) return;
 	// set cursor type
 	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
 	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 	    return;
 	}
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	Point2D p = new Point2D();//getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+	//Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 	for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.getBounds().isPointInto(p)) {
+	    if (model.isCameraPointInto(ZERO_POINT, camera)) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		return;
 	    }
@@ -514,7 +548,7 @@ public class GM extends Application implements OptionsPanelListener {
 	    dz = notches * SHIFT_BY_Z_STEP;
 	    scale = SCALE_DOWN;
 	}
-	onOperation(focusedModels, angle, axis, 0, 0, dz, scale);
+	onOperation(focusedModels, 0, axis, 0, 0, 0, scale);
     }
 
     /////////////////////////////////////////////////////////
@@ -524,12 +558,11 @@ public class GM extends Application implements OptionsPanelListener {
 	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
 	    //
 	    case RADIO_BY_MOUSE_PRESSED_TEXT:
-		Point2D p = new Point2D(0, 0);//getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
+		//Point2D p = getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
 		for (Solid3D model : modelsManager.getModels()) {
-		    boolean isPointInto = model.getBounds().isPointInto(p);
 		    if (model.getState() != Solid3D.States.VISIBLE
-			    /*|| solid.getName().equals(AXIS_TEXT)*/
-			    /*|| solid.isSetAttribute(Solid3D.ATTR_FIXED)*/) continue;
+			    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, camera);
 		    // find object borders & check the cursor hit into borders
 		    if (isPointInto) {
 			focusedModels.add(model);
@@ -552,7 +585,8 @@ public class GM extends Application implements OptionsPanelListener {
     public void onMouseReleased() {
 	isMousePressed = false;
 	focusedModels.clear();
-        moveMouseToCenter();
+        if (isGameViewModeEnabled)
+            moveMouseToCenter();
     }
     
     public void moveMouseToCenter() {
@@ -660,10 +694,10 @@ public class GM extends Application implements OptionsPanelListener {
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         } else {
             //setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            setCursor(getToolkit().createCustomCursor(
-                new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
+            setCursor(EMPTY_CURSOR);
             moveMouseToCenter();
         }
+        setVisibleOptionsPanel(isGameViewModeEnabled);
         isGameViewModeEnabled = !isGameViewModeEnabled;
     }
     /////////////////////////////////////////////////////////
@@ -679,15 +713,9 @@ public class GM extends Application implements OptionsPanelListener {
 	drawBorderedPolies(g, renderManager.getRenderArray());
         
         //
-        Point2D cx = new Point2D(getWindowCenter());
-        cx = cx.sub(new Point2D(50,50));
-        final int SIZE = 10;
-        Point2D up = new Point2D(cx.getX(), cx.getY() + SIZE);
-        Point2D down = new Point2D(cx.getX(), cx.getY() - SIZE);
-        g.drawLine(up, down);
-        Point2D left = new Point2D(cx.getX() - SIZE, cx.getY());
-        Point2D rignt = new Point2D(cx.getX() + SIZE, cx.getY());
-        g.drawLine(left, rignt);
+        g.setColor(crosshairColor);
+        g.drawLine(CROSSHAIR[0], CROSSHAIR[1]);
+        g.drawLine(CROSSHAIR[2], CROSSHAIR[3]);
     }
 
     /////////////////////////////////////////////////////////

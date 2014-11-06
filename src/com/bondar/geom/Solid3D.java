@@ -15,8 +15,8 @@ import java.util.Random;
  */
 public class Solid3D {
     
-    final double MAGIC_NUMBER_X = 0.5;//2.3;
-    final double MAGIC_NUMBER_Y = 0.5;//1.6;
+    final double HALF_SCREEN_X = 0.5;
+    final double HALF_SCREEN_Y = 0.5;
     
     public static enum States {
 	VISIBLE,
@@ -28,18 +28,15 @@ public class Solid3D {
     
     private States state;
     private int attributes;
+    private String name;
     private Point3D[] localVerts;
     private Point3D[] transVerts;
-    //private int[][] indexes;
-    private Polygon3DInds[] polygons = null;
-    private String name;
-    private BoundingBox3D bounds;
+    private Polygon3DInds[] polygons;
+    private BoundingSphere3D bounds;
     
     private Point3D dir;
     private Point3D pos;
     private Point3D scale;
-    private boolean isNeedPerspective = false;
-    private double maxRadius;
 
     /////////////////////////////////////////////////////////
     public Solid3D(Solid3D solid) {
@@ -50,7 +47,6 @@ public class Solid3D {
 	this.name = name;
 	this.attributes = attribs;
 	this.localVerts = getVertexCopy(vertexes);
-	//this.indexes = indsToTrias;
 	this.polygons = getPolygonsCopy(polies);
 	reInit();
     }
@@ -59,7 +55,6 @@ public class Solid3D {
 	this.name = name;
 	this.attributes = attribs;
 	this.localVerts = vertexes;
-	//this.indexes = indsToTrias;
 	this.polygons = buildPolygons(vertexes, indsToTrias, fills, borders, attr);
 	reInit();
     }
@@ -68,19 +63,17 @@ public class Solid3D {
 	this.name = name;
 	this.attributes = 0;
 	this.localVerts = vertexes;
-	//this.indexes = buildIndexes(vertexes);
 	this.polygons = buildPolygons(vertexes, buildIndexes(vertexes));
 	reInit();
     }
     
     private void reInit() {
 	state = States.VISIBLE;
-	bounds = new BoundingBox3D();
 	transVerts = localVerts;
 	dir = new Point3D();
 	pos = new Point3D();
 	scale = new Point3D(1,1,1);
-	maxRadius = maxRadius(localVerts);
+	bounds = new BoundingSphere3D(localVerts);
     }
 
     /////////////////////////////////////////////////////////
@@ -139,26 +132,6 @@ public class Solid3D {
 	    poly.setVertexes(verts);
 	}
     }
-
-    /////////////////////////////////////////////////////////
-    // 
-    /*public static DrawOrMove[] createDrawOrMoves(Point3D[] points) {
-	if (points == null) {
-	    return null;
-	}
-	int size = points.length;
-	int arraySize = size * (size - 1);
-	DrawOrMove[] res = new DrawOrMove[arraySize];
-	int ind = 0;
-	for (int i = 0; i < size-1; i++) {
-	    for (int j = i+1; j < size; j++) {
-		res[ind] = new DrawOrMove(i, DrawOrMove.Operation.MOVE);
-		res[ind+1] = new DrawOrMove(j, DrawOrMove.Operation.DRAW);
-		ind += 2;
-	    }
-	}
-	return res;
-    }*/
  
     /////////////////////////////////////////////////////////
     // operations
@@ -191,42 +164,29 @@ public class Solid3D {
 	scale.add(new Point3D(sx, sy, sz));
     }
 
-    /////////////////////////////////////////////////////////
-    //
-    public static double maxRadius(Point3D[] verts) {
-	double max = Double.MIN_VALUE;
-	if (verts == null) return max;
-	for (Point3D v : verts) {
-	    double x = Math.abs(v.getX());
-	    if (x > max) max = x;
-	    double y = Math.abs(v.getY());
-	    if (y > max) max = y;
-	    double z = Math.abs(v.getZ());
-	    if (z > max) max = z;
-	}
-	return max;
-    }
-
+    
     /////////////////////////////////////////////////////////
     // Cull solid, if it's fully out of clip bounds.
     public boolean isCulled(Camera cam) {
 	if (cam == null) return false;
+        // transfer object position (from world to camera coord's)
 	Point3D spherePos = TransferManager.transToCamera(pos, cam);
+        double maxRadius = bounds.getMaxRadius();
 	// by z
 	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||    // far side
 	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {   // near side
 	    return true;
 	}
 	// by x
-	double zTest = MAGIC_NUMBER_X * cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
+	double zTest = HALF_SCREEN_X * cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
 	if (((spherePos.getX() - maxRadius) > zTest)  || // right side
 	    ((spherePos.getX() + maxRadius) < -zTest) ) { // left side, note sign change
 	    return true;
 	}
 	// by y
-	zTest = MAGIC_NUMBER_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
-	if (((spherePos.getY() - maxRadius) > zTest)  || // right side
-	    ((spherePos.getY() + maxRadius) < -zTest) ) { // left side, note sign change
+	zTest = HALF_SCREEN_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
+	if (((spherePos.getY() - maxRadius) > zTest)  || // up side
+	    ((spherePos.getY() + maxRadius) < -zTest) ) { // down side, note sign change
 	    return true;
 	}
 	return false;
@@ -255,23 +215,20 @@ public class Solid3D {
 	    state = States.CULLED;
 	else state = States.VISIBLE;
     }
-    
-    public void setPerspective(boolean isNeedPerspective) {
-	this.isNeedPerspective = isNeedPerspective;
-    }
 
     public void setTransVertexes(Point3D[] verts) {
 	transVerts = verts;
     }
 
-    public void setBounds(Point3D[] verts) {
-	bounds.setBounds(verts);
-    }
+    /*public void resetBounds() {
+	bounds.resetBounds(localVerts);
+    }*/
     
-    public void resetBounds() {
-	bounds.setBounds(transVerts);
+    // scale.getX() - need to correct
+    public boolean isCameraPointInto(Point2D cp, Camera cam) {
+        return bounds.isCameraPointInto(cp, cam, pos, scale.getX());
     }
-    
+
     /////////////////////////////////////////////////////////
     // get
     public int getSize() {
@@ -315,10 +272,6 @@ public class Solid3D {
 	return name;
     }
     
-    public boolean isPerspective() {
-	return isNeedPerspective;
-    }
-    
     public int getAttributes() {
 	return attributes;
     }
@@ -327,24 +280,12 @@ public class Solid3D {
 	return (attributes & attr) != 0;
     }   
     
-    public BoundingBox3D getBounds() {
+    public BoundingSphere3D getBounds() {
 	return bounds;
     }
-    
-    public static Point3D getCenter(BoundingBox3D bb) {
-	if (bb == null) return null;
-	double cx = (bb.getX().getMin() + bb.getX().getMax()) / 2;
-	double cy = (bb.getY().getMin() + bb.getY().getMax()) / 2;
-	double cz = (bb.getZ().getMin() + bb.getZ().getMax()) / 2;
-	return new Point3D(cx, cy, cz);
-    }
-    
-    public boolean isIntersect(BoundingBox3D bb) {
-	return bounds.isIntersect(bb);
-    }
 
-    /*public boolean isVisible() {
-	return isVisible;
+    /*public boolean isIntersect(BoundingBox3D bb) {
+	return bounds.isIntersect(bb);
     }*/
     
     public States getState() {
@@ -361,10 +302,6 @@ public class Solid3D {
 
     public Point3D getScale() {
 	return scale;
-    }
-
-    public boolean isNeedPerspective() {
-	return isNeedPerspective;
     }
      
     public static Point3D[] getVertexCopy(Point3D[] vertexes) {

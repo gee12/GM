@@ -31,4 +31,5 @@ public class Types {
     public static boolean isEquals(double d1, double d2) {
         return ((Math.abs(d1 - d2) < Mathem.EPSILON_E5));
     }
+
 }

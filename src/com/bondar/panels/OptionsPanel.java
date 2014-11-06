@@ -1,5 +1,6 @@
 package com.bondar.panels;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;

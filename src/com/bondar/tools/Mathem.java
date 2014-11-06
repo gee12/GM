@@ -21,4 +21,13 @@ public class Mathem {
     public static int summ(int n) {
 	return (n * (n + 1) / 2);
     }
+    
+    /////////////////////////////////////////////////////
+    public static double abs(double value) {
+        return ((value >= 0) ? value : -value);
+    }
+    
+    public static int abs(int value) {
+        return ((value >= 0) ? value : -value);
+    }
 }

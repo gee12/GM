@@ -33,30 +33,11 @@ public class TransferManager {
 	}
 	// transferFull world vertexes to camera
 	verts = TransferManager.transToCamera(verts, camera);
-	/*// to perspective
-	if (model.isNeedPerspective()) {
-	    verts = TransferManager.transToPerspective(verts, camera);
-	    //
-	    verts = TransferManager.transPerspectToScreen(verts, camera);
-	}
-	else verts = TransferManager.transToScreen(verts, camera);*/
 	
 	model.reinitPoliesVertexes(verts);
 	model.setTransVertexes(verts);
     }
     
-    /*public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera, boolean isNeedPerspective) {
-	if (polies == null) return;
-	if (isNeedPerspective) {
-	    for (Polygon3D poly: polies) {
-		poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
-	    }
-	} else {
-	    for (Polygon3D poly: polies) {
-		poly.setVertexes(transToScreen(poly.getVertexes(), camera));
-	    }
-	}
-    }*/
     public static void transToPerspectAndScreen(Polygon3DInds[] polies, Camera camera) {
 	if (polies == null) return;
         for (Polygon3DInds poly : polies) {
@@ -106,11 +87,11 @@ public class TransferManager {
     public static Point3D[] transferFull(Solid3D model, Camera cam) {
 	if (model == null) return null;
 	return transferFull(model.getLocalVertexes(), model.getDirection(), 
-		model.getPosition(), model.getScale(), cam, model.isNeedPerspective());
+		model.getPosition(), model.getScale(), cam);
     }
     
     public static Point3D[] transferFull(Point3D[] verts, Point3D dir, Point3D pos, Point3D scale,
-	    Camera cam, boolean isNeedPerspective) {
+	    Camera cam) {
 	if (verts == null || dir == null || pos == null || scale == null || cam == null) return null;
 	// create matrixes
 	Matrix rotateXM = Matrix.rotationXMatrix(dir.getX());

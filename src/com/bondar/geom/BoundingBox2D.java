@@ -32,18 +32,20 @@ public class BoundingBox2D {
 	y = new Bound(fy, fy);
 	for (Point2D v : verts) {
 	    // x
-	    if (v.getX() < x.getMin()) {
-		x.setMin(v.getX());
+            double vx = Math.abs(v.getX());
+	    if (vx < x.getMin()) {
+		x.setMin(vx);
 	    }
-	    if (v.getX() > x.getMax()) {
-		x.setMax(v.getX());
+	    if (vx > x.getMax()) {
+		x.setMax(vx);
 	    }
 	    // y
-	    if (v.getY() < y.getMin()) {
-		y.setMin(v.getY());
+            double vy = Math.abs(v.getY());
+	    if (vy < y.getMin()) {
+		y.setMin(vy);
 	    }
-	    if (v.getY() > y.getMax()) {
-		y.setMax(v.getY());
+	    if (vy > y.getMax()) {
+		y.setMax(vy);
 	    }
 	}
     }

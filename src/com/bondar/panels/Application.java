@@ -63,6 +63,10 @@ public abstract class Application extends JFrame {
     
     /////////////////////////////////////////////////////
     // set
+    protected void setVisibleOptionsPanel(boolean visible) {
+        optionsPanel.setVisible(visible);
+    }
+    
     /*protected void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
 	drawablePanel.getDrawManager().setClipWindow(xmin,ymin,xmax,ymax);
     }
