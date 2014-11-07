@@ -46,11 +46,18 @@ public class Solid3D {
     public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3DInds[] polies) {
 	this.name = name;
 	this.attributes = attribs;
-	this.localVerts = getVertexCopy(vertexes);
+	this.localVerts = (vertexes);
 	this.polygons = getPolygonsCopy(polies);
 	reInit();
     }
-    
+    public Solid3D(String name) {
+	this.name = name;
+	this.attributes = 0;
+	this.localVerts = null;
+	this.polygons = null;
+	reInit();
+    }
+    /*
     public Solid3D(String name, int attribs, Point3D[] vertexes, int[][] indsToTrias, Color[] fills, Color[] borders, int attr) {
 	this.name = name;
 	this.attributes = attribs;
@@ -66,7 +73,7 @@ public class Solid3D {
 	this.polygons = buildPolygons(vertexes, buildIndexes(vertexes));
 	reInit();
     }
-    
+    */
     private void reInit() {
 	state = States.VISIBLE;
 	transVerts = localVerts;
@@ -76,7 +83,7 @@ public class Solid3D {
 	bounds = new BoundingSphere3D(localVerts);
     }
 
-    /////////////////////////////////////////////////////////
+    /*/////////////////////////////////////////////////////////
     // triangulation
     public static int[][] buildIndexes(Point3D[] vertexes) {
 	if (vertexes == null) return null;
@@ -124,12 +131,12 @@ public class Solid3D {
 		    attr);
 	}
 	return res;
-    }
+    }*/
 
-    public void reinitPoliesVertexes(Point3D[] verts) {
+    public void reinitPoliesVertexesPosition(Point3D[] verts) {
 	if (polygons == null) return;
 	for (Polygon3DInds poly : polygons) {
-	    poly.setVertexes(verts);
+	    poly.setVertexesPosition(verts);
 	}
     }
  
@@ -304,7 +311,7 @@ public class Solid3D {
 	return scale;
     }
      
-    public static Point3D[] getVertexCopy(Point3D[] vertexes) {
+    public static Point3D[] getVertexesCopy(Point3D[] vertexes) {
 	int size = vertexes.length;
 	Point3D[] res = new Point3D[size];
 	for (int i = 0; i < size; i++) {

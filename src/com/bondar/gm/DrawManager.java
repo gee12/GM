@@ -4,6 +4,7 @@ import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
+import com.bondar.geom.Vertex3D;
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -52,10 +53,10 @@ public class DrawManager {
 	g.setColor(poly.getShadeColor());
 	switch(poly.getType()) {
 	    case POINT:
-		drawPoint(poly.getVertex(0));
+		drawPoint(poly.getVertexPosition(0));
 		break;
 	    case LINE:
-		drawLine(poly.getVertex(0), poly.getVertex(1));
+		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1));
 		break;
 	    default:
 		drawFilledPolygon(poly.getVertexes());
@@ -104,15 +105,15 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     // draw filled polygon
-    public void drawFilledPolygon(Point3D[] verts) {
+    public void drawFilledPolygon(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
 	int xs[] = new int[size];
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
 	    if (verts[i] == null) continue;
-	    xs[i] = (int)(verts[i].getX() + 0.5);
-	    ys[i] = (int)(verts[i].getY() + 0.5);
+	    xs[i] = (int)(verts[i].getPosition().getX() + 0.5);
+	    ys[i] = (int)(verts[i].getPosition().getY() + 0.5);
 	}
 	g.fillPolygon(xs, ys, size);
     }
@@ -123,14 +124,14 @@ public class DrawManager {
         drawPolygonBorder(poly.getVertexes());
     }
     
-    public void drawPolygonBorder(Point3D[] verts) {
+    public void drawPolygonBorder(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
         if (size == 0) return;
 	for (int i = 0; i < size-1; i++) {
-	    drawLine(verts[i], verts[i+1]);
+	    drawLine(verts[i].getPosition(), verts[i+1].getPosition());
 	}
-	drawLine(verts[size-1], verts[0]);
+	drawLine(verts[size-1].getPosition(), verts[0].getPosition());
     }
     
     // Сортировка граней по координате Z

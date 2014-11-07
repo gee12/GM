@@ -50,7 +50,7 @@ public class Vector3D extends Point3DOdn {
     }
     
     public Vector3D mul(Matrix other) {
-	m = m.multiply(other);
+	vector = vector.multiply(other);
 	return this;
     }
      

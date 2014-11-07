@@ -70,7 +70,10 @@ public class ShadeManager {
                     if (poly.getType() == Polygon3D.Types.LINE
                         || poly.getType() == Polygon3D.Types.POINT) return null;
                     
-                    Vector3D n = normal(poly.getVertex(0), poly.getVertex(1), poly.getVertex(2));
+                    Vector3D n = normal(
+                            poly.getVertexPosition(0), 
+                            poly.getVertexPosition(1), 
+                            poly.getVertexPosition(2));
                     double nl = n.length();
                     double dp = Vector3D.dot(n, light.getDirection());
                     if (dp > 0) {

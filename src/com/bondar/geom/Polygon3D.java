@@ -27,7 +27,7 @@ public class Polygon3D {
     protected States state;
     protected Types type;
     protected int attributes;
-    protected Point3D[] vertexes;
+    protected Vertex3D[] vertexes;
     protected int size;
     protected Color srcColor;
     protected Color borderColor;
@@ -40,10 +40,10 @@ public class Polygon3D {
     protected double averageZ;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(Point3D[] verts, Color fill, Color border, int attr) {
+    public Polygon3D(Vertex3D[] verts, Color src, Color shade, Color border, int attr) {
 	this.vertexes = verts;
-	this.srcColor = fill;
-	this.shadeColor = fill;
+	this.srcColor = src;
+	this.shadeColor = shade;
         this.borderColor = border;
 	this.attributes = attr;
 	this.state = States.VISIBLE;
@@ -74,7 +74,7 @@ public class Polygon3D {
     
     public boolean isPointInHalfspace(Point3D p) {
 	if (p == null || type == Types.POINT) return false;
-	Vector3D v = new Vector3D(vertexes[1], p);
+	Vector3D v = new Vector3D(vertexes[1].getPosition(), p);
 	double res = Vector3D.dot(normal, v);
 	return (res > 0.0); 
     }
@@ -84,9 +84,12 @@ public class Polygon3D {
 		|| poly.getType() == Types.LINE
 		|| poly.getType() == Types.POINT) return false;
 	// build poly normal
-	Vector3D n = normal(poly.getVertex(0), poly.getVertex(1), poly.getVertex(2));
+	Vector3D n = normal(
+                poly.getVertexPosition(0), 
+                poly.getVertexPosition(1), 
+                poly.getVertexPosition(2));
 	// build vector from poly to target point
-	Vector3D v = new Vector3D(poly.getVertex(1), p);
+	Vector3D v = new Vector3D(poly.getVertexPosition(1), p);
 	// scalar multiply
 	double res = Vector3D.dot(n, v);
 	return (res > 0.0);
@@ -100,32 +103,36 @@ public class Polygon3D {
 
     public double averageZ() {
 	double sumZ = 0;
-	for (Point3D v : vertexes) {
-	    sumZ += v.getZ();
+	for (Vertex3D v : vertexes) {
+	    sumZ += v.getPosition().getZ();
 	}
 	return sumZ / size;
     }
 
     public double minZ() {
-	double minZ = getVertex(0).getZ();
-	for (Point3D v : getVertexes()) {
-	    if (minZ > v.getZ())
-		minZ = v.getZ();
+	double minZ = vertexes[0].getPosition().getZ();
+	for (Vertex3D v : getVertexes()) {
+	    if (minZ > v.getPosition().getZ())
+		minZ = v.getPosition().getZ();
 	}
 	return minZ;
     }
  
     public double maxZ() {
-	double maxZ = getVertex(0).getZ();
-	for (Point3D v : getVertexes()) {
-	    if (maxZ < v.getZ())
-		maxZ = v.getZ();
+	double maxZ = vertexes[0].getPosition().getZ();
+	for (Vertex3D v : getVertexes()) {
+	    if (maxZ < v.getPosition().getZ())
+		maxZ = v.getPosition().getZ();
 	}
 	return maxZ;
     }
 
     public double zByXY(double x, double y) {
-	return Triangle3D.zByXY(getVertex(0), getVertex(1), getVertex(2), x, y);
+ 	if (type == Types.LINE || type == Types.POINT) return 0;
+        return Triangle3D.zByXY(
+                vertexes[0].getPosition(), 
+                vertexes[1].getPosition(), 
+                vertexes[2].getPosition(), x, y);
     }
 	                      
     /////////////////////////////////////////////////////////
@@ -144,8 +151,15 @@ public class Polygon3D {
 	else state = States.VISIBLE;
     }
     
-    public void setVertexes(Point3D[] verts) {
+    public void setVertexes(Vertex3D[] verts) {
 	this.vertexes = verts;
+    }
+    
+    public void setVertexesPosition(Point3D[] points) {
+        if (points == null) return;
+        for (int i = 0; i < vertexes.length; i++) {
+            vertexes[i].setPosition(points[i]);
+        }
     }
      
     public void setShadeColor(Color col) {
@@ -162,7 +176,10 @@ public class Polygon3D {
     
     public void resetNormal() {
  	if (type == Types.LINE || type == Types.POINT) return;
-        normal = normal(vertexes[0], vertexes[1], vertexes[2]);
+        normal = normal(
+                vertexes[0].getPosition(), 
+                vertexes[1].getPosition(), 
+                vertexes[2].getPosition());
     }
       
     /////////////////////////////////////////////////////////
@@ -171,12 +188,12 @@ public class Polygon3D {
 	return type;
     }
 
-    public Point3D getVertex(int i) {
+    public Point3D getVertexPosition(int i) {
 	if (vertexes == null || i < 0 || i >= size) return null;
-	return vertexes[i];
+	return vertexes[i].getPosition();
     }
 
-    public Point3D[] getVertexes() {
+    public Vertex3D[] getVertexes() {
 	return vertexes;
     }
     
@@ -229,6 +246,6 @@ public class Polygon3D {
     }
 
     public Polygon3D getCopy() {
-	return new Polygon3D(vertexes, srcColor, borderColor, attributes);
+	return new Polygon3D(vertexes, srcColor, shadeColor, borderColor, attributes);
     }
 }    

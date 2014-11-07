@@ -5,6 +5,7 @@ import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
+import com.bondar.geom.Vertex3D;
 
 /**
  *
@@ -28,29 +29,38 @@ public class TransferManager {
 	    return;
 	// define backfaces triangles
 	if (isNeedDefineBackfaces) {
-	    model.reinitPoliesVertexes(verts);
+	    model.reinitPoliesVertexesPosition(verts);
 	    model.defineBackfaces(camera);
 	}
 	// transferFull world vertexes to camera
 	verts = TransferManager.transToCamera(verts, camera);
 	
-	model.reinitPoliesVertexes(verts);
+	model.reinitPoliesVertexesPosition(verts);
 	model.setTransVertexes(verts);
     }
     
-    public static void transToPerspectAndScreen(Polygon3DInds[] polies, Camera camera) {
+    /*public static void transToPerspectAndScreen(Polygon3DInds[] polies, Camera camera) {
 	if (polies == null) return;
         for (Polygon3DInds poly : polies) {
-            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+            poly.setVertexesPosition(transToPerspectAndScreen(poly.getVertexes(), camera));
         }
     }
     
     public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera) {
 	if (polies == null) return;
-        for (Polygon3D poly : polies) {
-            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+        Point3D[] vs = null;
+        for (int i = 0; i < polies.length; i++) {
+            vs = transToPerspectAndScreen(polies[i].getVertexes(), camera);
+            polies[i].setVertexesPosition(vs);
         }
-    }   
+    }*/
+    public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera) {
+	if (polies == null) return;
+        //for (Polygon3D poly : polies) {
+            //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+            //transToPerspectAndScreen(poly.getVertexes(), camera);
+        //}
+    }
     /*public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
 	if (model == null) return;
 	// transferFull local vertexes to world
@@ -194,6 +204,35 @@ public class TransferManager {
 	}
 	return res;
     }
+    
+    public static Vertex3D[] transToPerspectAndScreen(Vertex3D[] verts, Camera cam) {
+	if (verts == null || cam == null) return null;
+	// create matrixes
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform all camera vertexes
+        for (Vertex3D v : verts) {
+            v.setPosition(transVertex(v.getPosition(), ms));
+        }
+	return verts;
+    } 
+    /*public static Point3D[] transToPerspectAndScreen(Vertex3D[] verts, Camera cam) {
+	if (verts == null || cam == null) return null;
+	// create matrixes
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform all camera vertexes
+        int size = verts.length;
+	Point3D[] res = new Point3D[size];
+	for (int i = 0; i < size; i++) {
+            res[i] = transVertex(verts[i].getPosition(), ms);
+        }
+	return res;
+    }*/
     
     // camera -> screen
     public static Point3D[] transToScreen(Point3D[] verts, Camera cam) {

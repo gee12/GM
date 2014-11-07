@@ -503,10 +503,10 @@ public class GraphicSystem2D {
 	for (Polygon3DInds poly : polies) {
 	    switch(poly.getType()) {
 		case POINT:
-		    line(poly.getVertex(0), poly.getVertex(0));
+		    line(poly.getVertexPosition(0), poly.getVertexPosition(0));
 		    break;
 		case LINE:
-		    line(poly.getVertex(0), poly.getVertex(1));
+		    line(poly.getVertexPosition(0), poly.getVertexPosition(1));
 		    break;
 		default:
 		    drawBufferedPolygon(poly);
@@ -519,9 +519,9 @@ public class GraphicSystem2D {
     // Отрисовка треугольника (полинейно)
     private void drawBufferedPolygon(Polygon3DInds poly) {
 	if (poly == null) return;
-	Point3D a = convPToScreen(poly.getVertex(0));
-	Point3D b = convPToScreen(poly.getVertex(1));
-	Point3D c = convPToScreen(poly.getVertex(2));
+	Point3D a = convPToScreen(poly.getVertexPosition(0));
+	Point3D b = convPToScreen(poly.getVertexPosition(1));
+	Point3D c = convPToScreen(poly.getVertexPosition(2));
 	int sy, x1, x2;
 	boolean flag = true;
 	// здесь сортируем вершины (A,B,C)

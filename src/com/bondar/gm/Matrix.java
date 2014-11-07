@@ -281,7 +281,14 @@ public class Matrix {
 
     //////////////////////////////////////////////////
     public double[][] getMatrix() {
-	return m;
+	/*double[][] res =  new double[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                res[i][j] = m[i][j];
+            }
+        }
+        return res;*/
+        return m;
     }
     
     public double getAt(int i, int j) {

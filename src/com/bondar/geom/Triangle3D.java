@@ -9,12 +9,13 @@ import java.awt.Color;
  */
 public class Triangle3D extends Polygon3DInds {
     
-    public Triangle3D(Point3D[] verts, int i1, int i2, int i3, Color fill, Color border, int attr) {
-	super(verts, new int[] { i1,i2,i3 }, fill, border, attr);
+    public Triangle3D(Vertex3D[] verts, int i1, int i2, int i3, Color fill, Color shade, Color border, int attr) {
+	super(verts, new int[] { i1,i2,i3 }, fill, shade, border, attr);
     }
     
     public Triangle3D(Triangle3D tria) {
-	super(tria.getVertexes(), tria.getIndexes(), tria.getSrcColor(), tria.getBorderColor(), tria.getAttributes());
+	super(tria.getVertexes(), tria.getIndexes(), tria.getSrcColor(), 
+                tria.getShadeColor(), tria.getBorderColor(), tria.getAttributes());
     }
 
     public boolean isPointInto(Point3D point) {
@@ -68,19 +69,20 @@ public class Triangle3D extends Polygon3DInds {
 
     // get
     public Point3D getV1() {
-	return vertexes[indexes[0]];
+	return vertexes[indexes[0]].getPosition();
     }
 
     public Point3D getV2() {
-	return vertexes[indexes[1]];
+	return vertexes[indexes[1]].getPosition();
     }
 
     public Point3D getV3() {
-	return vertexes[indexes[2]];
+	return vertexes[indexes[2]].getPosition();
     }
     
     @Override
     public Triangle3D getCopy() {
-	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], srcColor, borderColor, attributes);
+	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], 
+                srcColor, shadeColor, borderColor, attributes);
     }
 }

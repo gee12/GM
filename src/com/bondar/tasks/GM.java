@@ -249,7 +249,7 @@ public class GM extends Application implements OptionsPanelListener {
         EMPTY_CURSOR = getToolkit().createCustomCursor(
                 new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null");
 	// radio button to select all models to move
-	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT, null);	
+	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT);
 	// init camera
 	Point3DOdn pos = new Point3DOdn(0,0,-10);
 	Vector3D dir = new Vector3D(0,0,0);
@@ -704,7 +704,8 @@ public class GM extends Application implements OptionsPanelListener {
     @Override
     protected void paint(DrawManager g) {
 	g.drawBackground(BACK_COLOR);
-	if (modelsManager.getModels() == null) return;
+	if (modelsManager == null ||
+                modelsManager.getModels() == null) return;
 	
 	/*for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;

@@ -12,17 +12,17 @@ public class Point3DOdn extends Point3D {
     
     //
     public Point3DOdn() {
-	m = new Matrix(new double[][] {{0,0,0,1}});
+	vector = new Matrix(new double[][] {{0,0,0,1}});
     }
     
     public Point3DOdn(double a, double b, double c) {
-	m = new Matrix(new double[][] {{a,b,c,1}});
+	vector = new Matrix(new double[][] {{a,b,c,1}});
     }
     
     public Point3DOdn(double[] v) {
 	if (v == null) return;
 	if (v.length < 3) throw new RuntimeException("Размер вектора < 3");
-	m = new Matrix(new double[][] {{v[0],v[1],v[2],1}});
+	vector = new Matrix(new double[][] {{v[0],v[1],v[2],1}});
     }
     
     public Point3DOdn(Point3DOdn p3DOdn) {
@@ -38,17 +38,17 @@ public class Point3DOdn extends Point3D {
 	double w = getW();
 	double invW = (w >= Mathem.EPSILON_E5) ? (1 / w) : (1 / Mathem.EPSILON_E5);
 	for (int i = 0; i < 4; i++) {
-	    m.setAt(0, i, m.getAt(0, i) * invW);
+	    vector.setAt(0, i, vector.getAt(0, i) * invW);
 	}
 	return this;
     }
     // set
     public void setW(double w) {
-	m.setAt(0, 3, w);
+	vector.setAt(0, 3, w);
     }    
     // get
     public double getW() {
-	return m.getAt(0, 3);
+	return vector.getAt(0, 3);
     }
     
     @Override
@@ -62,6 +62,6 @@ public class Point3DOdn extends Point3D {
     }
 
     public double[] toArray4Odn() {
-        return m.getMatrix()[0];
+        return vector.getMatrix()[0];
     }
 }

@@ -13,8 +13,8 @@ public class Polygon3DInds extends Polygon3D {
     protected int indexes[];
 
     /////////////////////////////////////////////////////////
-    public Polygon3DInds(Point3D[] verts, int[] inds, Color fill, Color border, int attr) {
-        super(verts,fill,border,attr);
+    public Polygon3DInds(Vertex3D[] verts, int[] inds, Color src, Color shade, Color border, int attr) {
+        super(verts,src,shade,border,attr);
 	this.indexes = inds;
         this.size = inds.length;
         this.type = type(size);
@@ -22,14 +22,22 @@ public class Polygon3DInds extends Polygon3D {
     
     /////////////////////////////////////////////////////////
     // set
+    public void setVertexesPosition(Point3D[] points) {
+        if (points == null) return;
+        int i = 0;
+        for (Vertex3D v : vertexes) {
+            v.setPosition(points[i]);
+            i++;
+        }
+    }
 
     /////////////////////////////////////////////////////////
     // get
     @Override
-    public Point3D getVertex(int i) {
+    public Point3D getVertexPosition(int i) {
 	if (vertexes == null || indexes == null
 		|| (i < 0 || i >= size) || (indexes[i] >= vertexes.length)) return null;
-	return vertexes[indexes[i]];
+	return vertexes[indexes[i]].getPosition();
     }
     
     public int[] getIndexes() {
@@ -37,10 +45,19 @@ public class Polygon3DInds extends Polygon3D {
     }
     
     // Return only polygon's vertexes (not all solid vertexes)
-    @Override
-    public Point3D[] getVertexes() {
+    public Point3D[] getVertexesPositions() {
 	if (vertexes == null) return null;
 	Point3D[] res = new Point3D[size];
+	for (int i = 0; i < size; i++) {
+	    res[i] = vertexes[indexes[i]].getPosition();
+	}
+	return res;
+    }
+    
+    @Override
+    public Vertex3D[] getVertexes() {
+	if (vertexes == null) return null;
+	Vertex3D[] res = new Vertex3D[size];
 	for (int i = 0; i < size; i++) {
 	    res[i] = vertexes[indexes[i]];
 	}
@@ -49,11 +66,11 @@ public class Polygon3DInds extends Polygon3D {
     
     @Override
     public Polygon3DInds getCopy() {
-	return new Polygon3DInds(vertexes, indexes, srcColor, borderColor, attributes);
+	return new Polygon3DInds(vertexes, indexes, srcColor, shadeColor, borderColor, attributes);
     }
     
     // To all-sufficient polygon
     public Polygon3D toPolygon3D() {
-        return new Polygon3D(getVertexes(), srcColor, borderColor, attributes);
+        return new Polygon3D(getVertexes(), srcColor, shadeColor, borderColor, attributes);
     }
 }

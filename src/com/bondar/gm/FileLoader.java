@@ -3,6 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Point3D;
+import com.bondar.geom.Vertex3D;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -49,7 +50,8 @@ public class FileLoader {
 	Point3D pos = new Point3D();
 	Point3D angles = new Point3D();
 	Point3D scale = new Point3D();
-	Point3D[] vertexes = null;
+	Point3D[] points = null;
+	Vertex3D[] vertexes = null;
 	/*int[][] indexes = null;
 	Color[] fillColors = null;
 	Color[] borderColors = null;
@@ -81,7 +83,8 @@ public class FileLoader {
 		//
 		case VERTEXES_PARAM:
 		    int vertCount = Integer.parseInt(words[1]);
-		    vertexes = new Point3D[vertCount];
+		    points = new Point3D[vertCount];
+                    vertexes = new Vertex3D[vertCount];
 		    int lineNum = 0;
 		    while (lineNum < vertCount) {
 			if ((line = reader.readLine()) == null) {
@@ -99,7 +102,8 @@ public class FileLoader {
 			for (int i = 0; i < 3; i++) {
 			    coords[i] = Double.parseDouble(coordsStr[i]);
 			}
-			vertexes[lineNum] = new Point3D(coords[0], coords[1], coords[2]);
+			points[lineNum] = new Point3D(coords[0], coords[1], coords[2]);
+			vertexes[lineNum] = new Vertex3D(points[lineNum]);
 			lineNum++;
 		    }
 		    break;
@@ -147,7 +151,7 @@ public class FileLoader {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
 			//polyAttribs[lineNum] = attr;
-			polies[lineNum] = new Polygon3DInds(vertexes, indexes, fillColor, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(vertexes, indexes, fillColor, fillColor, borderColor, attr);
 			lineNum++;
 		    }		    
 		    break;
@@ -158,10 +162,10 @@ public class FileLoader {
 	}
 	reader.close();
 	//
-	for (Polygon3DInds poly : polies) {
+	/*for (Polygon3DInds poly : polies) {
 	    poly.setVertexes(vertexes);
-	}
-	Solid3D res = new Solid3D(name, attribs, vertexes, polies);
+	}*/
+	Solid3D res = new Solid3D(name, attribs, points, polies);
 	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
 	res.updateAngles(angles.getX(), angles.getY(), angles.getZ());
 	res.updateScale(scale.getX(), scale.getY(), scale. getZ());
