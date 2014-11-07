@@ -29,6 +29,7 @@ public class Polygon3D {
     protected int attributes;
     protected Point3D[] vertexes;
     protected int size;
+    // color
     protected Color srcColor;
     protected Color borderColor;
     protected Color shadeColor;
@@ -74,7 +75,7 @@ public class Polygon3D {
     
     public boolean isPointInHalfspace(Point3D p) {
 	if (p == null || type == Types.POINT) return false;
-	Vector3D v = new Vector3D(vertexes[1], p);
+	Vector3D v = new Vector3D(getVertex(1), p);
 	double res = Vector3D.dot(normal, v);
 	return (res > 0.0); 
     }

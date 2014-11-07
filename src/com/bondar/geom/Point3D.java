@@ -12,6 +12,11 @@ public class Point3D {
     public final static Point3D Zero = new Point3D(0, 0, 0);
     protected Matrix m;
     
+    private Vector3D normal;
+    private Point2D texturePos;
+    private float intent;
+    private int attributes;
+
     //////////////////////////////////////////////////
     public Point3D() {
 	m = new Matrix(new double[][] {{0,0,0}});
@@ -65,6 +70,26 @@ public class Point3D {
 
     //////////////////////////////////////////////////
     // set
+    public void setAttr(int attr) {    
+        attributes |= attr;
+    }
+
+    public Vector3D getNormal() {
+        return normal;
+    }
+
+    public void setNormal(Vector3D normal) {
+        this.normal = normal;
+    }
+
+    public void setTexturePos(Point2D texturePos) {
+        this.texturePos = texturePos;
+    }
+
+    public void setIntent(float intent) {
+        this.intent = intent;
+    }
+
     public void setX(double x) {
 	m.setAt(0, 0, x);
     }
@@ -76,9 +101,25 @@ public class Point3D {
     public void setZ(double z) {
 	m.setAt(0, 2, z);
     }
-   
+
     //////////////////////////////////////////////////
     // get
+    public boolean isSetAttribute(int attr) {
+	return (attributes & attr) != 0;
+    }
+    
+    public Point2D getTexturePos() {
+        return texturePos;
+    }
+
+    public float getIntent() {
+        return intent;
+    }
+
+    public int getAttributes() {
+        return attributes;
+    }   
+
     public double getX() {
 	return m.getAt(0, 0);
     }

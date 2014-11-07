@@ -46,7 +46,7 @@ public class Solid3D {
     public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3DInds[] polies) {
 	this.name = name;
 	this.attributes = attribs;
-	this.localVerts = getVertexCopy(vertexes);
+	this.localVerts = (vertexes);
 	this.polygons = getPolygonsCopy(polies);
 	reInit();
     }
@@ -198,6 +198,37 @@ public class Solid3D {
 	for (Polygon3DInds poly: polygons) {
 	    poly.setIsBackFace(cam);
 	}
+    }
+    
+    /////////////////////////////////////////////////////////
+    public void compulateVertexNormals() {
+        int[] touchVertex = new int[localVerts.length];
+        for (Polygon3DInds poly : polygons) {
+            if (poly.getType() == Polygon3D.Types.POINT
+                    || poly.getType() == Polygon3D.Types.LINE) return;
+            
+            int vIndex0 = poly.getIndexes()[0];
+            int vIndex1 = poly.getIndexes()[1];
+            int vIndex2 = poly.getIndexes()[2];
+            
+            poly.resetNormal();
+            
+            touchVertex[vIndex0]++;
+            touchVertex[vIndex1]++;
+            touchVertex[vIndex2]++;
+
+            localVerts[vIndex0].getNormal().add(poly.getNormal());
+            localVerts[vIndex1].getNormal().add(poly.getNormal());
+            localVerts[vIndex2].getNormal().add(poly.getNormal());
+        }
+        
+        for (int i = 0; i < localVerts.length; i++) {
+            if (touchVertex[i] >= 1) {
+                double inv = 1 / touchVertex[i];
+                localVerts[i].getNormal().mul(inv);
+                localVerts[i].getNormal().normalize();
+            }
+        }
     }
     
     /////////////////////////////////////////////////////////

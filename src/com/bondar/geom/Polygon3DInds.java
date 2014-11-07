@@ -22,7 +22,13 @@ public class Polygon3DInds extends Polygon3D {
     
     /////////////////////////////////////////////////////////
     // set
-
+    @Override
+    public void resetNormal() {
+ 	if (type == Types.LINE || type == Types.POINT) return;
+        normal = normal(vertexes[indexes[0]], 
+                vertexes[indexes[1]], 
+                vertexes[indexes[2]]);
+    }
     /////////////////////////////////////////////////////////
     // get
     @Override
