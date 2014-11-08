@@ -6,6 +6,7 @@ import com.bondar.geom.Vector3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
 import com.bondar.panels.OptionsPanelListener;
@@ -690,9 +691,9 @@ public class GM extends Application implements OptionsPanelListener {
     }
 
     /////////////////////////////////////////////////////////
-    private void drawBorderedPolies(DrawManager g, Polygon3D[] polies) {
+    private void drawBorderedPolies(DrawManager g, Polygon3DVerts[] polies) {
 	if (g == null || polies == null) return;
-	for (Polygon3D poly : polies) {
+	for (Polygon3DVerts poly : polies) {
 	    // shading
 	    g.drawFilledPolygon3D(poly);
 	    // border

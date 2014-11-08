@@ -5,6 +5,7 @@ import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vertex3D;
 
 /**
@@ -55,9 +56,9 @@ public class TransferManager {
             polies[i].setVertexesPosition(vs);
         }
     }*/
-    public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera) {
+    public static void transToPerspectAndScreen(Polygon3DVerts[] polies, Camera camera) {
 	if (polies == null) return;
-        for (Polygon3D poly : polies) {
+        for (Polygon3DVerts poly : polies) {
             //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
             poly.transToPerspectAndScreen(camera);
         }
@@ -219,7 +220,7 @@ public class TransferManager {
         }
 	return verts;
     } 
-    public static Vertex3D[] transToPerspectAndScreen(Polygon3D poly, Camera cam) {
+    public static Vertex3D[] transToPerspectAndScreen(Polygon3DVerts poly, Camera cam) {
 	if (poly == null || cam == null) return null;
 	// create matrixes
 	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());

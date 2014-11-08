@@ -67,13 +67,14 @@ public class ModelsManager {
         // transfer local vertexes to world
 	Point3D[] transVerts = TransferManager.transToWorld(model);
         
-	// reset polies position, redefine normals, backfaces
+	// redefine normals, backfaces
+        model.setVertexesPosition(transVerts);
         model.redefinePolygonsParams(transVerts, camera, isNeedDefineBackfaces);
         
 	// transferFull world vertexes to camera
 	transVerts = TransferManager.transToCamera(transVerts, camera);
 	
-	model.resetPoliesVertexesPosition(transVerts);
+	model.setVertexesPosition(transVerts);
 	//model.setTransVertexes(transVerts);
         
         

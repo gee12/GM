@@ -7,6 +7,7 @@ import com.bondar.geom.Line3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.gm.Matrix.AXIS;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
@@ -496,11 +497,11 @@ public class GraphicSystem2D {
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения невидимых граней с использованием z-буффера
-    public void zBufferAlgorithm(Polygon3DInds[] polies) {
+    public void zBufferAlgorithm(Polygon3DVerts[] polies) {
 	if (polies == null) {
 	    return;
 	}
-	for (Polygon3DInds poly : polies) {
+	for (Polygon3DVerts poly : polies) {
 	    switch(poly.getType()) {
 		case POINT:
 		    line(poly.getVertexPosition(0), poly.getVertexPosition(0));
@@ -517,7 +518,7 @@ public class GraphicSystem2D {
 
     /////////////////////////////////////////////////////
     // Отрисовка треугольника (полинейно)
-    private void drawBufferedPolygon(Polygon3DInds poly) {
+    private void drawBufferedPolygon(Polygon3DVerts poly) {
 	if (poly == null) return;
 	Point3D a = convPToScreen(poly.getVertexPosition(0));
 	Point3D b = convPToScreen(poly.getVertexPosition(1));
@@ -569,7 +570,7 @@ public class GraphicSystem2D {
     /////////////////////////////////////////////////////
     // Алгритм Брезинхема
     // (поточечная отрисовка линии треугольника с использованием Z-буффера)
-    private void drawBufferedLine(Polygon3DInds poly, Point3DOdn p1, Point3DOdn p2) {
+    private void drawBufferedLine(Polygon3DVerts poly, Point3DOdn p1, Point3DOdn p2) {
 	float d, d1, d2;
 	int dx = (int) (Math.abs(p2.getX() - p1.getX()));
 	int dy = (int) (Math.abs(p2.getY() - p1.getY()));

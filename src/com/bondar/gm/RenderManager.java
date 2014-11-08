@@ -3,6 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Vertex3D;
 import com.bondar.tools.Types;
@@ -23,7 +24,7 @@ public class RenderManager {
 	FAR_Z
     }
     
-    private Polygon3D[] renderArray = null;
+    private Polygon3DVerts[] renderArray = null;
 
     /////////////////////////////////////////////////////////
     //
@@ -31,9 +32,9 @@ public class RenderManager {
 	renderArray = toRenderArray(models);
     }
     
-    public static Polygon3D[] toRenderArray(Solid3D[] models) {
+    public static Polygon3DVerts[] toRenderArray(Solid3D[] models) {
 	if (models == null) return null;
-	List<Polygon3D> res = new ArrayList<>();
+	List<Polygon3DVerts> res = new ArrayList<>();
         int i = 0;
 	for (Solid3D model : models) {
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;
@@ -41,11 +42,11 @@ public class RenderManager {
 	    for (Polygon3DInds poly : model.getPolygons()) {
 		if (poly.getState() != Polygon3D.States.VISIBLE) continue;
                 // to all-sufficient polygon
-		res.add(poly.toPolygon3D());
+		res.add(poly.toPolygon3DVerts(model.getVertexes()));
 	    }
 	    //polies.addAll(Types.toList(model.getPolygons()));
 	}
-	return Types.toArray(res, Polygon3D.class);
+	return Types.toArray(res, Polygon3DVerts.class);
     }
     
     /////////////////////////////////////////////////////////
@@ -55,7 +56,7 @@ public class RenderManager {
 	sortByZ(renderArray, sortType);
     }
     
-    public static void sortByZ(Polygon3D[] polies, SortByZTypes sortType) {
+    public static void sortByZ(Polygon3DVerts[] polies, SortByZTypes sortType) {
 	switch (sortType) {
 	    case AVERAGE_Z:
 		Arrays.sort(polies, compAverageZ);
@@ -73,7 +74,7 @@ public class RenderManager {
     // 
     public void transToPerspectAndScreen(Camera camera) {
         //TransferManager.transToPerspectAndScreen(renderArray, camera);
-        for (Polygon3D poly : renderArray) {
+        for (Polygon3DVerts poly : renderArray) {
             //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
             int i = 1;
             for (Vertex3D v : poly.getVertexes()) {
@@ -87,41 +88,41 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     // set
-    public void setRenderArray(Polygon3D[] renderArray) {
+    public void setRenderArray(Polygon3DVerts[] renderArray) {
 	this.renderArray = renderArray;
     }
     
     /////////////////////////////////////////////////////////
     // get
-    public Polygon3D[] getRenderArray() {
+    public Polygon3DVerts[] getRenderArray() {
 	return renderArray;
     }
     
     /////////////////////////////////////////////////////////
     //
-    public static Comparator<Polygon3D> compAverageZ = new Comparator<Polygon3D>() {
+    public static Comparator<Polygon3DVerts> compAverageZ = new Comparator<Polygon3DVerts>() {
 	@Override
-	public int compare(Polygon3D poly1, Polygon3D poly2) {
+	public int compare(Polygon3DVerts poly1, Polygon3DVerts poly2) {
             //final double averageZ1 = poly1.averageZ();
             //final double averageZ2 = poly2.averageZ();
-            final double averageZ1 = (poly1.isSetAttribute(Polygon3D.ATTR_FIXED)) ? poly1.getAverageZ() : poly1.averageZ();
-            final double averageZ2 = (poly2.isSetAttribute(Polygon3D.ATTR_FIXED)) ? poly2.getAverageZ() : poly2.averageZ();
+            final double averageZ1 = (poly1.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly1.getAverageZ() : poly1.averageZ();
+            final double averageZ2 = (poly2.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly2.getAverageZ() : poly2.averageZ();
 	    return (averageZ1 < averageZ2) ? 1 :
 		    (averageZ1 > averageZ2) ? -1 : 0;
 	}
     };    
-    public static Comparator<Polygon3D> compNearZ = new Comparator<Polygon3D>() {
+    public static Comparator<Polygon3DVerts> compNearZ = new Comparator<Polygon3DVerts>() {
 	@Override
-	public int compare(Polygon3D poly1, Polygon3D poly2) {
+	public int compare(Polygon3DVerts poly1, Polygon3DVerts poly2) {
             final double minZ1 = poly1.minZ();
             final double minZ2 = poly2.minZ();
 	    return (minZ1 < minZ2) ? 1 :
 		    (minZ1 > minZ2) ? -1 : 0;
 	}
     };    
-    public static Comparator<Polygon3D> compFarZ = new Comparator<Polygon3D>() {
+    public static Comparator<Polygon3DVerts> compFarZ = new Comparator<Polygon3DVerts>() {
 	@Override
-	public int compare(Polygon3D poly1, Polygon3D poly2) {
+	public int compare(Polygon3DVerts poly1, Polygon3DVerts poly2) {
             final double maxZ1 = poly1.maxZ();
             final double maxZ2 = poly2.maxZ();
 	    return (maxZ1 < maxZ2) ? 1 :

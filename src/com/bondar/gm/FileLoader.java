@@ -153,12 +153,12 @@ public class FileLoader {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
 			//polyAttribs[lineNum] = attr;
-                        Vertex3D[] copy = new Vertex3D[vertexes.length];
+                        /*Vertex3D[] copy = new Vertex3D[vertexes.length];
                         for (int i = 0; i < vertexes.length; i++) {
                             copy[i] = new Vertex3D(vertexes[i].getPosition().getCopy());
-                        }
+                        }*/
                         //Vertex3D[] copy = Arrays.copyOf(vertexes, vertexes.length);
-			polies[lineNum] = new Polygon3DInds(copy, indexes, fillColor, fillColor, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(indexes, fillColor, fillColor, borderColor, attr);
 			lineNum++;
 		    }		    
 		    break;

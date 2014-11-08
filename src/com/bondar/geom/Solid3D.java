@@ -6,8 +6,6 @@ import com.bondar.gm.TransferManager;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
-import java.awt.Color;
-import java.util.Random;
 
 /**
  *
@@ -31,6 +29,7 @@ public class Solid3D {
     private String name;
     private Point3D[] localVerts;
     //private Point3D[] transVerts;
+    private Vertex3D[] vertexes;
     private Polygon3DInds[] polygons;
     private BoundingSphere3D bounds;
     
@@ -133,19 +132,6 @@ public class Solid3D {
 	return res;
     }*/
 
-    public void resetPoliesVertexesPosition(Point3D[] verts) {
-	if (polygons == null) return;
-	for (Polygon3DInds poly : polygons) {
-	    poly.setVertexesPosition(verts);
-	}
-    }
-    
-    public void resetPoliesNormals() {
-	for (Polygon3DInds poly : polygons) {
-	    poly.resetNormal();
-	}
-    }
- 
     /////////////////////////////////////////////////////////
     // operations
     public void updateAngle(double a, Matrix.AXIS axis) {
@@ -207,9 +193,9 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
-    public void defineBackfaces(Camera cam) {
+    public void defineBackfaces(Point3D[] points, Camera cam) {
 	for (Polygon3DInds poly: polygons) {
-	    poly.setIsBackFace(cam);
+	    poly.setIsBackFace(points, cam);
 	}
     }
     
@@ -218,20 +204,33 @@ public class Solid3D {
     public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
 	for (Polygon3DInds poly: polygons) {
             
-	    poly.setVertexesPosition(points);
+	    //poly.setVertexesPosition(points);
             
-            poly.resetNormal();
+            poly.resetNormal(points);
             //poly.resetAverageZ();
             
             if (isNeedDefineBackfaces)
-                poly.setIsBackFace(camera);
+                poly.setIsBackFace(points, camera);
             // restore backfaces if don't need to rejection
             else poly.setState(Polygon3D.States.VISIBLE);
 	}
     }
     
+    public void resetPoliesNormals(Point3D[] points) {
+	for (Polygon3DInds poly : polygons) {
+	    poly.resetNormal(points);
+	}
+    }
+     
     /////////////////////////////////////////////////////////
     // set
+    public void setVertexesPosition(Point3D[] points) {
+        if (points == null) return;
+        for (int i = 0; i < vertexes.length; i++) {
+            vertexes[i].setPosition(points[i]);
+        }
+    }
+    
     public final void setAttributes(int attr) {
 	attributes |= attr;
     }
@@ -276,6 +275,10 @@ public class Solid3D {
 	    return null;
 	return transVerts[i];
     }*/
+    
+    public Vertex3D[] getVertexes() {
+        return vertexes;
+    }
     
     public Point3D[] getLocalVertexes() {
 	return localVerts;

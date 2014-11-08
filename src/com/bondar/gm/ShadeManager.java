@@ -2,6 +2,7 @@ package com.bondar.gm;
 
 import com.bondar.geom.Polygon3D;
 import static com.bondar.geom.Polygon3D.normal;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vector3D;
 import java.awt.Color;
 import java.util.HashMap;
@@ -38,15 +39,15 @@ public class ShadeManager {
 	lights.put(point.getIndex(), point); 
     }
     
-    public Polygon3D[] shade(Polygon3D[] polies, Camera cam) {
+    public Polygon3DVerts[] shade(Polygon3DVerts[] polies, Camera cam) {
         if (polies == null || cam == null) return null;
-        for (Polygon3D poly : polies) {
+        for (Polygon3DVerts poly : polies) {
               shade(poly, cam);
         }
         return polies;
     }
     
-    public Polygon3D shade(Polygon3D poly, Camera cam) {
+    public Polygon3D shade(Polygon3DVerts poly, Camera cam) {
         if (poly == null || cam == null) return null;
         
         Color scrColor = poly.getSrcColor();

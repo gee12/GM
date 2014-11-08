@@ -4,6 +4,7 @@ import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
+import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vertex3D;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -39,17 +40,17 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     // Алгоритм художника
-    public void painterAlgorithm(Polygon3DInds[] polies) {
-	Polygon3DInds[] sortPolies = sortTrianglesByZ(polies);
+    public void painterAlgorithm(Polygon3DVerts[] polies) {
+	Polygon3DVerts[] sortPolies = sortTrianglesByZ(polies);
 	if (sortPolies == null) {
 	    return;
 	}
-	for (Polygon3DInds poly : sortPolies) {
+	for (Polygon3DVerts poly : sortPolies) {
 	    drawFilledPolygon3D(poly);
 	}
     }
     
-    public void drawFilledPolygon3D(Polygon3D poly) {
+    public void drawFilledPolygon3D(Polygon3DVerts poly) {
 	g.setColor(poly.getShadeColor());
 	switch(poly.getType()) {
 	    case POINT:
@@ -118,7 +119,7 @@ public class DrawManager {
 	g.fillPolygon(xs, ys, size);
     }
     
-    public void drawPolygonBorder(Polygon3D poly) {
+    public void drawPolygonBorder(Polygon3DVerts poly) {
         if (poly == null) return;
         g.setColor(poly.getBorderColor());
         drawPolygonBorder(poly.getVertexes());
@@ -135,7 +136,7 @@ public class DrawManager {
     }
     
     // Сортировка граней по координате Z
-    public static Polygon3DInds[] sortTrianglesByZ(Polygon3DInds[] polies) {
+    public static Polygon3DVerts[] sortTrianglesByZ(Polygon3DVerts[] polies) {
 	if (polies == null) {
 	    return null;
 	}
@@ -144,11 +145,11 @@ public class DrawManager {
 	int[] indexes = new int[size];
 	// нахождение средней величины Z - удаленности грани
 	for (int i = 0; i < size; i++) {
-	    Polygon3DInds poly = polies[i];
+	    Polygon3DVerts poly = polies[i];
 	    dists[i] = poly.averageZ();
 	    indexes[i] = i;
 	}
-	Polygon3DInds[] res = new Polygon3DInds[size];
+	Polygon3DVerts[] res = new Polygon3DVerts[size];
 	// сортировка граней по удаленности
 	for (int i = 0; i < size - 1; i++) {
 	    for (int j = 0; j < size - 1; j++) {
