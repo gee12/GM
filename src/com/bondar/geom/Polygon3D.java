@@ -1,7 +1,9 @@
 package com.bondar.geom;
 
 import com.bondar.gm.Camera;
+import com.bondar.gm.Matrix;
 import java.awt.Color;
+import java.util.Arrays;
 
 /**
  * All-sufficient polygon (without indexes for vertexes).
@@ -41,7 +43,7 @@ public class Polygon3D {
 
     /////////////////////////////////////////////////////////
     public Polygon3D(Vertex3D[] verts, Color src, Color shade, Color border, int attr) {
-	this.vertexes = verts;
+	this.vertexes = Arrays.copyOf(verts, verts.length);
 	this.srcColor = src;
 	this.shadeColor = shade;
         this.borderColor = border;
@@ -51,7 +53,21 @@ public class Polygon3D {
         this.type = type(size);
 	shadeVertsColors = null;
     }
-    
+    public Polygon3D(Point3D[] verts, Color src, Color shade, Color border, int attr) {
+	this.vertexes = new Vertex3D[verts.length];
+        for (int i = 0; i < verts.length; i++) {
+            vertexes[i] = new Vertex3D(verts[i].getCopy());
+        }
+	this.srcColor = src;
+	this.shadeColor = shade;
+        this.borderColor = border;
+	this.attributes = attr;
+	this.state = States.VISIBLE;
+	this.size = verts.length;
+        this.type = type(size);
+	shadeVertsColors = null;
+    }
+        
     /////////////////////////////////////////////////////////
     public static Types type(int size) {
 	switch (size) {
@@ -69,11 +85,12 @@ public class Polygon3D {
 		|| type == Types.LINE
 		|| type == Types.POINT) return false;
         Point3D p = cam.getPosition();
-	return !isPointInHalfspace(this, p);
+	return !isPointInHalfspace(p);
     }
     
     public boolean isPointInHalfspace(Point3D p) {
-	if (p == null || type == Types.POINT) return false;
+	if (p == null || type == Types.LINE
+		|| type == Types.POINT) return false;
 	Vector3D v = new Vector3D(vertexes[1].getPosition(), p);
 	double res = Vector3D.dot(normal, v);
 	return (res > 0.0); 
@@ -248,4 +265,31 @@ public class Polygon3D {
     public Polygon3D getCopy() {
 	return new Polygon3D(vertexes, srcColor, shadeColor, borderColor, attributes);
     }
-}    
+    
+    public void transToPerspectAndScreen(Camera cam) {
+	if (cam == null) return;
+	// create matrixes
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform all camera vertexes
+        for (Vertex3D v : vertexes) {
+            transVertex(v, ms);
+            Point3D p = v.getPosition();
+                double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
+            System.out.println(String.format("[%f],[%f],[%f]",p.getX(), p.getY(), p.getZ()));
+        }
+    }
+    
+    public static void transVertex(Vertex3D v, Matrix[] ms) {
+	if (v == null || ms == null) return;
+        Point3D p = v.getPosition();
+        double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
+	Point3DOdn res = p.toPoint3DOdn();
+	for (Matrix m : ms) {
+	    res.mul(m);
+	}
+	v.setPosition(res.divByW());
+    }
+}

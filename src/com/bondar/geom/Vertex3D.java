@@ -13,7 +13,7 @@ public class Vertex3D {
     private int attributes;
 
     public Vertex3D(Point3D pos, Vector3D normal, Point2D texturePos, float intent, int attr) {
-        this.pos = pos;
+        this.pos = pos.getCopy();
         this.normal = normal;
         this.texturePos = texturePos;
         this.intent = intent;
@@ -21,7 +21,7 @@ public class Vertex3D {
     }
     
     public Vertex3D(Point3D pos) {
-        this.pos = pos;
+        this.pos = pos.getCopy();
         this.normal = new Vector3D();
         this.texturePos = new Point2D();
         this.intent = 0;
@@ -49,8 +49,8 @@ public class Vertex3D {
         this.intent = intent;
     }
 
-    public void setPosition(Point3D pos) {
-        this.pos = pos.getCopy();
+    public void setPosition(Point3D p) {
+        this.pos = p.getCopy();
     }
     
     // get
@@ -75,6 +75,6 @@ public class Vertex3D {
     }
 	
     public Vertex3D getCopy() {
-	return new Vertex3D(pos, normal, texturePos, intent, attributes);
+	return new Vertex3D(pos.getCopy(), normal, texturePos, intent, attributes);
     }
 }

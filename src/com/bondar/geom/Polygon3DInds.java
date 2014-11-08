@@ -20,16 +20,40 @@ public class Polygon3DInds extends Polygon3D {
         this.type = type(size);
     }
     
+    public Polygon3DInds(Point3D[] verts, int[] inds, Color src, Color shade, Color border, int attr) {
+        super(verts,src,shade,border,attr);
+	this.indexes = inds;
+        this.size = inds.length;
+        this.type = type(size);
+    }
+    
     /////////////////////////////////////////////////////////
     // set
-    public void setVertexesPosition(Point3D[] points) {
+    
+    // normal has been updated !
+    public boolean isPointInHalfspace(Point3D p) {
+	if (p == null || type == Types.LINE
+		|| type == Types.POINT) return false;
+	Vector3D v = new Vector3D(vertexes[indexes[1]].getPosition(), p);
+	double res = Vector3D.dot(normal, v);
+	return (res > 0.0); 
+    }
+    
+    public void resetNormal() {
+ 	if (type == Types.LINE || type == Types.POINT) return;
+        normal = normal(
+                vertexes[indexes[0]].getPosition(), 
+                vertexes[indexes[1]].getPosition(), 
+                vertexes[indexes[2]].getPosition());
+    }
+    /*public void setVertexesPosition(Point3D[] points) {
         if (points == null) return;
         int i = 0;
         for (Vertex3D v : vertexes) {
             v.setPosition(points[i]);
             i++;
         }
-    }
+    }*/
 
     /////////////////////////////////////////////////////////
     // get

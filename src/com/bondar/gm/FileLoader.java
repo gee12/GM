@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import com.bondar.tools.Files;
+import java.util.Arrays;
 
 /**
  *
@@ -40,6 +41,7 @@ public class FileLoader {
 	return res;
     }
     
+    /////////////////////////////////////////////////////////
     public static Solid3D readGMXFile(String fileName)
 	    throws Exception {
 	BufferedReader reader = new BufferedReader(
@@ -151,7 +153,12 @@ public class FileLoader {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
 			//polyAttribs[lineNum] = attr;
-			polies[lineNum] = new Polygon3DInds(vertexes, indexes, fillColor, fillColor, borderColor, attr);
+                        Vertex3D[] copy = new Vertex3D[vertexes.length];
+                        for (int i = 0; i < vertexes.length; i++) {
+                            copy[i] = new Vertex3D(vertexes[i].getPosition().getCopy());
+                        }
+                        //Vertex3D[] copy = Arrays.copyOf(vertexes, vertexes.length);
+			polies[lineNum] = new Polygon3DInds(copy, indexes, fillColor, fillColor, borderColor, attr);
 			lineNum++;
 		    }		    
 		    break;

@@ -18,7 +18,7 @@ public class TransferManager {
 
     /////////////////////////////////////////////////////////
     //
-    public static void transLocalToCamera(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+ /*   public static void transLocalToCamera(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
 	if (model == null) return;
 	// transferFull local vertexes to world
 	Point3D[] verts = TransferManager.transToWorld(model);
@@ -29,15 +29,16 @@ public class TransferManager {
 	    return;
 	// define backfaces triangles
 	if (isNeedDefineBackfaces) {
-	    model.reinitPoliesVertexesPosition(verts);
+	    model.resetPoliesVertexesPosition(verts);
+            model.resetPoliesNormals();
 	    model.defineBackfaces(camera);
 	}
 	// transferFull world vertexes to camera
 	verts = TransferManager.transToCamera(verts, camera);
 	
-	model.reinitPoliesVertexesPosition(verts);
+	model.resetPoliesVertexesPosition(verts);
 	model.setTransVertexes(verts);
-    }
+    }*/
     
     /*public static void transToPerspectAndScreen(Polygon3DInds[] polies, Camera camera) {
 	if (polies == null) return;
@@ -56,10 +57,10 @@ public class TransferManager {
     }*/
     public static void transToPerspectAndScreen(Polygon3D[] polies, Camera camera) {
 	if (polies == null) return;
-        //for (Polygon3D poly : polies) {
+        for (Polygon3D poly : polies) {
             //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
-            //transToPerspectAndScreen(poly.getVertexes(), camera);
-        //}
+            poly.transToPerspectAndScreen(camera);
+        }
     }
     /*public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
 	if (model == null) return;
@@ -217,6 +218,19 @@ public class TransferManager {
             v.setPosition(transVertex(v.getPosition(), ms));
         }
 	return verts;
+    } 
+    public static Vertex3D[] transToPerspectAndScreen(Polygon3D poly, Camera cam) {
+	if (poly == null || cam == null) return null;
+	// create matrixes
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform all camera vertexes
+        for (Vertex3D v : poly.getVertexes()) {
+            v.setPosition(transVertex(v.getPosition(), ms));
+        }
+	return poly.getVertexes();
     } 
     /*public static Point3D[] transToPerspectAndScreen(Vertex3D[] verts, Camera cam) {
 	if (verts == null || cam == null) return null;

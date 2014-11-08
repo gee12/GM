@@ -101,11 +101,12 @@ public class Point3D {
     }
     
     public Point3DOdn toPoint3DOdn() {
-	return new Point3DOdn(vector.getMatrix()[0]);
+	return new Point3DOdn(toArray3());
     }
     
     public double[] toArray3() {
-        return vector.getMatrix()[0];
+        //return vector.getMatrix()[0];
+        return new double[] {getX(),getY(),getZ()};
         /*double[] res = new double[vector.getCols()];
         for (int i = 0; i < vector.getCols(); i++) {
             res[i] = vector.getAt(0, i);

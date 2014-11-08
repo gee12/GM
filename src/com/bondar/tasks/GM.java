@@ -281,16 +281,20 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     @Override
     protected void update() {
-	// if there are not collisions OR objects were not moved ->
+	/*// if there are not collisions OR objects were not moved ->
 	// objects are not changed ->
 	// then don't need to update the solid's vertexes
 	// if (!isCollisions && !isObjectsMoved) return;
 	
-	// 1 - work with isolated objects
 	for (Solid3D model : modelsManager.getModels()) {
 	    animateModel(model);
 	    updateModel(model);
-	}
+	}*/
+        boolean isNeedDefineBackfaces = 
+		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
+        
+        // 1 - work with isolated objects
+        modelsManager.updateAndAnimate(camera, isNeedDefineBackfaces);
 	
 	// 2 - work with render array (visible polygons)
 	renderManager.buildRenderArray(modelsManager.getModels());
@@ -322,39 +326,6 @@ public class GM extends Application implements OptionsPanelListener {
             case RADIO_SHADE_GOURAUD_TEXT:
                 
                 break;
-        }
-    }
-    
-    /////////////////////////////////////////////////////////
-    private void animateModel(Solid3D model) {
-	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
-	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
-    }
-   
-    /////////////////////////////////////////////////////////
-    private void updateModel(Solid3D model) {
-	if (model == null) return;
-	//
-	boolean isNeedDefineBackfaces = 
-		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
-        // restore backfaces if don't need to rejection
-        if (!isNeedDefineBackfaces) {
-            for (Polygon3D p : model.getPolygons())
-                p.setState(Polygon3D.States.VISIBLE);
-        }
-	
-	//TransferManager.transferFull(model, camera, isNeedDefineBackfaces);
-	TransferManager.transLocalToCamera(model, camera, isNeedDefineBackfaces);
-        if (model.getState() == Solid3D.States.VISIBLE) {
-            // if object not fixed - redefine it's fields
-            //model.resetBounds();
-            if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
-
-                for (Polygon3D poly: model.getPolygons()) {
-                    poly.resetNormal();
-                    poly.resetAverageZ();
-                }
-            }
         }
     }
     
@@ -693,7 +664,6 @@ public class GM extends Application implements OptionsPanelListener {
         if (isGameViewModeEnabled) {
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         } else {
-            //setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             setCursor(EMPTY_CURSOR);
             moveMouseToCenter();
         }

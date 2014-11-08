@@ -1,8 +1,10 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Solid3D;
+import com.bondar.geom.Vertex3D;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,9 +34,10 @@ public class RenderManager {
     public static Polygon3D[] toRenderArray(Solid3D[] models) {
 	if (models == null) return null;
 	List<Polygon3D> res = new ArrayList<>();
-        
+        int i = 0;
 	for (Solid3D model : models) {
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;
+            i++;
 	    for (Polygon3DInds poly : model.getPolygons()) {
 		if (poly.getState() != Polygon3D.States.VISIBLE) continue;
                 // to all-sufficient polygon
@@ -69,7 +72,17 @@ public class RenderManager {
     /////////////////////////////////////////////////////////
     // 
     public void transToPerspectAndScreen(Camera camera) {
-        TransferManager.transToPerspectAndScreen(renderArray, camera);
+        //TransferManager.transToPerspectAndScreen(renderArray, camera);
+        for (Polygon3D poly : renderArray) {
+            //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+            int i = 1;
+            for (Vertex3D v : poly.getVertexes()) {
+                Point3D p = v.getPosition();
+                double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
+                System.out.println(String.format("poly%d = [%f],[%f],[%f]",i++,p.getX(), p.getY(), p.getZ()));
+            }
+            poly.transToPerspectAndScreen(camera);
+        }
     }
     
     /////////////////////////////////////////////////////////

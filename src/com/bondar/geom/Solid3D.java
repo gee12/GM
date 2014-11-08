@@ -30,7 +30,7 @@ public class Solid3D {
     private int attributes;
     private String name;
     private Point3D[] localVerts;
-    private Point3D[] transVerts;
+    //private Point3D[] transVerts;
     private Polygon3DInds[] polygons;
     private BoundingSphere3D bounds;
     
@@ -46,7 +46,7 @@ public class Solid3D {
     public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3DInds[] polies) {
 	this.name = name;
 	this.attributes = attribs;
-	this.localVerts = (vertexes);
+	this.localVerts = getVertexesCopy(vertexes);
 	this.polygons = getPolygonsCopy(polies);
 	reInit();
     }
@@ -76,7 +76,7 @@ public class Solid3D {
     */
     private void reInit() {
 	state = States.VISIBLE;
-	transVerts = localVerts;
+	//transVerts = localVerts;
 	dir = new Point3D();
 	pos = new Point3D();
 	scale = new Point3D(1,1,1);
@@ -133,10 +133,16 @@ public class Solid3D {
 	return res;
     }*/
 
-    public void reinitPoliesVertexesPosition(Point3D[] verts) {
+    public void resetPoliesVertexesPosition(Point3D[] verts) {
 	if (polygons == null) return;
 	for (Polygon3DInds poly : polygons) {
 	    poly.setVertexesPosition(verts);
+	}
+    }
+    
+    public void resetPoliesNormals() {
+	for (Polygon3DInds poly : polygons) {
+	    poly.resetNormal();
 	}
     }
  
@@ -208,6 +214,23 @@ public class Solid3D {
     }
     
     /////////////////////////////////////////////////////////
+    // points - in world coord's
+    public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
+	for (Polygon3DInds poly: polygons) {
+            
+	    poly.setVertexesPosition(points);
+            
+            poly.resetNormal();
+            //poly.resetAverageZ();
+            
+            if (isNeedDefineBackfaces)
+                poly.setIsBackFace(camera);
+            // restore backfaces if don't need to rejection
+            else poly.setState(Polygon3D.States.VISIBLE);
+	}
+    }
+    
+    /////////////////////////////////////////////////////////
     // set
     public final void setAttributes(int attr) {
 	attributes |= attr;
@@ -223,9 +246,9 @@ public class Solid3D {
 	else state = States.VISIBLE;
     }
 
-    public void setTransVertexes(Point3D[] verts) {
+    /*public void setTransVertexes(Point3D[] verts) {
 	transVerts = verts;
-    }
+    }*/
 
     /*public void resetBounds() {
 	bounds.resetBounds(localVerts);
@@ -248,19 +271,19 @@ public class Solid3D {
 	return localVerts[i];
     }
     
-    public Point3D getTransVertex(int i) {
+    /*public Point3D getTransVertex(int i) {
 	if (i >= transVerts.length || i < 0)
 	    return null;
 	return transVerts[i];
-    }
+    }*/
     
     public Point3D[] getLocalVertexes() {
 	return localVerts;
     }
     
-    public Point3D[] getTransVertexes() {
+    /*public Point3D[] getTransVertexes() {
 	return transVerts;
-    }
+    }*/
     
     public static Point2D[] getVertexes2D(Point3D[] vertexes) {
 	int size = vertexes.length;
@@ -330,6 +353,6 @@ public class Solid3D {
     }
         
     public Solid3D getCopy() {
-	return new Solid3D(name, attributes, localVerts, polygons);
+	return new Solid3D(name, attributes, getVertexesCopy(localVerts), getPolygonsCopy(polygons));
     }
 }
