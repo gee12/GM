@@ -8,8 +8,12 @@ import java.awt.Color;
  * @author truebondar
  */
 public class Triangle3D extends Polygon3DInds {
+
+    public Triangle3D(int[] inds, Color src, Color shade, Color border, int attr) {
+        super(inds, src, shade, border, attr);
+    }
     
-    public Triangle3D(Vertex3D[] verts, int i1, int i2, int i3, Color fill, Color shade, Color border, int attr) {
+    /*public Triangle3D(Vertex3D[] verts, int i1, int i2, int i3, Color fill, Color shade, Color border, int attr) {
 	super(verts, new int[] { i1,i2,i3 }, fill, shade, border, attr);
     }
     
@@ -31,7 +35,7 @@ public class Triangle3D extends Polygon3DInds {
     
     public double zByXY(double x, double y) {
 	return zByXY(getV1(), getV2(), getV3(), x, y);
-    }
+    }*/
     
     public static double zByXY(Point3D v1, Point3D v2, Point3D v3, double x, double y) {
 	double A = v1.getY() * (v2.getZ() - v3.getZ()) 
@@ -48,7 +52,7 @@ public class Triangle3D extends Polygon3DInds {
 		+ v3.getX() * (v1.getY() * v2.getZ()- v2.getY() * v1.getZ()));
 	return (-D - A * x - B * y) / C;
     }    
-    
+    /*
     public static double getSide(Point3D p1, Point3D p2) {
 	return (Math.sqrt(((p1.getX() - p2.getX()) * (p1.getX() - p2.getX()))
 		+ ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY()))
@@ -84,5 +88,5 @@ public class Triangle3D extends Polygon3DInds {
     public Triangle3D getCopy() {
 	return new Triangle3D(vertexes, indexes[0], indexes[1], indexes[2], 
                 srcColor, shadeColor, borderColor, attributes);
-    }
+    }*/
 }

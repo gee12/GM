@@ -80,8 +80,21 @@ public class Solid3D {
 	pos = new Point3D();
 	scale = new Point3D(1,1,1);
 	bounds = new BoundingSphere3D(localVerts);
+        vertexes = buildVertexes(localVerts);
     }
 
+    /////////////////////////////////////////////////////////
+    //
+    public static Vertex3D[] buildVertexes(Point3D[] points) {
+        if (points == null) return null;
+        int size = points.length;
+        Vertex3D[] res = new Vertex3D[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = new Vertex3D(points[i]);
+        }
+        return res;
+    }
+    
     /*/////////////////////////////////////////////////////////
     // triangulation
     public static int[][] buildIndexes(Point3D[] vertexes) {
@@ -200,29 +213,6 @@ public class Solid3D {
     }
     
     /////////////////////////////////////////////////////////
-    // points - in world coord's
-    public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
-	for (Polygon3DInds poly: polygons) {
-            
-	    //poly.setVertexesPosition(points);
-            
-            poly.resetNormal(points);
-            //poly.resetAverageZ();
-            
-            if (isNeedDefineBackfaces)
-                poly.setIsBackFace(points, camera);
-            // restore backfaces if don't need to rejection
-            else poly.setState(Polygon3D.States.VISIBLE);
-	}
-    }
-    
-    public void resetPoliesNormals(Point3D[] points) {
-	for (Polygon3DInds poly : polygons) {
-	    poly.resetNormal(points);
-	}
-    }
-     
-    /////////////////////////////////////////////////////////
     // set
     public void setVertexesPosition(Point3D[] points) {
         if (points == null) return;
@@ -257,7 +247,31 @@ public class Solid3D {
     public boolean isCameraPointInto(Point2D cp, Camera cam) {
         return bounds.isCameraPointInto(cp, cam, pos, scale.getX());
     }
-
+    
+    /////////////////////////////////////////////////////////
+    // reset
+    // points - in world coord's
+    public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
+	for (Polygon3DInds poly: polygons) {
+            
+	    //poly.setVertexesPosition(points);
+            
+            poly.resetNormal(points);
+            //poly.resetAverageZ();
+            
+            if (isNeedDefineBackfaces)
+                poly.setIsBackFace(points, camera);
+            // restore backfaces if don't need to rejection
+            else poly.setState(Polygon3D.States.VISIBLE);
+	}
+    }
+    
+    public void resetPoliesNormals(Point3D[] points) {
+	for (Polygon3DInds poly : polygons) {
+	    poly.resetNormal(points);
+	}
+    }
+     
     /////////////////////////////////////////////////////////
     // get
     public int getSize() {

@@ -315,7 +315,7 @@ public class TransferManager {
 		cam.getViewPort().getWidth(), cam.getViewPort().getHeight(), cam.getViewDist());
 	// transform camera vertex
 	return transVertex(vert, scrM);
-    }   
+    }
     
     /////////////////////////////////////////////////////////
     public static Point3D transVertex(Point3D v, Matrix m) {

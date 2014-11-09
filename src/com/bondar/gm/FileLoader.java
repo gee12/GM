@@ -53,7 +53,7 @@ public class FileLoader {
 	Point3D angles = new Point3D();
 	Point3D scale = new Point3D();
 	Point3D[] points = null;
-	Vertex3D[] vertexes = null;
+	//Vertex3D[] vertexes = null;
 	/*int[][] indexes = null;
 	Color[] fillColors = null;
 	Color[] borderColors = null;
@@ -86,7 +86,7 @@ public class FileLoader {
 		case VERTEXES_PARAM:
 		    int vertCount = Integer.parseInt(words[1]);
 		    points = new Point3D[vertCount];
-                    vertexes = new Vertex3D[vertCount];
+                    //vertexes = new Vertex3D[vertCount];
 		    int lineNum = 0;
 		    while (lineNum < vertCount) {
 			if ((line = reader.readLine()) == null) {
@@ -105,7 +105,7 @@ public class FileLoader {
 			    coords[i] = Double.parseDouble(coordsStr[i]);
 			}
 			points[lineNum] = new Point3D(coords[0], coords[1], coords[2]);
-			vertexes[lineNum] = new Vertex3D(points[lineNum]);
+			//vertexes[lineNum] = new Vertex3D(points[lineNum]);
 			lineNum++;
 		    }
 		    break;
@@ -160,7 +160,7 @@ public class FileLoader {
                         //Vertex3D[] copy = Arrays.copyOf(vertexes, vertexes.length);
 			polies[lineNum] = new Polygon3DInds(indexes, fillColor, fillColor, borderColor, attr);
 			lineNum++;
-		    }		    
+		    }
 		    break;
 		default:
 		    // comment in file

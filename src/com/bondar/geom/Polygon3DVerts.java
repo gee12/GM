@@ -131,7 +131,7 @@ public class Polygon3DVerts extends Polygon3D {
             transVertex(v, ms);
             Point3D p = v.getPosition();
                 double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
-            System.out.println(String.format("[%f],[%f],[%f]",p.getX(), p.getY(), p.getZ()));
+            //System.out.println(String.format("[%f],[%f],[%f]",p.getX(), p.getY(), p.getZ()));
         }
     }
     

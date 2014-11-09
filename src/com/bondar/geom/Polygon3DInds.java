@@ -97,6 +97,15 @@ public class Polygon3DInds extends Polygon3D {
 
     /////////////////////////////////////////////////////////
     // get
+    public Vertex3D[] getVertexes(Vertex3D[] allVerts) {
+        if (allVerts == null) return null;
+        Vertex3D[] res = new Vertex3D[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = allVerts[indexes[i]].getCopy();
+        }
+        return res;
+    }
+    
     public Point3D getVertexPosition(Vertex3D[] verts, int i) {
 	if (verts == null
 		|| (i < 0 || i >= size) || (indexes[i] >= verts.length)) return null;
@@ -123,7 +132,7 @@ public class Polygon3DInds extends Polygon3D {
     
     // To all-sufficient polygon
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
-        return new Polygon3DVerts(verts, srcColor, shadeColor, borderColor, attributes);
+        return new Polygon3DVerts(getVertexes(verts), srcColor, shadeColor, borderColor, attributes);
     }
 
 }
