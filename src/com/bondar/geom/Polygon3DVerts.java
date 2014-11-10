@@ -16,7 +16,7 @@ public class Polygon3DVerts extends Polygon3D {
     /////////////////////////////////////////////////////////
     public Polygon3DVerts(Vertex3D[] verts, Color src, Color shade, Color border, int attr) {
         super(verts.length, src, shade, border, attr);
-	this.vertexes = Arrays.copyOf(verts, verts.length);
+	this.vertexes = verts;//Arrays.copyOf(verts, verts.length);
     }
     
     /////////////////////////////////////////////////////////

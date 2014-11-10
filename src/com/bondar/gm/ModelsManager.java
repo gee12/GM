@@ -37,7 +37,7 @@ public class ModelsManager {
 	for (Solid3D model : loaded) {
 	    if (model.getName().equals(CUBE_TEXT)) {
 		for (int i = 0; i < 1000; i++) {
-		    Solid3D newCube = new Solid3D(model.getCopy());
+		    Solid3D newCube = new Solid3D(model);
 		    newCube.updateTransfers(rand.nextInt(500)-250, 0, rand.nextInt(500)-250);
 		    loaded.add(newCube);
 		}

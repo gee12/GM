@@ -42,11 +42,11 @@ public class Solid3D {
 	this(solid.getName(), solid.getAttributes(), solid.getLocalVertexes(), solid.getPolygons());
     }
 
-    public Solid3D(String name, int attribs, Point3D[] vertexes, Polygon3DInds[] polies) {
+    public Solid3D(String name, int attribs, Point3D[] verts, Polygon3DInds[] polies) {
 	this.name = name;
 	this.attributes = attribs;
-	this.localVerts = getVertexesCopy(vertexes);
-	this.polygons = getPolygonsCopy(polies);
+	this.localVerts = verts;//getVertexesCopy(verts);
+	this.polygons = polies;//getPolygonsCopy(polies);
 	reInit();
     }
     public Solid3D(String name) {
@@ -351,11 +351,11 @@ public class Solid3D {
 	return scale;
     }
      
-    public static Point3D[] getVertexesCopy(Point3D[] vertexes) {
-	int size = vertexes.length;
+    public static Point3D[] getPointsCopy(Point3D[] points) {
+	int size = points.length;
 	Point3D[] res = new Point3D[size];
 	for (int i = 0; i < size; i++) {
-	    res[i] = vertexes[i].getCopy();
+	    res[i] = points[i].getCopy();
 	}
 	return res;
     }
@@ -370,6 +370,6 @@ public class Solid3D {
     }
         
     public Solid3D getCopy() {
-	return new Solid3D(name, attributes, getVertexesCopy(localVerts), getPolygonsCopy(polygons));
+	return new Solid3D(name, attributes, getPointsCopy(localVerts), getPolygonsCopy(polygons));
     }
 }

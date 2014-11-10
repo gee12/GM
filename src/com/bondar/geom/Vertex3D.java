@@ -50,7 +50,7 @@ public class Vertex3D {
     }
 
     public void setPosition(Point3D p) {
-        this.pos = p.getCopy();
+        this.pos = p;
     }
     
     // get

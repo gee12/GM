@@ -30,4 +30,23 @@ public class Mathem {
     public static int abs(int value) {
         return ((value >= 0) ? value : -value);
     }
+    
+    /////////////////////////////////////////////////////
+    public static boolean isEquals5(double d1, double d2) {
+        return ((Mathem.abs(d1 - d2) < Mathem.EPSILON_E5));
+    }
+    
+    /////////////////////////////////////////////////////
+    public static double returnFirst(double a, double b) {
+        return a;
+    }
+    
+    /////////////////////////////////////////////////////
+    public static int ceil(double x) {
+        /*if (x < 0) return (int)x;
+        else if ((int)x < x) return ((int)x + 1);
+        return x;*/
+        if (x >= 0 && (int)x < x) return ((int)x + 1);
+        else return (int)x;
+    }
 }

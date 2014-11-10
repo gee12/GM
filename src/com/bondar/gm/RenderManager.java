@@ -72,20 +72,22 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     // 
-    public void transToPerspectAndScreen(Camera camera) {
+    public void transToPerspectAndScreen(Camera cam) {
         //TransferManager.transToPerspectAndScreen(renderArray, camera);
-        int pi = 1;
-        for (Polygon3DVerts poly : renderArray) {
+        //int pi = 1;
+        /*for (Polygon3DVerts poly : renderArray) {
             //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
-            int vi = 1;
+            //int vi = 1;
             for (Vertex3D v : poly.getVertexes()) {
                 Point3D p = v.getPosition();
                 double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
                 //System.out.println(String.format("poly%d,verts%d = [%f],[%f],[%f]",pi,vi++,p.getX(), p.getY(), p.getZ()));
             }
-            poly.transToPerspectAndScreen(camera);
-            pi++;
-        }
+            //poly.transToPerspectAndScreen(camera);
+            
+            //pi++;
+        }*/
+        TransferManager.transToPerspectAndScreen(renderArray, cam);
     }
     
     /////////////////////////////////////////////////////////

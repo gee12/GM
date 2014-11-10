@@ -27,6 +27,7 @@ public class ClipBox2D {
     private State state;
     // for rectangle
     private double xMin, xMax, yMin, yMax;
+    private double width, height;
     // for polygon
     private int size;
     private Point2D[] points;
@@ -39,6 +40,8 @@ public class ClipBox2D {
 	this.yMin = ymin;
 	this.xMax = xmax;
 	this.yMax = ymax;
+        this.width = xmax - xmin;
+        this.height = ymax - ymin;
 	state = State.OK;
     }
     
@@ -193,5 +196,13 @@ public class ClipBox2D {
 
     public double getYMax() {
 	return yMax;
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public double getHeight() {
+        return height;
     }
 }

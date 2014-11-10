@@ -30,8 +30,6 @@ public class GM extends Application implements OptionsPanelListener {
     public static final int SCREEN_WIDTH = 1100;
     public static final int SCREEN_HEIGHT = 600;
     public static final String TITLE_TEXT = "GM";
-    private static int TONE = 40;
-    public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
     
     public static final double SHIFT_STEP = 0.008;
     public static final double SHIFT_BY_Z_STEP = 0.1;
@@ -674,7 +672,7 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(DrawManager g) {
-	g.drawBackground(BACK_COLOR);
+	//g.drawBackground(BACK_COLOR);
 	if (modelsManager == null ||
                 modelsManager.getModels() == null) return;
 	

@@ -24,10 +24,10 @@ public class ShadeManager {
 		Color.BLACK, null, null,
 		null, null,
 		0, 0, 0, 0, 0, 0);
-	lights.put(ambient.getIndex(), ambient);
+	//lights.put(ambient.getIndex(), ambient);
         //
 	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
-		null, Color.WHITE, null,
+		null, Color.GRAY, null,
 		null, new Vector3D(0, 0, 1),
 		0, 0, 0, 0, 0, 0);
 	lights.put(infinite.getIndex(), infinite); 
@@ -36,7 +36,7 @@ public class ShadeManager {
 		Color.YELLOW, null, null,
 		null, new Vector3D(0, -1, 0),
 		0, 1, 0, 0, 0, 0);
-	lights.put(point.getIndex(), point); 
+	//lights.put(point.getIndex(), point); 
     }
     
     public Polygon3DVerts[] shade(Polygon3DVerts[] polies, Camera cam) {
