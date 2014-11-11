@@ -32,22 +32,18 @@ public class DrawManager {
     private int width, height;
     private ClipBox2D clip;
     private RasterizerModes rasterMode;
-    BufferedImage image;
-    WritableRaster raster;
+    private BufferedImage image;
+    private WritableRaster raster;
     private Color curColor;
-    public static Color backColor;
-    
-    int i = 0;
-    private static final int RAD = 200;
-    private static final double a = Math.toRadians(1);
-    Point2D c;
-    Point2D p;
+    private Color backColor;
     
     //////////////////////////////////////////////////
     public DrawManager(int width, int height) {
         this.width = width;
 	this.height = height;
         
+        setClipBox(new ClipBox2D(10,10,width-10,height-10));
+
         rasterMode = RasterizerModes.FAST;
         image = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
         imageGraphic = image.createGraphics();
@@ -55,26 +51,9 @@ public class DrawManager {
         curColor = Color.BLACK;
         final int TONE = 20;
         backColor = new Color(TONE,TONE,TONE);
-        
-        int cx = width/2;
-        int cy = height/2;
-        final int rad = 100;
-//        setClipBox(new ClipBox2D(cx-rad, cy-rad, cx+rad, cy+rad));
-        setClipBox(new ClipBox2D(0,0,width-1,height-1));
-        
-        c = new Point2D(width/2, height/2);
-        p = new Point2D(RAD, RAD);
     }
     
     public void drawImage() {
-        //drawBackground();
-        
-        /*p.setX(Math.cos(a)*p.getX() + Math.sin(a)*p.getY());
-        p.setY(-Math.sin(a)*p.getX() + Math.cos(a)*p.getY());
-        
-        drawClipLine(c.getX(), c.getY(),
-                (c.getX() + p.getX()), (c.getY() + p.getY()),
-                Color.BLACK);*/
         graphic.drawImage(image, 0,0,width, height, null);
     }
     
@@ -106,15 +85,9 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     public void drawBackground() {
-//	g.setColor(col);
-//	g.fillRect(0, 0, width, height);
-//	g.setColor(Color.BLACK);
         fillScreen(backColor);
     }    
     public void fillScreen(Color col) {
-//        int[] argbArray = new int[width*height*4];
-//	//raster.setPixels(0, 0, width, height, argbArray);
-//        image.setRGB(0, 0, width, height, argbArray, 0, 0);
         imageGraphic.setPaint(col);
         imageGraphic.fillRect(0, 0, image.getWidth(), image.getHeight());
     }    
@@ -124,7 +97,6 @@ public class DrawManager {
         
     public void drawPoint(Point3D p) {
 	if (p == null) return;
-	//drawPoint(p.getX(), p.getY());
         setPixel(p.getX(), p.getY(), curColor);
     }
 
@@ -134,19 +106,12 @@ public class DrawManager {
     }
 
     public void setPixel(double x, double y, Color col) {
-	//g.setColor(col);
-	//drawPoint(x, y);
         setPixel(Mathem.toInt(x), Mathem.toInt(y), col);
     }
    
     public void setPixel(int x, int y, Color col) {
 	image.setRGB(x, y, col.getRGB());	    
     }    
-
-    /*public void drawPoint(double x, double y) {
-	g.drawLine((int)(x + 0.5), (int)(y + 0.5),
-		(int)(x + 0.5), (int)(y + 0.5));	    
-    }*/
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // DRAW LINES
@@ -162,7 +127,6 @@ public class DrawManager {
     }  
     
     public void drawLine(double x1, double y1, double x2, double y2) {
-	//g.drawLine((int)(x1 + 0.5), (int)(y1 + 0.5), (int)(x2 + 0.5), (int)(y2 + 0.5), curColor);
         drawClipLine(x1, y1, x2, y2, curColor);
     }
     
@@ -172,6 +136,11 @@ public class DrawManager {
         if (line != null) {
             drawLine(line[0], line[1], line[2], line[3], col);
         }
+    }
+    
+    public void drawNoClipLine(double x1, double y1, double x2, double y2, Color col) {
+        drawLine(Mathem.toInt(x1), Mathem.toInt(y1), 
+                Mathem.toInt(x2), Mathem.toInt(y2), col);
     }
     
     public void drawLineSimple(int x1, int y1, int x2, int y2, Color col) {
@@ -192,9 +161,8 @@ public class DrawManager {
     // Draw a line from xo,yo to x1,y1 using differential error terms
     // (based on Bresenahams work)
     public void drawLine(int x0, int y0, int x1, int y1, Color col) {
-        int x_inc, // amount in pixel space to move during drawing
-                y_inc,
-                error; // the discriminant i.e. error i.e. decision variable
+        int x_inc, y_inc,   // amount in pixel space to move during drawing
+                error;      // the discriminant i.e. error i.e. decision variable
         // compute horizontal and vertical deltas
         int dx = x1 - x0;
         int dy = y1 - y0;
@@ -264,6 +232,7 @@ public class DrawManager {
     
     
     ///////////////////////////////////////////////////////////
+    // 
     public int[] clipLine(int x1, int y1, int x2, int y2) {
         double xc1 = x1,
                 yc1 = y1,
@@ -475,7 +444,8 @@ public class DrawManager {
     // DRAW TRIANGLES
     
     /////////////////////////////////////////////////////
-    // draw a triangle it decomposes all triangles into a pair of flat top, flat bottom
+    // Draw a triangle
+    // by means of decomposes triangle into a pair of flat top, flat bottom.
     public void drawTriangle2D(double x1, double y1, double x2, double y2,
             double x3, double y3, Color col) {
 
@@ -501,10 +471,10 @@ public class DrawManager {
         }
 
         // do trivial rejection tests for clipping
-        /*if ( y3 < clip.getYMin() || y1 > clip.getYMax() ||
+        if ( y3 < clip.getYMin() || y1 > clip.getYMax() ||
              (x1 < clip.getXMin() && x2 < clip.getXMin() && x3 < clip.getXMin()) ||
              (x1 > clip.getXMax() && x2 > clip.getXMax() && x3 > clip.getXMax()) )
-             return;*/
+             return;
         
         // test if top of triangle is flat
         if (Mathem.isEquals5(y1, y2)) {
@@ -528,7 +498,6 @@ public class DrawManager {
                          double x3, double y3, Color col)
     {
         int iy1 = 0, iy3 = 0;
-
         // test order of x1 and x2
         if (x3 < x2) {
             x2 = Mathem.returnFirst(x3, x3 = x2);
@@ -610,6 +579,7 @@ public class DrawManager {
             for (int loop_y = iy1; loop_y <= iy3; loop_y++/*, dest_addr+=mempitch*/) {
                 // draw the line
                 //Mem_Set_WORD(dest_addr+(unsigned int)(xs),color,(unsigned int)((int)xe-(int)xs+1));
+                drawNoClipLine(xs, loop_y, xe, loop_y, col);
 
                 // adjust starting point and ending point
                 xs += dx_left;
@@ -647,6 +617,7 @@ public class DrawManager {
                 }
                 // draw the line
                 //Mem_Set_WORD(dest_addr+(unsigned int)(left),color,(unsigned int)((int)right-(int)left+1));
+                drawNoClipLine(left, loop_y, right, loop_y, col);
             }
         }
     }
@@ -741,6 +712,7 @@ public class DrawManager {
             for (int loop_y = iy1; loop_y <= iy3; loop_y++/*,dest_addr+=mempitch*/) {
                 // draw the line
                 //memset((UCHAR *)dest_addr+(unsigned int)xs, color,(unsigned int)((int)xe-(int)xs+1));
+                drawNoClipLine(xs, loop_y, xe, loop_y, col);
 
                 // adjust starting point and ending point
                 xs += dx_left;
@@ -751,7 +723,7 @@ public class DrawManager {
             // clip x axis with slower version
 
             // draw the triangle
-            for (int temp_y = iy1; temp_y <= iy3; temp_y++/*,dest_addr+=mempitch*/) {
+            for (int loop_y = iy1; loop_y <= iy3; loop_y++/*,dest_addr+=mempitch*/) {
                 // do x clip
                 double left = xs;
                 double right = xe;
@@ -778,6 +750,7 @@ public class DrawManager {
                 }
                 // draw the line
                 //memset((UCHAR  *)dest_addr+(unsigned int)left, color,(unsigned int)((int)right-(int)left+1));
+                drawNoClipLine(left, loop_y, right, loop_y, col);
             }
         }
     }
@@ -788,8 +761,8 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     //
-    public void drawFilledPolygon3D(Polygon3DVerts poly) {
-	graphic.setColor(poly.getShadeColor());
+    public void drawPolygon3D(Polygon3DVerts poly) {
+	setColor(poly.getShadeColor());
 	switch(poly.getType()) {
 	    case POINT:
 		drawPoint(poly.getVertexPosition(0));
@@ -798,14 +771,15 @@ public class DrawManager {
 		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1));
 		break;
 	    default:
-		drawFilledPolygon(poly.getVertexes());
+                drawFlatPolygon(poly.getVertexes());
 		break;
 	}
     }
     
     /////////////////////////////////////////////////////
-    // draw filled polygon
-    public void drawFilledPolygon(Vertex3D[] verts) {
+    // Draw filled polygon
+    // (with awt.Graphics.fillPolygon())
+    public void drawAwtPolygon(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
 	int xs[] = new int[size];
@@ -818,6 +792,23 @@ public class DrawManager {
 	graphic.fillPolygon(xs, ys, size);
     }
     
+    // Draw flat polygon
+    public void drawFlatPolygon(Vertex3D[] verts) {
+        drawFlatPolygon(verts, curColor);
+    }
+    
+    // Draw flat polygon
+    public void drawFlatPolygon(Vertex3D[] verts, Color col) {
+        if (verts == null || verts.length < 3) return;
+        Point3D p1 = verts[0].getPosition();
+        Point3D p2 = verts[1].getPosition();
+        Point3D p3 = verts[2].getPosition();
+        drawTriangle2D(p1.getX(), p1.getY(),
+                        p2.getX(), p2.getY(),
+                        p3.getX(), p3.getY(), col);
+    }
+    
+    // Draw polygon border (edges/wire)
     public void drawPolygonBorder(Polygon3DVerts poly) {
         if (poly == null) return;
         //graphic.setColor(poly.getBorderColor());
@@ -825,6 +816,7 @@ public class DrawManager {
         drawPolygonBorder(poly.getVertexes());
     }
     
+    // Draw polygon border (edges/wire)
     public void drawPolygonBorder(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
@@ -841,7 +833,7 @@ public class DrawManager {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    // shading
-	    drawFilledPolygon3D(poly);
+	    drawPolygon3D(poly);
 	    // border
 	    drawPolygonBorder(poly);
 	}
@@ -851,7 +843,7 @@ public class DrawManager {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    // shading
-	    drawFilledPolygon3D(poly);
+	    drawPolygon3D(poly);
 	}
     }
         
@@ -861,52 +853,5 @@ public class DrawManager {
 	    // border
 	    drawPolygonBorder(poly);
 	}
-    }
-    
-    /////////////////////////////////////////////////////
-    // Алгоритм художника
-    public void painterAlgorithm(Polygon3DVerts[] polies) {
-	Polygon3DVerts[] sortPolies = sortTrianglesByZ(polies);
-	if (sortPolies == null) {
-	    return;
-	}
-	for (Polygon3DVerts poly : sortPolies) {
-	    drawFilledPolygon3D(poly);
-	}
-    }
-    
-    // Сортировка граней по координате Z
-    public static Polygon3DVerts[] sortTrianglesByZ(Polygon3DVerts[] polies) {
-	if (polies == null) {
-	    return null;
-	}
-	int size = polies.length;
-	double[] dists = new double[size];
-	int[] indexes = new int[size];
-	// нахождение средней величины Z - удаленности грани
-	for (int i = 0; i < size; i++) {
-	    Polygon3DVerts poly = polies[i];
-	    dists[i] = poly.averageZ();
-	    indexes[i] = i;
-	}
-	Polygon3DVerts[] res = new Polygon3DVerts[size];
-	// сортировка граней по удаленности
-	for (int i = 0; i < size - 1; i++) {
-	    for (int j = 0; j < size - 1; j++) {
-		if (dists[j] < dists[j + 1]) {
-		    double distTemp = dists[j];
-		    dists[j] = dists[j + 1];
-		    dists[j + 1] = distTemp;
-
-		    int indTemp = indexes[j];
-		    indexes[j] = indexes[j + 1];
-		    indexes[j + 1] = indTemp;
-		}
-	    }
-	}
-	for (int i = 0; i < size; i++) {
-	    res[i] = polies[indexes[i]].getCopy();
-	}
-	return res;
     }
 }

@@ -690,13 +690,13 @@ public class GM extends Application implements OptionsPanelListener {
 	if (g == null || polies == null) return;
 	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
 	    case RADIO_FACES_TEXT:
-		//g.drawPolies(polies);
+		g.drawPolies(polies);
 		break;
 	    case RADIO_EDGES_TEXT:
 		g.drawBorders(polies);
 		break;
 	    case RADIO_EDGES_FACES_TEXT:
-		//g.drawBorderedPolies(polies);
+		g.drawBorderedPolies(polies);
 		break;
 	}
     }

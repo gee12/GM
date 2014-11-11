@@ -103,6 +103,41 @@ public class RenderManager {
     }
     
     /////////////////////////////////////////////////////////
+    // Sort polygons by average Z coordinate
+    public static Polygon3DVerts[] sortPolygonsByZ(Polygon3DVerts[] polies) {
+	if (polies == null) {
+	    return null;
+	}
+	int size = polies.length;
+	double[] dists = new double[size];
+	int[] indexes = new int[size];
+	// нахождение средней величины Z - удаленности грани
+	for (int i = 0; i < size; i++) {
+	    Polygon3DVerts poly = polies[i];
+	    dists[i] = poly.averageZ();
+	    indexes[i] = i;
+	}
+	Polygon3DVerts[] res = new Polygon3DVerts[size];
+	// сортировка граней по удаленности
+	for (int i = 0; i < size - 1; i++) {
+	    for (int j = 0; j < size - 1; j++) {
+		if (dists[j] < dists[j + 1]) {
+		    double distTemp = dists[j];
+		    dists[j] = dists[j + 1];
+		    dists[j + 1] = distTemp;
+
+		    int indTemp = indexes[j];
+		    indexes[j] = indexes[j + 1];
+		    indexes[j + 1] = indTemp;
+		}
+	    }
+	}
+	for (int i = 0; i < size; i++) {
+	    res[i] = polies[indexes[i]].getCopy();
+	}
+	return res;
+    }
+    
     //
     public static Comparator<Polygon3DVerts> compAverageZ = new Comparator<Polygon3DVerts>() {
 	@Override
