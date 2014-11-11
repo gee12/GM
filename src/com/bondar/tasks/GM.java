@@ -217,9 +217,9 @@ public class GM extends Application implements OptionsPanelListener {
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT, this);
 	//addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT, this);
 
-	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
-	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
-	//addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
+	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false, this);
         
@@ -268,7 +268,7 @@ public class GM extends Application implements OptionsPanelListener {
             }
         }*/
         // init crosshair 
-        Point2D cx = new Point2D(getWindowCenter());
+        Point2D cx = new Point2D(getScreenCenter());
         cx = cx.sub(new Point2D(50,50));
         final int SIZE = 10;
         CROSSHAIR[0] = new Point2D(cx.getX(), cx.getY() + SIZE);
@@ -562,23 +562,23 @@ public class GM extends Application implements OptionsPanelListener {
     public void moveMouseToCenter() {
         try {
             Robot r = new Robot();
-            Point p = getWindowCenter();
+            Point p = getScreenCenter();
             r.mouseMove(p.x, p.y);
         } catch (AWTException ex) {
             ex.printStackTrace();
         }
     }
     
-    public Point getWindowCenter() {
+    public Point getScreenCenter() {
         Point p = getLocationOnScreen();
         int cx = (int) (p.x + SCREEN_WIDTH / 2);
         int cy = (int) (p.y + SCREEN_HEIGHT / 2);
         return new Point(cx, cy);
     }
     
-    public boolean isCursonInWindowCenter(Point point) {
+    public boolean isCursonInScreenCenter(Point point) {
         if (point == null) return false;
-        Point center = getWindowCenter();
+        Point center = getScreenCenter();
         return (point.x == center.x && point.y == center.y);
     }
 
@@ -672,49 +672,32 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(DrawManager g) {
-	//g.drawBackground(BACK_COLOR);
+	g.drawBackground();
 	if (modelsManager == null ||
                 modelsManager.getModels() == null) return;
-	
-	/*for (Solid3D model : modelsManager.getModels()) {
-	    if (model.getState() != Solid3D.States.VISIBLE) continue;
-	    drawModel(g, model);
-	}*/
-	drawBorderedPolies(g, renderManager.getRenderArray());
-        
+	//
+	drawPolies(g, renderManager.getRenderArray());
         //
         g.setColor(crosshairColor);
         g.drawLine(CROSSHAIR[0], CROSSHAIR[1]);
         g.drawLine(CROSSHAIR[2], CROSSHAIR[3]);
+        
+        g.drawImage();
     }
 
     /////////////////////////////////////////////////////////
-    private void drawBorderedPolies(DrawManager g, Polygon3DVerts[] polies) {
+    private void drawPolies(DrawManager g, Polygon3DVerts[] polies) {
 	if (g == null || polies == null) return;
-	for (Polygon3DVerts poly : polies) {
-	    // shading
-	    g.drawFilledPolygon3D(poly);
-	    // border
-	    g.drawPolygonBorder(poly);
-	}
-    }
-  
-    /////////////////////////////////////////////////////////
-    /*private void drawModel(GraphicSystem g, Solid3D model) {
-	if (model == null) return;
-	Polygon3D[] polies = model.getPolygons();
-	
 	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
 	    case RADIO_FACES_TEXT:
-		fillModel(g, polies);
+		//g.drawPolies(polies);
 		break;
 	    case RADIO_EDGES_TEXT:
-		drawEdges(g, polies);
+		g.drawBorders(polies);
 		break;
 	    case RADIO_EDGES_FACES_TEXT:
-		fillModel(g, polies);
-		drawEdges(g, polies);
+		//g.drawBorderedPolies(polies);
 		break;
 	}
-    }*/
+    }
 }

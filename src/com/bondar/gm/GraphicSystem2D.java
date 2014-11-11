@@ -1,9 +1,10 @@
 package com.bondar.gm;
 
 import com.bondar.geom.ClipBox2D;
+import com.bondar.geom.Line2D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Polygon3DInds;
-import com.bondar.geom.Line3D;
+import com.bondar.geom.Line2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
 import com.bondar.geom.Polygon3D;
@@ -77,7 +78,7 @@ public class GraphicSystem2D {
     }
     
     // Установка прямоугольного окна отсечения (в координатах X_MAX и Y_MAX)
-    public void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
+    public void setClipWindow(int xmin, int ymin, int xmax, int ymax) {
 	if (!isCorrectXCoord(xmin) || !isCorrectXCoord(xmax)
 		|| !isCorrectYCoord(ymin) || !isCorrectYCoord(ymax)
 		|| xmin > xmax || ymin > ymax) {
@@ -217,9 +218,9 @@ public class GraphicSystem2D {
     }
 
     public void line(Point2D from, Point2D to) {
-	Point3D p1 = new Point3D(transMatrix.applyTransform(from.toArray4Odn()));
-	Point3D p2 = new Point3D(transMatrix.applyTransform(to.toArray4Odn()));
-	Line3D line = new Line3D(p1, p2);
+	Point2D p1 = new Point2D(transMatrix.applyTransform(from.toArray4Odn()));
+	Point2D p2 = new Point2D(transMatrix.applyTransform(to.toArray4Odn()));
+	Line2D line = new Line2D(p1, p2);
 	// is need scale?
 	if (isNeedScale) {
 	    line = getScaleLine(line);
@@ -266,17 +267,17 @@ public class GraphicSystem2D {
 
     //////////////////////////////////////////////////
     // Пребразование линии с учетом масштабирования
-    private Line3D getScaleLine(Line3D line) {
+    private Line2D getScaleLine(Line2D line) {
 	return getScaleLine(line.getP1().getX(), line.getP1().getY(),
 		line.getP2().getX(), line.getP2().getY());
     }
 
-    private Line3D getScaleLine(Point2D p1, Point2D p2) {
-	return new Line3D(getScalePoint(p1), getScalePoint(p2));
+    private Line2D getScaleLine(Point2D p1, Point2D p2) {
+	return new Line2D(getScalePoint(p1), getScalePoint(p2));
     }
 
-    private Line3D getScaleLine(double x0, double y0, double x1, double y1) {
-	return new Line3D(getScalePoint(x0, y0), getScalePoint(x1, y1));
+    private Line2D getScaleLine(double x0, double y0, double x1, double y1) {
+	return new Line2D(getScalePoint(x0, y0), getScalePoint(x1, y1));
     }
 
     private Point2D getScalePoint(Point2D p) {
@@ -291,30 +292,30 @@ public class GraphicSystem2D {
 
     //////////////////////////////////////////////////
     // Пребразование линии с учетом отсечения
-    private Line3D getClipLine(double x0, double y0, double x1, double y1) {
-	Line3D line = null;
+    private Line2D getClipLine(double x0, double y0, double x1, double y1) {
+	Line2D line = null;
 	if (clipWindow.getType() == ClipBox2D.Type.Rectangle) {
 	    line = CSclip(x0, y0, x1, y1);
 	} else if (clipWindow.getType() == ClipBox2D.Type.Polygon) {
 	    line = CBclip(x0, y0, x1, y1);
 	} else {
-	    line = new Line3D();
+	    line = new Line2D();
 	}
 	return line;
     }
 
-    private Line3D getClipLine(Point2D p1, Point2D p2) {
+    private Line2D getClipLine(Point2D p1, Point2D p2) {
 	return getClipLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
 
-    private Line3D getClipLine(Line3D line) {
+    private Line2D getClipLine(Line2D line) {
 	return getClipLine(line.getP1().getX(), line.getP1().getY(),
 		line.getP2().getX(), line.getP2().getY());
     }
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения Коэна-Сазерленда
-    public Line3D CSclip(double x0, double y0, double x1, double y1) {
+    public Line2D CSclip(double x0, double y0, double x1, double y1) {
 	boolean visible = false;	// не видим/видим
 	int cn, ck, /* Коды концов отрезка */
 		ii = 4, s;      /* Рабочие переменные  */
@@ -322,7 +323,7 @@ public class GraphicSystem2D {
 		dxdy = 0, dydx = 0, /* Наклоны отрезка к сторонам */
 		r;            /* Рабочая переменная  */
 
-	Line3D res = new Line3D(x0, y0, x1, y1, visible);
+	Line2D res = new Line2D(x0, y0, x1, y1, visible);
 	ck = code(x1, y1);
 	cn = code(x0, y0);
 	/* Определение приращений координат и наклонов отрезка
@@ -381,7 +382,7 @@ public class GraphicSystem2D {
 	} while (--ii >= 0);
 
 	if (visible) {
-	    return new Line3D(x0, y0, x1, y1, visible);
+	    return new Line2D(x0, y0, x1, y1, visible);
 	} else {
 	    return res;
 	}
@@ -406,7 +407,7 @@ public class GraphicSystem2D {
 
     /////////////////////////////////////////////////////
     // Алгоритм отсечения Кирус-Бека
-    private Line3D CBclip(double x0, double y0, double x1, double y1) {
+    private Line2D CBclip(double x0, double y0, double x1, double y1) {
 	int i;
 	boolean visible;
 	double Vx, Vy;
@@ -492,7 +493,7 @@ public class GraphicSystem2D {
 		}
 	    }
 	}
-	return new Line3D(x0, y0, x1, y1, visible);
+	return new Line2D(x0, y0, x1, y1, visible);
     }
 
     /////////////////////////////////////////////////////

@@ -41,6 +41,10 @@ public class Mathem {
         return a;
     }
     
+    public static int returnFirst(int a, int b) {
+        return a;
+    }
+    
     /////////////////////////////////////////////////////
     public static int ceil(double x) {
         /*if (x < 0) return (int)x;
@@ -48,5 +52,18 @@ public class Mathem {
         return x;*/
         if (x >= 0 && (int)x < x) return ((int)x + 1);
         else return (int)x;
+    }
+    
+    public static int getARGB(int r, int g, int b, int a) {
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    public static int getRGB(int r, int g, int b) {
+        return (r << 16) | (g << 8) | b;
+    }
+    
+    /////////////////////////////////////////////////////
+    public static int toInt(double x) {
+        return (int)(x + 0.5);
     }
 }

@@ -124,7 +124,7 @@ public abstract class Camera {
 	return viewPlane;
     }
     
-    public Dimension getViewPort() {
+    public Dimension2D getViewPort() {
 	return viewPort;
     }  
     

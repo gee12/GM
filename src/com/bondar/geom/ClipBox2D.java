@@ -10,7 +10,19 @@ import com.bondar.geom.Point2D;
  * @author bondar
  */
 public class ClipBox2D {
-
+    
+    // internal clipping codes
+    public final static int CODE_C = 0x0000;
+    public final static int CODE_N = 0x0008;
+    public final static int CODE_S = 0x0004;
+    public final static int CODE_E = 0x0002;
+    public final static int CODE_W = 0x0001;
+ 
+    public final static int CODE_NE = 0x000a;
+    public final static int CODE_SE = 0x0006;
+    public final static int CODE_NW = 0x0009;
+    public final static int CODE_SW = 0x0005;
+        
     public enum Type {
 	None,
 	Rectangle,
@@ -26,15 +38,15 @@ public class ClipBox2D {
     private Type type;
     private State state;
     // for rectangle
-    private double xMin, xMax, yMin, yMax;
-    private double width, height;
+    private int xMin, xMax, yMin, yMax;
+    private int width, height;
     // for polygon
     private int size;
     private Point2D[] points;
     private Point2D[] normals;
 
  
-    public ClipBox2D(double xmin, double ymin, double xmax, double ymax) {
+    public ClipBox2D(int xmin, int ymin, int xmax, int ymax) {
 	type = Type.Rectangle;
 	this.xMin = xmin;
 	this.yMin = ymin;
@@ -182,27 +194,27 @@ public class ClipBox2D {
 	return new Point2D(xMax,yMin);
     }
 
-    public double getXMin() {
+    public int getXMin() {
 	return xMin;
     }
 
-    public double getXMax() {
+    public int getXMax() {
 	return xMax;
     }
 
-    public double getYMin() {
+    public int getYMin() {
 	return yMin;
     }
 
-    public double getYMax() {
+    public int getYMax() {
 	return yMax;
     }
 
-    public double getWidth() {
+    public int getWidth() {
         return width;
     }
 
-    public double getHeight() {
+    public int getHeight() {
         return height;
     }
 }

@@ -29,13 +29,13 @@ public class Solid2D {
      * С оставшимся многоугольником повторяем процедуру пока в нём больше трёх вершин.
      * Вариантов триангуляции много и алгоритм находит какой-то из них. 
      */
-    public Line3D[] getDecompositionLines(boolean isCounterClockWise) {
+    public Line2D[] getDecompositionLines(boolean isCounterClockWise) {
 	int polySize = getSize();
 	if (polySize <= 3) {
 	    return getLines();
 	}
 	//
-	List<Line3D> res = new ArrayList(polySize - 3);
+	List<Line2D> res = new ArrayList(polySize - 3);
 	int[] verts = new int[polySize];
 	for (int i = 0; i < polySize; i++) {
 	    verts[i] = i;
@@ -76,7 +76,7 @@ public class Solid2D {
 		return null;
 	    }
 	    // "делим" многоугольник линией
-	    res.add(new Line3D(points[verts[vPrev]], points[verts[vNext]]));
+	    res.add(new Line2D(points[verts[vPrev]], points[verts[vNext]]));
 	    // убираем текущую вершину
 	    m--;
 	    for (int k = vCur; k < m; k++) {
@@ -84,7 +84,7 @@ public class Solid2D {
 	    }
 	}
 
-	Line3D[] array = new Line3D[res.size()];
+	Line2D[] array = new Line2D[res.size()];
 	return res.toArray(array);
     }
     
@@ -173,11 +173,11 @@ public class Solid2D {
     }
     
     /////////////////////////////////////////////////////////
-    public Line3D[] getLines() {
+    public Line2D[] getLines() {
 	int polySize = getSize();
-	Line3D[] res = new Line3D[polySize - 1];
+	Line2D[] res = new Line2D[polySize - 1];
 	for (int i = 0; i < polySize - 1; i++) {
-	    res[i] = new Line3D(points[i], points[i + 1]);
+	    res[i] = new Line2D(points[i], points[i + 1]);
 	}
 	return res;
     }

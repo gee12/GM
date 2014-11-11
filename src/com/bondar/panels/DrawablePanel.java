@@ -19,7 +19,7 @@ public class DrawablePanel extends JPanel {
     public DrawablePanel(Application app, int width, int height) {
 	this.app = app;
 	setPreferredSize(new Dimension(width, height));
-	drawManager = new DrawManager();
+	drawManager = new DrawManager(width, height);
     }
     
     public DrawManager getDrawManager() {
@@ -30,6 +30,7 @@ public class DrawablePanel extends JPanel {
     protected void paintComponent(Graphics g) {
 	super.paintComponent(g);
 	drawManager.setGraphics(g);
+	drawManager.setDimension(g.getClipBounds().width, g.getClipBounds().height);
 	app.paint(drawManager);
     }
 }
