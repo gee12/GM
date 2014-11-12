@@ -80,6 +80,9 @@ public abstract class Camera {
     
     public void updateDirection(double ax, double ay, double az) {
 	dir.add(new Point3D(ax, ay, az));
+        if (ax != 0.0) pos.mul(Matrix.rotationMatrix(-ax, X));
+        if (ay != 0.0) pos.mul(Matrix.rotationMatrix(-ay, Y));
+        if (az != 0.0) pos.mul(Matrix.rotationMatrix(-az, Z));
     }
     
     public void updatePosition(double dx, double dy, double dz) {

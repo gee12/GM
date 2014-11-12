@@ -1,11 +1,9 @@
 package com.bondar.gm;
 
-import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
-import com.bondar.geom.Vertex3D;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,16 +33,16 @@ public class RenderManager {
     public static Polygon3DVerts[] toRenderArray(Solid3D[] models) {
 	if (models == null) return null;
 	List<Polygon3DVerts> res = new ArrayList<>();
-        int i = 0;
 	for (Solid3D model : models) {
+            // check is culled
 	    if (model.getState() != Solid3D.States.VISIBLE) continue;
-            i++;
+            
 	    for (Polygon3DInds poly : model.getPolygons()) {
+                // check is backface
 		if (poly.getState() != Polygon3D.States.VISIBLE) continue;
                 // to all-sufficient polygon
 		res.add(poly.toPolygon3DVerts(model.getVertexes()));
 	    }
-	    //polies.addAll(Types.toList(model.getPolygons()));
 	}
 	return Types.toArray(res, Polygon3DVerts.class);
     }
@@ -73,20 +71,6 @@ public class RenderManager {
     /////////////////////////////////////////////////////////
     // 
     public void transToPerspectAndScreen(Camera cam) {
-        //TransferManager.transToPerspectAndScreen(renderArray, camera);
-        //int pi = 1;
-        /*for (Polygon3DVerts poly : renderArray) {
-            //poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
-            //int vi = 1;
-            for (Vertex3D v : poly.getVertexes()) {
-                Point3D p = v.getPosition();
-                double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
-                //System.out.println(String.format("poly%d,verts%d = [%f],[%f],[%f]",pi,vi++,p.getX(), p.getY(), p.getZ()));
-            }
-            //poly.transToPerspectAndScreen(camera);
-            
-            //pi++;
-        }*/
         TransferManager.transToPerspectAndScreen(renderArray, cam);
     }
     

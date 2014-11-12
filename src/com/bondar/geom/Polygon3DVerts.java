@@ -3,7 +3,6 @@ package com.bondar.geom;
 import com.bondar.gm.Camera;
 import com.bondar.gm.Matrix;
 import java.awt.Color;
-import java.util.Arrays;
 
 /**
  *
@@ -14,8 +13,8 @@ public class Polygon3DVerts extends Polygon3D {
     private Vertex3D[] vertexes;
     
     /////////////////////////////////////////////////////////
-    public Polygon3DVerts(Vertex3D[] verts, Color src, Color shade, Color border, int attr) {
-        super(verts.length, src, shade, border, attr);
+    public Polygon3DVerts(Vertex3D[] verts, Color src, /*Color shade,*/ Color border, int attr) {
+        super(verts.length, src, /*shade,*/ border, attr);
 	this.vertexes = verts;//Arrays.copyOf(verts, verts.length);
     }
     
@@ -116,7 +115,7 @@ public class Polygon3DVerts extends Polygon3D {
     }
     
     public Polygon3DVerts getCopy() {
-	return new Polygon3DVerts(vertexes, srcColor, shadeColor, borderColor, attributes);
+	return new Polygon3DVerts(vertexes, color, /*shadeColor, */borderColor, attributes);
     }
     
     public void transToPerspectAndScreen(Camera cam) {

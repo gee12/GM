@@ -29,9 +29,9 @@ public abstract class Polygon3D {
     protected int attributes;
     //private Vertex3D[] vertexes;
     protected int size;
-    protected Color srcColor;
+    protected Color color;
     protected Color borderColor;
-    protected Color shadeColor;
+    //protected Color shadeColor;
     //protected Color[] shadeVertsColors;
     //protected Bitmap texture;
     protected int materialId;
@@ -40,16 +40,17 @@ public abstract class Polygon3D {
     protected double averageZ;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(int size, Color src, Color shade, Color border, int attr) {
+    public Polygon3D(int size, Color src, /*Color shade,*/ Color border, int attr) {
 	//this.vertexes = Arrays.copyOf(verts, verts.length);
 	this.size = size;
-	this.srcColor = src;
-	this.shadeColor = shade;
+	this.color = src;
+//	this.shadeColor = shade;
         this.borderColor = border;
 	this.attributes = attr;
 	this.state = States.VISIBLE;
         this.type = type(size);
 	//shadeVertsColors = null;
+        this.normal = new Vector3D();
     }
    
     /////////////////////////////////////////////////////////
@@ -111,8 +112,11 @@ public abstract class Polygon3D {
 	attributes &= ~attr;
     }     
 
-    public void setShadeColor(Color col) {
-	this.shadeColor = col;
+//    public void setShadeColor(Color col) {
+//	this.shadeColor = col;
+//    }
+    public void setColor(Color col) {
+	this.color = col;
     }
     
     public void setState(States state) {
@@ -145,13 +149,13 @@ public abstract class Polygon3D {
 	return state;
     }
 
-    public Color getSrcColor() {
-        return srcColor;
+    public Color getColor() {
+        return color;
     }
 
-    public Color getShadeColor() {
-        return shadeColor;
-    }
+//    public Color getShadeColor() {
+//        return shadeColor;
+//    }
 
     /*public Color[] getShadeVertsColors() {
         return shadeVertsColors;

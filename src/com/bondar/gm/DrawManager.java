@@ -1,17 +1,17 @@
 package com.bondar.gm;
 
 import com.bondar.geom.ClipBox2D;
-import com.bondar.geom.Line2D;
-import com.bondar.geom.Line3D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vertex3D;
+import com.bondar.tasks.GM;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 
@@ -36,6 +36,7 @@ public class DrawManager {
     private WritableRaster raster;
     private Color curColor;
     private Color backColor;
+    private static Point2D[] CROSSHAIR = new Point2D[4];
     
     //////////////////////////////////////////////////
     public DrawManager(int width, int height) {
@@ -44,16 +45,46 @@ public class DrawManager {
         
         setClipBox(new ClipBox2D(10,10,width-10,height-10));
 
-        rasterMode = RasterizerModes.FAST;
+        rasterMode = RasterizerModes.ACCURATE;
         image = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
         imageGraphic = image.createGraphics();
         raster = image.getRaster();
         curColor = Color.BLACK;
         final int TONE = 20;
         backColor = new Color(TONE,TONE,TONE);
+        // init crosshair 
+        Point2D cx = new Point2D(width/2,height/2);//getScreenCenter());
+        //cx = cx.sub(new Point2D(50,50));
+        final int SIZE = 10;
+        CROSSHAIR[0] = new Point2D(cx.getX(), cx.getY() + SIZE);
+        CROSSHAIR[1] = new Point2D(cx.getX(), cx.getY() - SIZE);
+        CROSSHAIR[2] = new Point2D(cx.getX() - SIZE, cx.getY());
+        CROSSHAIR[3] = new Point2D(cx.getX() + SIZE, cx.getY());
     }
     
-    public void drawImage() {
+    public void drawScene(Polygon3DVerts[] polies, String viewType, Color crossCol) {
+        //
+        fillRectangle(new Rectangle(0,0,
+                width,height/2), Color.DARK_GRAY);
+        fillRectangle(new Rectangle(0,height/2,
+                width,height/2), Color.BLACK);
+        //
+	switch (viewType) {
+	    case GM.RADIO_FACES_TEXT:
+		drawPolies(polies);
+		break;
+	    case GM.RADIO_EDGES_TEXT:
+		drawBorders(polies);
+		break;
+	    case GM.RADIO_EDGES_FACES_TEXT:
+		drawBorderedPolies(polies);
+		break;
+	}
+        //
+        setColor(crossCol);
+        drawLine(CROSSHAIR[0], CROSSHAIR[1]);
+        drawLine(CROSSHAIR[2], CROSSHAIR[3]);
+        //
         graphic.drawImage(image, 0,0,width, height, null);
     }
     
@@ -86,11 +117,16 @@ public class DrawManager {
     /////////////////////////////////////////////////////
     public void drawBackground() {
         fillScreen(backColor);
-    }    
+    }
+    
     public void fillScreen(Color col) {
+        fillRectangle(new Rectangle(0, 0, image.getWidth(), image.getHeight()), col);
+    }
+    
+    public void fillRectangle(Rectangle rect, Color col) {
         imageGraphic.setPaint(col);
-        imageGraphic.fillRect(0, 0, image.getWidth(), image.getHeight());
-    }    
+        imageGraphic.fillRect(rect.x, rect.y, rect.x+rect.width, rect.x+rect.height);
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // DRAW POINTS
@@ -109,7 +145,18 @@ public class DrawManager {
         setPixel(Mathem.toInt(x), Mathem.toInt(y), col);
     }
    
+    public void setNoClipPixel(int x, int y, Color col) {
+        if (col == null) return;
+	image.setRGB(x, y, col.getRGB());	    
+    }    
+    public void setPixel(int x, int y, Color col, boolean isNeedClip) {
+        if (isNeedClip) setPixel(x, y, col);
+        else setNoClipPixel(x, y, col);
+    }    
+
     public void setPixel(int x, int y, Color col) {
+        if (col == null || x < clip.getXMin() || x > clip.getXMax()
+                || y < clip.getYMin() || y > clip.getYMax()) return;
 	image.setRGB(x, y, col.getRGB());	    
     }    
     
@@ -134,13 +181,13 @@ public class DrawManager {
         int[] line = clipLine(Mathem.toInt(x1), Mathem.toInt(y1), 
                 Mathem.toInt(x2), Mathem.toInt(y2));
         if (line != null) {
-            drawLine(line[0], line[1], line[2], line[3], col);
+            drawLine(line[0], line[1], line[2], line[3], col, false);
         }
     }
     
     public void drawNoClipLine(double x1, double y1, double x2, double y2, Color col) {
         drawLine(Mathem.toInt(x1), Mathem.toInt(y1), 
-                Mathem.toInt(x2), Mathem.toInt(y2), col);
+                Mathem.toInt(x2), Mathem.toInt(y2), col, false);
     }
     
     public void drawLineSimple(int x1, int y1, int x2, int y2, Color col) {
@@ -160,7 +207,7 @@ public class DrawManager {
     /////////////////////////////////////////////////////
     // Draw a line from xo,yo to x1,y1 using differential error terms
     // (based on Bresenahams work)
-    public void drawLine(int x0, int y0, int x1, int y1, Color col) {
+    private void drawLine(int x0, int y0, int x1, int y1, Color col, boolean isNeedClip) {
         int x_inc, y_inc,   // amount in pixel space to move during drawing
                 error;      // the discriminant i.e. error i.e. decision variable
         // compute horizontal and vertical deltas
@@ -197,7 +244,7 @@ public class DrawManager {
             // draw the line
             for (int index = 0; index <= dx; index++) {
                 // set the pixel
-                 setPixel(x, y, col);
+                 setPixel(x, y, col, isNeedClip);
                 // test if error has overflowed
                 if (error >= 0) {
                     error -= dx2;
@@ -217,7 +264,7 @@ public class DrawManager {
             // draw the line
             for (int index = 0; index <= dy; index++) {
                 // set the pixel
-                setPixel(x, y, col);
+                setPixel(x, y, col, isNeedClip);
                 // test if error overflowed
                 if (error >= 0) {
                     error -= dy2;
@@ -484,19 +531,16 @@ public class DrawManager {
         } else {
             // general triangle that's needs to be broken up along long edge
             double new_x = x1 + (y2 - y1) * (x3 - x1) / (y3 - y1);
-
             // draw each sub-triangle
             drawBottomTriangle2D(x1, y1, new_x, y2, x2, y2, col);
             drawTopTringle2D(x2, y2, new_x, y2, x3, y3, col);
         }
     }
     
-    
     /////////////////////////////////////////////////////
     // this function draws a triangle that has a flat bottom
     public void drawBottomTriangle2D(double x1, double y1, double x2, double y2, 
-                         double x3, double y3, Color col)
-    {
+                         double x3, double y3, Color col) {
         int iy1 = 0, iy3 = 0;
         // test order of x1 and x2
         if (x3 < x2) {
@@ -504,10 +548,8 @@ public class DrawManager {
         }
         // compute delta's
         double h = y3 - y1;    // the height of the triangle
-
         double dx_left = (x2 - x1) / h;  // the dx/dy ratio of the left edge of line
         double dx_right = (x3 - x1) / h;  // the dx/dy ratio of the right edge of line
-
         // set starting points
         // the starting and ending points of the edges
         double xs = x1;
@@ -520,22 +562,18 @@ public class DrawManager {
                 // compute new xs and ys
                 xs = xs + dx_left * (-y1 + clip.getYMin());
                 xe = xe + dx_right * (-y1 + clip.getYMin());
-
                 // reset y1
                 y1 = clip.getYMin();
-
                 // make sure top left fill convention is observed
                 //iy1 = y1;
                 iy1 = (int) y1;
             } else {
                 // make sure top left fill convention is observed
                 iy1 = Mathem.ceil(y1);
-
                 // bump xs and xe appropriately
                 xs = xs + dx_left * (iy1 - y1);
                 xe = xe + dx_right * (iy1 - y1);
             }
-
             if (y3 > clip.getYMax()) {
                 // clip y
                 y3 = clip.getYMax();
@@ -555,68 +593,53 @@ public class DrawManager {
                 // compute new xs and ys
                 xs = xs + dx_left * (-y1 + clip.getYMin());
                 xe = xe + dx_right * (-y1 + clip.getYMin());
-
                 // reset y1
                 y1 = clip.getYMin();
             }
-
             if (y3 > clip.getYMax()) {
                 y3 = clip.getYMax();
             }
-
             // make sure top left fill convention is observed
             iy1 = Mathem.ceil(y1);
             iy3 = Mathem.ceil(y3) - 1;
         }
-
-        // compute starting address in video memory
-        //dest_addr = dest_buffer + iy1*mempitch;
         // test if x clipping is needed
         if (x1 >= clip.getXMin() && x1 <= clip.getXMax()
                 && x2 >= clip.getXMin() && x2 <= clip.getXMax()
                 && x3 >= clip.getXMin() && x3 <= clip.getXMax()) {
             // draw the triangle
-            for (int loop_y = iy1; loop_y <= iy3; loop_y++/*, dest_addr+=mempitch*/) {
+            for (int loop_y = iy1; loop_y <= iy3; loop_y++) {
                 // draw the line
-                //Mem_Set_WORD(dest_addr+(unsigned int)(xs),color,(unsigned int)((int)xe-(int)xs+1));
                 drawNoClipLine(xs, loop_y, xe, loop_y, col);
-
                 // adjust starting point and ending point
                 xs += dx_left;
                 xe += dx_right;
-            } // end for
-
-        } // end if no x clipping needed
+            }
+        }
         else {
             // clip x axis with slower version
             // draw the triangle
-            for (int loop_y = iy1; loop_y <= iy3; loop_y++/*,dest_addr+=mempitch*/) {
+            for (int loop_y = iy1; loop_y <= iy3; loop_y++) {
                 // do x clip
                 double left = xs;
                 double right = xe;
-
                 // adjust starting point and ending point
                 xs += dx_left;
                 xe += dx_right;
-
                 // clip line
                 if (left < clip.getXMin()) {
                     left = clip.getXMin();
-
                     if (right < clip.getXMin()) {
                         continue;
                     }
                 }
-
                 if (right > clip.getXMax()) {
                     right = clip.getXMax();
-
                     if (left > clip.getXMax()) {
                         continue;
                     }
                 }
                 // draw the line
-                //Mem_Set_WORD(dest_addr+(unsigned int)(left),color,(unsigned int)((int)right-(int)left+1));
                 drawNoClipLine(left, loop_y, right, loop_y, col);
             }
         }
@@ -634,7 +657,6 @@ public class DrawManager {
         if (x2 < x1) {
             x1 = Mathem.returnFirst(x2, x2 = x1);
         }
-
         // compute delta's
         double h = y3 - y1; // the height of the triangle
 
@@ -652,10 +674,8 @@ public class DrawManager {
                 // compute new xs and ys
                 xs = xs + dx_left * (-y1 + clip.getYMin());
                 xe = xe + dx_right * (-y1 + clip.getYMin());
-
                 // reset y1
                 y1 = clip.getYMin();
-
             // make sure top left fill convention is observed
                 //iy1 = y1;
                 iy1 = (int) y1;
@@ -667,11 +687,9 @@ public class DrawManager {
                 xs = xs + dx_left * (iy1 - y1);
                 xe = xe + dx_right * (iy1 - y1);
             }
-
             if (y3 > clip.getYMax()) {
                 // clip y
                 y3 = clip.getYMax();
-
             // make sure top left fill convention is observed
                 //iy3 = y3-1;
                 iy3 = (int) (y3 - 1);
@@ -680,7 +698,6 @@ public class DrawManager {
                 iy3 = Mathem.ceil(y3) - 1;
             }
         }
-
         if (rasterMode == RasterizerModes.FAST || rasterMode == RasterizerModes.FASTEST) {
             // perform y clipping
             // if top is off screen
@@ -688,59 +705,45 @@ public class DrawManager {
                 // compute new xs and ys
                 xs = xs + dx_left * (-y1 + clip.getYMin());
                 xe = xe + dx_right * (-y1 + clip.getYMin());
-
                 // reset y1
                 y1 = clip.getYMin();
             }
-
             if (y3 > clip.getYMax()) {
                 y3 = clip.getYMax();
             }
-
             // make sure top left fill convention is observed
             iy1 = Mathem.ceil(y1);
             iy3 = Mathem.ceil(y3) - 1;
         }
-
-        // compute starting address in video memory
-        //dest_addr = dest_buffer+iy1*mempitch;
         // test if no x clipping is needed
         if (x1 >= clip.getXMin() && x1 <= clip.getXMax()
                 && x2 >= clip.getXMin() && x2 <= clip.getXMax()
                 && x3 >= clip.getXMin() && x3 <= clip.getXMax()) {
             // draw the triangle
-            for (int loop_y = iy1; loop_y <= iy3; loop_y++/*,dest_addr+=mempitch*/) {
+            for (int loop_y = iy1; loop_y <= iy3; loop_y++) {
                 // draw the line
-                //memset((UCHAR *)dest_addr+(unsigned int)xs, color,(unsigned int)((int)xe-(int)xs+1));
                 drawNoClipLine(xs, loop_y, xe, loop_y, col);
-
                 // adjust starting point and ending point
                 xs += dx_left;
                 xe += dx_right;
             }
-
         } else {
             // clip x axis with slower version
-
             // draw the triangle
-            for (int loop_y = iy1; loop_y <= iy3; loop_y++/*,dest_addr+=mempitch*/) {
+            for (int loop_y = iy1; loop_y <= iy3; loop_y++) {
                 // do x clip
                 double left = xs;
                 double right = xe;
-
                 // adjust starting point and ending point
                 xs += dx_left;
                 xe += dx_right;
-
                 // clip line
                 if (left < clip.getXMin()) {
                     left = clip.getXMin();
-
                     if (right < clip.getXMin()) {
                         continue;
                     }
                 }
-
                 if (right > clip.getXMax()) {
                     right = clip.getXMax();
 
@@ -762,7 +765,7 @@ public class DrawManager {
     /////////////////////////////////////////////////////
     //
     public void drawPolygon3D(Polygon3DVerts poly) {
-	setColor(poly.getShadeColor());
+	setColor(poly.getColor());
 	switch(poly.getType()) {
 	    case POINT:
 		drawPoint(poly.getVertexPosition(0));

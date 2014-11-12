@@ -15,8 +15,8 @@ public class Polygon3DInds extends Polygon3D {
     protected int indexes[];
 
     /////////////////////////////////////////////////////////
-    public Polygon3DInds(int[] inds, Color src, Color shade, Color border, int attr) {
-        super(inds.length, src, shade, border, attr);
+    public Polygon3DInds(int[] inds, Color src, /*Color shade,*/ Color border, int attr) {
+        super(inds.length, src, /*shade,*/ border, attr);
 	this.indexes = inds;
     }
 
@@ -34,8 +34,8 @@ public class Polygon3DInds extends Polygon3D {
     public boolean isPointInHalfspace(Point3D[] points, Point3D p) {
 	if (points == null || p == null || type == Types.LINE
 		|| type == Types.POINT) return false;
-	Vector3D v = new Vector3D(points[indexes[1]], p);
-	double res = Vector3D.dot(normal, v);
+	Vector3D v = new Vector3D(points[indexes[0]], p);
+	double res = Vector3D.dot(normal(points[indexes[0]],points[indexes[1]],points[indexes[2]]), v);
 	return (res > 0.0); 
     }
 
@@ -80,9 +80,7 @@ public class Polygon3DInds extends Polygon3D {
     /////////////////////////////////////////////////////////
     // set
     public void setIsBackFace(Point3D[] points, Camera cam) {
-	if (isBackFace(points, cam))
-	    state = States.BACKFACE;
-	else state = States.VISIBLE;
+	state = (isBackFace(points, cam)) ? States.BACKFACE : States.VISIBLE;
     }
     
     /////////////////////////////////////////////////////////
@@ -127,12 +125,14 @@ public class Polygon3DInds extends Polygon3D {
     }
     
     public Polygon3DInds getCopy() {
-	return new Polygon3DInds(indexes, srcColor, shadeColor, borderColor, attributes);
+	return new Polygon3DInds(indexes, color, /*shadeColor,*/ borderColor, attributes);
     }
     
     // To all-sufficient polygon
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
-        return new Polygon3DVerts(getVertexes(verts), srcColor, shadeColor, borderColor, attributes);
+         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), color, /*shadeColor, */borderColor, attributes);
+         res.normal = normal;
+         return res;
     }
 
 }

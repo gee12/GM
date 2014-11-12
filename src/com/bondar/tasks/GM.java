@@ -42,41 +42,40 @@ public class GM extends Application implements OptionsPanelListener {
     
     public static final int VIEW_MODE_KEY = KeyEvent.VK_TAB;
     
-    private static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
-    private static final String RADIO_ALL_MODELS_TEXT = "Все";
-    private static final String GROUP_TITLE_OBJ_CHOISE_TEXT = "ВЫБОР ОБЪЕКТА:";
-    private static final String RADIO_BY_MOUSE_PRESSED_TEXT = "по захвату мышей";
-    private static final String RADIO_BY_LIST_SELECTION_TEXT = "по выбору из списка";
-    private static final String GROUP_TITLE_OPERATIONS_TEXT = "ОПЕРАЦИИ:";
-    private static final String RADIO_ROTATE_TEXT = "Поворот";
-    private static final String RADIO_TRANSFER_TEXT = "Перемещение";
-    private static final String RADIO_SCALE_TEXT = "Масштабирование";
-    private static final String GROUP_TITLE_PROJECTION_TEXT = "ПРОЕКЦИЯ:";
-    private static final String RADIO_ORTOGON_TEXT = "Ортогональная";
-    private static final String RADIO_CENTER_TEXT = "Центральная";
-    private static final String GROUP_TITLE_CAMERA_TEXT = "КАМЕРА:";
-    private static final String RADIO_CAMERA_EULER_TEXT = "Эйлера";
-    private static final String RADIO_CAMERA_UVN_TEXT = "UVN";
-    private static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
-    private static final String RADIO_PAINTER_TEXT = "Алгритм художника";
-    private static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
-    private static final String RADIO_Z_BUFFER_TEXT = "Z-Буффер";
-    private static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
-    private static final String RADIO_EDGES_TEXT = "Ребра";
-    private static final String RADIO_FACES_TEXT = "Грани";
-    private static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
-    private static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
-    private static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
-    private static final String RADIO_SHADE_FLAT_TEXT = "FLAT";
-    private static final String RADIO_SHADE_GOURAUD_TEXT = "GOURAUD";
+    public static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
+    public static final String RADIO_ALL_MODELS_TEXT = "Все";
+    public static final String GROUP_TITLE_OBJ_CHOISE_TEXT = "ВЫБОР ОБЪЕКТА:";
+    public static final String RADIO_BY_MOUSE_PRESSED_TEXT = "по захвату мышей";
+    public static final String RADIO_BY_LIST_SELECTION_TEXT = "по выбору из списка";
+    public static final String GROUP_TITLE_OPERATIONS_TEXT = "ОПЕРАЦИИ:";
+    public static final String RADIO_ROTATE_TEXT = "Поворот";
+    public static final String RADIO_TRANSFER_TEXT = "Перемещение";
+    public static final String RADIO_SCALE_TEXT = "Масштабирование";
+    public static final String GROUP_TITLE_PROJECTION_TEXT = "ПРОЕКЦИЯ:";
+    public static final String RADIO_ORTOGON_TEXT = "Ортогональная";
+    public static final String RADIO_CENTER_TEXT = "Центральная";
+    public static final String GROUP_TITLE_CAMERA_TEXT = "КАМЕРА:";
+    public static final String RADIO_CAMERA_EULER_TEXT = "Эйлера";
+    public static final String RADIO_CAMERA_UVN_TEXT = "UVN";
+    public static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
+    public static final String RADIO_PAINTER_TEXT = "Алгритм художника";
+    public static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
+    public static final String RADIO_Z_BUFFER_TEXT = "Z-Буффер";
+    public static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
+    public static final String RADIO_EDGES_TEXT = "Ребра";
+    public static final String RADIO_FACES_TEXT = "Грани";
+    public static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
+    public static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
+    public static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
+    public static final String RADIO_SHADE_FLAT_TEXT = "FLAT";
+    public static final String RADIO_SHADE_GOURAUD_TEXT = "GOURAUD";
 
-    private static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
+    public static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
     
     private static Cursor EMPTY_CURSOR;
     private static final Point2D ZERO_POINT = new Point2D();
-    private static Point2D[] CROSSHAIR = new Point2D[4];
-    private static Color CROSSHAIR_COLOR_NORM = Color.WHITE;
-    private static Color CROSSHAIR_COLOR_ALLERT = Color.RED;
+    private static final Color CROSSHAIR_COLOR_NORM = Color.WHITE;
+    private static final Color CROSSHAIR_COLOR_ALLERT = Color.RED;
     private static Color crosshairColor = CROSSHAIR_COLOR_NORM;
     
     
@@ -267,28 +266,11 @@ public class GM extends Application implements OptionsPanelListener {
                 poly.resetAverageZ();
             }
         }*/
-        // init crosshair 
-        Point2D cx = new Point2D(getScreenCenter());
-        cx = cx.sub(new Point2D(50,50));
-        final int SIZE = 10;
-        CROSSHAIR[0] = new Point2D(cx.getX(), cx.getY() + SIZE);
-        CROSSHAIR[1] = new Point2D(cx.getX(), cx.getY() - SIZE);
-        CROSSHAIR[2] = new Point2D(cx.getX() - SIZE, cx.getY());
-        CROSSHAIR[3] = new Point2D(cx.getX() + SIZE, cx.getY());
     }
 
     /////////////////////////////////////////////////////////
     @Override
     protected void update() {
-	/*// if there are not collisions OR objects were not moved ->
-	// objects are not changed ->
-	// then don't need to update the solid's vertexes
-	// if (!isCollisions && !isObjectsMoved) return;
-	
-	for (Solid3D model : modelsManager.getModels()) {
-	    animateModel(model);
-	    updateModel(model);
-	}*/
         boolean isNeedDefineBackfaces = 
 		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
         
@@ -298,7 +280,7 @@ public class GM extends Application implements OptionsPanelListener {
 	// 2 - work with render array (visible polygons)
 	renderManager.buildRenderArray(modelsManager.getModels());
         
-        switchShadingType();
+        onShading();
         
 	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
         renderManager.transToPerspectAndScreen(camera);
@@ -311,17 +293,15 @@ public class GM extends Application implements OptionsPanelListener {
     }
     
     /////////////////////////////////////////////////////////
-    private void switchShadingType() {
+    private void onShading() {
         switch(getSelectedRadioText(GROUP_TITLE_SHADE_TEXT)) {
             
             case RADIO_SHADE_CONST_TEXT:
                 break;
-                
             case RADIO_SHADE_FLAT_TEXT:
                 renderManager.setRenderArray(
-                        shadeManager.shade(renderManager.getRenderArray(), camera));
+                        shadeManager.flatShade(renderManager.getRenderArray()));
                 break;
-                
             case RADIO_SHADE_GOURAUD_TEXT:
                 
                 break;
@@ -672,32 +652,38 @@ public class GM extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(DrawManager g) {
-	g.drawBackground();
+	//g.drawBackground();
+//        g.fillRectangle(new Rectangle(0,0,
+//                SCREEN_WIDTH,SCREEN_HEIGHT/2), Color.DARK_GRAY);
+//        g.fillRectangle(new Rectangle(0,SCREEN_HEIGHT/2,
+//                SCREEN_WIDTH,SCREEN_HEIGHT/2), Color.BLACK);
 	if (modelsManager == null ||
                 modelsManager.getModels() == null) return;
 	//
-	drawPolies(g, renderManager.getRenderArray());
+//	drawPolies(g, renderManager.getRenderArray());
         //
-        g.setColor(crosshairColor);
-        g.drawLine(CROSSHAIR[0], CROSSHAIR[1]);
-        g.drawLine(CROSSHAIR[2], CROSSHAIR[3]);
+//        g.setColor(crosshairColor);
+//        g.drawLine(CROSSHAIR[0], CROSSHAIR[1]);
+//        g.drawLine(CROSSHAIR[2], CROSSHAIR[3]);
         
-        g.drawImage();
+        g.drawScene(renderManager.getRenderArray(), 
+                getSelectedRadioText(GROUP_TITLE_VIEW_TEXT),
+                crosshairColor);
     }
 
     /////////////////////////////////////////////////////////
-    private void drawPolies(DrawManager g, Polygon3DVerts[] polies) {
-	if (g == null || polies == null) return;
-	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
-	    case RADIO_FACES_TEXT:
-		g.drawPolies(polies);
-		break;
-	    case RADIO_EDGES_TEXT:
-		g.drawBorders(polies);
-		break;
-	    case RADIO_EDGES_FACES_TEXT:
-		g.drawBorderedPolies(polies);
-		break;
-	}
-    }
+//    private void drawPolies(DrawManager g, Polygon3DVerts[] polies) {
+//	if (g == null) return;
+//	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
+//	    case RADIO_FACES_TEXT:
+//		g.drawPolies(polies);
+//		break;
+//	    case RADIO_EDGES_TEXT:
+//		g.drawBorders(polies);
+//		break;
+//	    case RADIO_EDGES_FACES_TEXT:
+//		g.drawBorderedPolies(polies);
+//		break;
+//	}
+//    }
 }

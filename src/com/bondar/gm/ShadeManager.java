@@ -1,7 +1,6 @@
 package com.bondar.gm;
 
 import com.bondar.geom.Polygon3D;
-import static com.bondar.geom.Polygon3D.normal;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vector3D;
 import java.awt.Color;
@@ -28,7 +27,7 @@ public class ShadeManager {
         //
 	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
 		null, Color.GRAY, null,
-		null, new Vector3D(0, 0, 1),
+		null, new Vector3D(1, 0, 0),
 		0, 0, 0, 0, 0, 0);
 	lights.put(infinite.getIndex(), infinite); 
         //
@@ -39,18 +38,18 @@ public class ShadeManager {
 	//lights.put(point.getIndex(), point); 
     }
     
-    public Polygon3DVerts[] shade(Polygon3DVerts[] polies, Camera cam) {
-        if (polies == null || cam == null) return null;
+    public Polygon3DVerts[] flatShade(Polygon3DVerts[] polies) {
+        if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
-              shade(poly, cam);
+              ShadeManager.this.flatShade(poly);
         }
         return polies;
     }
     
-    public Polygon3D shade(Polygon3DVerts poly, Camera cam) {
-        if (poly == null || cam == null) return null;
+    public Polygon3D flatShade(Polygon3DVerts poly) {
+        if (poly == null) return null;
         
-        Color scrColor = poly.getSrcColor();
+        Color scrColor = poly.getColor();
         int rBase = scrColor.getRed();
         int gBase = scrColor.getGreen();
         int bBase = scrColor.getBlue();
@@ -71,10 +70,11 @@ public class ShadeManager {
                     if (poly.getType() == Polygon3D.Types.LINE
                         || poly.getType() == Polygon3D.Types.POINT) return null;
                     
-                    Vector3D n = normal(
-                            poly.getVertexPosition(0), 
-                            poly.getVertexPosition(1), 
-                            poly.getVertexPosition(2));
+                    poly.resetNormal();
+                    Vector3D n = poly.getNormal();
+//                            Polygon3D.normal(poly.getVertexPosition(0), 
+//                            poly.getVertexPosition(1), 
+//                            poly.getVertexPosition(2));
                     double nl = n.length();
                     double dp = Vector3D.dot(n, light.getDirection());
                     if (dp > 0) {
@@ -107,7 +107,7 @@ public class ShadeManager {
         if (gSum > 255) gSum = 255;
         if (bSum > 255) bSum = 255;
         
-        poly.setShadeColor(new Color(rSum, gSum, bSum));
+        poly.setColor(new Color(rSum, gSum, bSum));
         return poly;
     }
 }

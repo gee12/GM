@@ -1,4 +1,5 @@
-﻿name: Оси
+﻿//
+name: Оси
 attr: 1
 pos: 0 0 0
 angles: 0 0 0

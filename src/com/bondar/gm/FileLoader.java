@@ -53,7 +53,6 @@ public class FileLoader {
 	Point3D angles = new Point3D();
 	Point3D scale = new Point3D();
 	Point3D[] points = null;
-	//Vertex3D[] vertexes = null;
 	/*int[][] indexes = null;
 	Color[] fillColors = null;
 	Color[] borderColors = null;
@@ -158,7 +157,7 @@ public class FileLoader {
                             copy[i] = new Vertex3D(vertexes[i].getPosition().getCopy());
                         }*/
                         //Vertex3D[] copy = Arrays.copyOf(vertexes, vertexes.length);
-			polies[lineNum] = new Polygon3DInds(indexes, fillColor, fillColor, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(indexes, fillColor/*, fillColor*/, borderColor, attr);
 			lineNum++;
 		    }
 		    break;

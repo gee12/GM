@@ -253,12 +253,9 @@ public class Solid3D {
     // points - in world coord's
     public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
 	for (Polygon3DInds poly: polygons) {
-            
 	    //poly.setVertexesPosition(points);
-            
             poly.resetNormal(points);
             //poly.resetAverageZ();
-            
             if (isNeedDefineBackfaces)
                 poly.setIsBackFace(points, camera);
             // restore backfaces if don't need to rejection

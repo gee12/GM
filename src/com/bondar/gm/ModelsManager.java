@@ -1,7 +1,6 @@
 package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
-import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Solid3D;
 import static com.bondar.tasks.GM.ANGLE_UP;
 import com.bondar.tools.Types;
@@ -16,7 +15,7 @@ import java.util.Random;
 public class ModelsManager {
     
     private static final String MODELS_DIR = "models/";
-    private static final String CUBE_TEXT = "Куб";
+    private static final String CUBE_TEXT = "Cube";
    
     private Solid3D[] models;
     

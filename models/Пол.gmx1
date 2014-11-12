@@ -1,13 +1,14 @@
-﻿name: Пол
+﻿//
+name: Floor
 attr: 1
 pos: 0 0 0
 angles: 0 0 0
 scale: 0 0 0
 verts: 4
--50 0 -50
--50 0 50
-50 0 50
-50 0 -50
+-50 -5 -50
+-50 -5 50
+50 -5 50
+50 -5 -50
 polyns: 2
-3 0 1 2 aaaaaa 000000
-3 0 2 3 aaaaaa 000000
+3 0 1 2 ffffff 000000
+3 0 2 3 ffffff 000000

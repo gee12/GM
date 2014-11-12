@@ -1,6 +1,5 @@
 package com.bondar.geom;
 
-import com.bondar.tools.Mathem;
 import java.awt.Color;
 
 /**
@@ -9,8 +8,8 @@ import java.awt.Color;
  */
 public class Triangle3D extends Polygon3DInds {
 
-    public Triangle3D(int[] inds, Color src, Color shade, Color border, int attr) {
-        super(inds, src, shade, border, attr);
+    public Triangle3D(int[] inds, Color src,/* Color shade,*/ Color border, int attr) {
+        super(inds, src,/* shade,*/ border, attr);
     }
     
     /*public Triangle3D(Vertex3D[] verts, int i1, int i2, int i3, Color fill, Color shade, Color border, int attr) {
