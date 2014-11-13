@@ -1,6 +1,6 @@
 package com.bondar.gm;
 
-import com.bondar.geom.ClipBox2D;
+import com.bondar.geom.ClipRectangle2D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3DVerts;
@@ -11,7 +11,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 
@@ -27,23 +26,24 @@ public class DrawManager {
         FASTEST
     }
 
+    private static final Point2D[] CROSSHAIR = new Point2D[4];
+    
     private Graphics graphic;
     private Graphics2D imageGraphic;
     private int width, height;
-    private ClipBox2D clip;
+    private ClipRectangle2D clip;
     private RasterizerModes rasterMode;
     private BufferedImage image;
     private WritableRaster raster;
     private Color curColor;
     private Color backColor;
-    private static Point2D[] CROSSHAIR = new Point2D[4];
     
     //////////////////////////////////////////////////
     public DrawManager(int width, int height) {
         this.width = width;
 	this.height = height;
         
-        setClipBox(new ClipBox2D(10,10,width-10,height-10));
+        setClipBox(new ClipRectangle2D(10,10,width-10,height-10));
 
         rasterMode = RasterizerModes.ACCURATE;
         image = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
@@ -87,34 +87,9 @@ public class DrawManager {
         //
         graphic.drawImage(image, 0,0,width, height, null);
     }
-    
-    //////////////////////////////////////////////////
-    // set
-    public void setGraphics(Graphics g) {
-	this.graphic = g;
-    }
-    
-    public void setDimension(int width, int height) {
-        this.width = width;
-	this.height = height;
-    }
-    
-    public void setClipBox(ClipBox2D clipBox) {
-        this.clip = clipBox;
-    }
-    
-    public void setColor(Color col) {
-        if (col == null) return;
-	//g.setColor(color);
-        curColor = col;
-    }
 
-    public void setBackColor(Color col) {
-        if (col == null) return;
-        backColor = col;
-    }
-    
     /////////////////////////////////////////////////////
+    // DRAW RECTANGLES
     public void drawBackground() {
         fillScreen(backColor);
     }
@@ -178,7 +153,7 @@ public class DrawManager {
     }
     
     public void drawClipLine(double x1, double y1, double x2, double y2, Color col) {
-        int[] line = clipLine(Mathem.toInt(x1), Mathem.toInt(y1), 
+        int[] line = clip.clipLine(Mathem.toInt(x1), Mathem.toInt(y1), 
                 Mathem.toInt(x2), Mathem.toInt(y2));
         if (line != null) {
             drawLine(line[0], line[1], line[2], line[3], col, false);
@@ -219,16 +194,15 @@ public class DrawManager {
         }
         else {
             x_inc = -1;
-            dx = -dx;  // need absolute value
+            dx = -dx;  // absolute value
         }
         // test y component of slope
         if (dy >= 0) {
-            //y_inc = lpitch_2;
             y_inc = 1;
         }
         else {
             y_inc = -1;
-            dy = -dy;  // need absolute value
+            dy = -dy;  // absolute value
         }
         // compute (dx,dy) * 2
         int dx2 = dx << 1;
@@ -259,231 +233,19 @@ public class DrawManager {
         }
         // if |slope| > 1
         else {
-            // initialize error term
             error = dx2 - dy;
             // draw the line
             for (int index = 0; index <= dy; index++) {
                 // set the pixel
                 setPixel(x, y, col, isNeedClip);
-                // test if error overflowed
                 if (error >= 0) {
                     error -= dy2;
                     x += x_inc;
                 }
-                // adjust the error term
                 error += dx2;
                 y += y_inc;
             }
         }
-    }
-    
-    
-    ///////////////////////////////////////////////////////////
-    // 
-    public int[] clipLine(int x1, int y1, int x2, int y2) {
-        double xc1 = x1,
-                yc1 = y1,
-                xc2 = x2,
-                yc2 = y2;
-        int p1_code = 0,
-                p2_code = 0;
-        // determine codes
-        // p1
-        if (y1 < clip.getYMin()) {
-            p1_code |= ClipBox2D.CODE_N;
-        } else if (y1 > clip.getYMax()) {
-            p1_code |= ClipBox2D.CODE_S;
-        }
-
-        if (x1 < clip.getXMin()) {
-            p1_code |= ClipBox2D.CODE_W;
-        } else if (x1 > clip.getXMax()) {
-            p1_code |= ClipBox2D.CODE_E;
-        }
-        // p2
-        if (y2 < clip.getYMin()) {
-            p2_code |= ClipBox2D.CODE_N;
-        } else if (y2 > clip.getYMax()) {
-            p2_code |= ClipBox2D.CODE_S;
-        }
-
-        if (x2 < clip.getXMin()) {
-            p2_code |= ClipBox2D.CODE_W;
-        } else if (x2 > clip.getXMax()) {
-            p2_code |= ClipBox2D.CODE_E;
-        }
-        // try and trivially reject
-        if ((p1_code & p2_code) > 0) {
-            return null;
-        }
-        // test for totally visible, if so leave points untouched
-        if (p1_code == 0 && p2_code == 0) {
-            return new int[] {x1, y1, x2, y2};
-        }
-        // determine end clip point for p1
-        switch (p1_code) {
-            case ClipBox2D.CODE_C:
-                break;
-
-            case ClipBox2D.CODE_N: {
-                yc1 = clip.getYMin();
-                xc1 = x1 + 0.5 + (clip.getYMin() - y1) * (x2 - x1) / (y2 - y1);
-            }
-            break;
-            case ClipBox2D.CODE_S: {
-                yc1 = clip.getYMax();
-                xc1 = x1 + 0.5 + (clip.getYMax() - y1) * (x2 - x1) / (y2 - y1);
-            }
-            break;
-            case ClipBox2D.CODE_W: {
-                xc1 = clip.getXMin();
-                yc1 = y1 + 0.5 + (clip.getXMin() - x1) * (y2 - y1) / (x2 - x1);
-            }
-            break;
-            case ClipBox2D.CODE_E: {
-                xc1 = clip.getXMax();
-                yc1 = y1 + 0.5 + (clip.getXMax() - x1) * (y2 - y1) / (x2 - x1);
-            }
-            break;
-            // these cases are more complex, must compute 2 intersections
-            case ClipBox2D.CODE_NE: {
-                // north hline intersection
-                yc1 = clip.getYMin();
-                xc1 = x1 + 0.5 + (clip.getYMin() - y1) * (x2 - x1) / (y2 - y1);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc1 < clip.getXMin() || xc1 > clip.getXMax()) {
-                    // east vline intersection
-                    xc1 = clip.getXMax();
-                    yc1 = y1 + 0.5 + (clip.getXMax() - x1) * (y2 - y1) / (x2 - x1);
-                }
-            }
-            break;
-            case ClipBox2D.CODE_SE: {
-                // south hline intersection
-                yc1 = clip.getYMax();
-                xc1 = x1 + 0.5 + (clip.getYMax() - y1) * (x2 - x1) / (y2 - y1);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc1 < clip.getXMin() || xc1 > clip.getXMax()) {
-                    // east vline intersection
-                    xc1 = clip.getXMax();
-                    yc1 = y1 + 0.5 + (clip.getXMax() - x1) * (y2 - y1) / (x2 - x1);
-                }
-            }
-            break;
-            case ClipBox2D.CODE_NW: {
-                // north hline intersection
-                yc1 = clip.getYMin();
-                xc1 = x1 + 0.5 + (clip.getYMin() - y1) * (x2 - x1) / (y2 - y1);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc1 < clip.getXMin() || xc1 > clip.getXMax()) {
-                    xc1 = clip.getXMin();
-                    yc1 = y1 + 0.5 + (clip.getXMin() - x1) * (y2 - y1) / (x2 - x1);
-                }
-            }
-            break;
-            case ClipBox2D.CODE_SW: {
-                // south hline intersection
-                yc1 = clip.getYMax();
-                xc1 = x1 + 0.5 + (clip.getYMax() - y1) * (x2 - x1) / (y2 - y1);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc1 < clip.getXMin() || xc1 > clip.getXMax()) {
-                    xc1 = clip.getXMin();
-                    yc1 = y1 + 0.5 + (clip.getXMin() - x1) * (y2 - y1) / (x2 - x1);
-                }
-            }
-            break;
-
-            default:
-                break;
-        }
-        // determine clip point for p2
-        switch (p2_code) {
-            case ClipBox2D.CODE_C:
-                break;
-            case ClipBox2D.CODE_N: {
-                yc2 = clip.getYMin();
-                xc2 = x2 + (clip.getYMin() - y2) * (x1 - x2) / (y1 - y2);
-            }
-            break;
-            case ClipBox2D.CODE_S: {
-                yc2 = clip.getYMax();
-                xc2 = x2 + (clip.getYMax() - y2) * (x1 - x2) / (y1 - y2);
-            }
-            break;
-            case ClipBox2D.CODE_W: {
-                xc2 = clip.getXMin();
-                yc2 = y2 + (clip.getXMin() - x2) * (y1 - y2) / (x1 - x2);
-            }
-            break;
-            case ClipBox2D.CODE_E: {
-                xc2 = clip.getXMax();
-                yc2 = y2 + (clip.getXMax() - x2) * (y1 - y2) / (x1 - x2);
-            }
-            break;
-            // these cases are more complex, must compute 2 intersections
-            case ClipBox2D.CODE_NE: {
-                // north hline intersection
-                yc2 = clip.getYMin();
-                xc2 = x2 + 0.5 + (clip.getYMin() - y2) * (x1 - x2) / (y1 - y2);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc2 < clip.getXMin() || xc2 > clip.getXMax()) {
-                    // east vline intersection
-                    xc2 = clip.getXMax();
-                    yc2 = y2 + 0.5 + (clip.getXMax() - x2) * (y1 - y2) / (x1 - x2);
-                }
-            }
-            break;
-
-            case ClipBox2D.CODE_SE: {
-                // south hline intersection
-                yc2 = clip.getYMax();
-                xc2 = x2 + 0.5 + (clip.getYMax() - y2) * (x1 - x2) / (y1 - y2);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc2 < clip.getXMin() || xc2 > clip.getXMax()) {
-                    // east vline intersection
-                    xc2 = clip.getXMax();
-                    yc2 = y2 + 0.5 + (clip.getXMax() - x2) * (y1 - y2) / (x1 - x2);
-                }
-            }
-            break;
-            case ClipBox2D.CODE_NW: {
-                // north hline intersection
-                yc2 = clip.getYMin();
-                xc2 = x2 + 0.5 + (clip.getYMin() - y2) * (x1 - x2) / (y1 - y2);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc2 < clip.getXMin() || xc2 > clip.getXMax()) {
-                    xc2 = clip.getXMin();
-                    yc2 = y2 + 0.5 + (clip.getXMin() - x2) * (y1 - y2) / (x1 - x2);
-                }
-            }
-            break;
-            case ClipBox2D.CODE_SW: {
-                // south hline intersection
-                yc2 = clip.getYMax();
-                xc2 = x2 + 0.5 + (clip.getYMax() - y2) * (x1 - x2) / (y1 - y2);
-                // test if intersection is valid, of so then done, else compute next
-                if (xc2 < clip.getXMin() || xc2 > clip.getXMax()) {
-                    xc2 = clip.getXMin();
-                    yc2 = y2 + 0.5 + (clip.getXMin() - x2) * (y1 - y2) / (x1 - x2);
-                }
-            }
-            break;
-            default:
-                break;
-        }
-        // do bounds check
-        if ((xc1 < clip.getXMin()) || (xc1 > clip.getXMax())
-                || (yc1 < clip.getYMin()) || (yc1 > clip.getYMax())
-                || (xc2 < clip.getXMin()) || (xc2 > clip.getXMax())
-                || (yc2 < clip.getYMin()) || (yc2 > clip.getYMax())) {
-            return null;
-        }
-        // store vars back
-        x1 = Mathem.toInt(xc1);
-        y1 = Mathem.toInt(yc1);
-        x2 = Mathem.toInt(xc2);
-        y2 = Mathem.toInt(yc2);
-        return new int[] {x1,y1,x2,y2};
     }
     
 
@@ -577,7 +339,6 @@ public class DrawManager {
             if (y3 > clip.getYMax()) {
                 // clip y
                 y3 = clip.getYMax();
-
                 // make sure top left fill convention is observed
                 //iy3 = y3-1;
                 iy3 = (int) (y3 - 1);
@@ -857,4 +618,31 @@ public class DrawManager {
 	    drawPolygonBorder(poly);
 	}
     }
+    
+    //////////////////////////////////////////////////
+    // set
+    public void setGraphics(Graphics g) {
+	this.graphic = g;
+    }
+    
+    public void setDimension(int width, int height) {
+        this.width = width;
+	this.height = height;
+    }
+    
+    public void setClipBox(ClipRectangle2D clipBox) {
+        this.clip = clipBox;
+    }
+    
+    public void setColor(Color col) {
+        if (col == null) return;
+	//g.setColor(color);
+        curColor = col;
+    }
+
+    public void setBackColor(Color col) {
+        if (col == null) return;
+        backColor = col;
+    }
+    
 }

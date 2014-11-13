@@ -68,7 +68,7 @@ public class GM extends Application implements OptionsPanelListener {
     public static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
     public static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
     public static final String RADIO_SHADE_FLAT_TEXT = "FLAT";
-    public static final String RADIO_SHADE_GOURAUD_TEXT = "GOURAUD";
+    public static final String RADIO_SHADE_GOURAD_TEXT = "GOURAUD";
 
     public static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
     
@@ -79,7 +79,7 @@ public class GM extends Application implements OptionsPanelListener {
     private static Color crosshairColor = CROSSHAIR_COLOR_NORM;
     
     
-    private List<Solid3D> focusedModels = new ArrayList<>();
+    private final List<Solid3D> focusedModels = new ArrayList<>();
     private Solid3D selectedModel;
     private Solid3D allModel;
     private Camera camera;
@@ -87,9 +87,9 @@ public class GM extends Application implements OptionsPanelListener {
     private CameraUVN cameraUVN;
     private boolean isMousePressed;
     private boolean isGameViewModeEnabled;
-    private ShadeManager shadeManager = new ShadeManager();
-    private ModelsManager modelsManager = new ModelsManager();
-    private RenderManager renderManager = new RenderManager();
+    private final ShadeManager shadeManager = new ShadeManager();
+    private final ModelsManager modelsManager = new ModelsManager();
+    private final RenderManager renderManager = new RenderManager();
 	
     public static void main(String[] args) {
 	new GM(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -224,7 +224,7 @@ public class GM extends Application implements OptionsPanelListener {
         
         addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_CONST_TEXT, this);
         addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FLAT_TEXT, this);
-        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_GOURAUD_TEXT, this);
+        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_GOURAD_TEXT, this);
     }
 
     /////////////////////////////////////////////////////////
@@ -302,8 +302,9 @@ public class GM extends Application implements OptionsPanelListener {
                 renderManager.setRenderArray(
                         shadeManager.flatShade(renderManager.getRenderArray()));
                 break;
-            case RADIO_SHADE_GOURAUD_TEXT:
-                
+            case RADIO_SHADE_GOURAD_TEXT:
+                renderManager.setRenderArray(
+                        shadeManager.gouradShade(renderManager.getRenderArray()));
                 break;
         }
     }

@@ -21,13 +21,9 @@ public class Polygon3DInds extends Polygon3D {
     }
 
     /////////////////////////////////////////////////////////
-    public boolean isBackFace(Point3D[] points, Camera cam) {
-	if (cam == null) return true;
-	if (isSetAttribute(ATTR_2_SIDES)
-		|| type == Types.LINE
-		|| type == Types.POINT) return false;
-        Point3D p = cam.getPosition();
-	return !isPointInHalfspace(points, p);
+    public boolean isBackFace(Point3D[] points, Point3D camPos) {
+	if (isSetAttribute(ATTR_2_SIDES)) return false;
+	return !isPointInHalfspace(points, camPos);
     }
     
     // normal has been updated !
@@ -35,7 +31,7 @@ public class Polygon3DInds extends Polygon3D {
 	if (points == null || p == null || type == Types.LINE
 		|| type == Types.POINT) return false;
 	Vector3D v = new Vector3D(points[indexes[0]], p);
-	double res = Vector3D.dot(normal(points[indexes[0]],points[indexes[1]],points[indexes[2]]), v);
+	double res = Vector3D.dot(normal, v);
 	return (res > 0.0); 
     }
 
@@ -79,8 +75,8 @@ public class Polygon3DInds extends Polygon3D {
     
     /////////////////////////////////////////////////////////
     // set
-    public void setIsBackFace(Point3D[] points, Camera cam) {
-	state = (isBackFace(points, cam)) ? States.BACKFACE : States.VISIBLE;
+    public void setIsBackFace(Point3D[] points, Point3D camPos) {
+	state = (isBackFace(points, camPos)) ? States.BACKFACE : States.VISIBLE;
     }
     
     /////////////////////////////////////////////////////////

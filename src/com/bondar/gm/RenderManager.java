@@ -128,8 +128,10 @@ public class RenderManager {
 	public int compare(Polygon3DVerts poly1, Polygon3DVerts poly2) {
             //final double averageZ1 = poly1.averageZ();
             //final double averageZ2 = poly2.averageZ();
-            final double averageZ1 = (poly1.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly1.getAverageZ() : poly1.averageZ();
-            final double averageZ2 = (poly2.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly2.getAverageZ() : poly2.averageZ();
+//            final double averageZ1 = (poly1.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly1.getAverageZ() : poly1.averageZ();
+//            final double averageZ2 = (poly2.isSetAttribute(Polygon3DVerts.ATTR_FIXED)) ? poly2.getAverageZ() : poly2.averageZ();
+            final double averageZ1 = poly1.averageZ();
+            final double averageZ2 = poly2.averageZ();
 	    return (averageZ1 < averageZ2) ? 1 :
 		    (averageZ1 > averageZ2) ? -1 : 0;
 	}

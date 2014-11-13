@@ -117,31 +117,4 @@ public class Polygon3DVerts extends Polygon3D {
     public Polygon3DVerts getCopy() {
 	return new Polygon3DVerts(vertexes, color, /*shadeColor, */borderColor, attributes);
     }
-    
-    public void transToPerspectAndScreen(Camera cam) {
-	if (cam == null) return;
-	// create matrixes
-	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
-	Matrix scrM = Matrix.perspectToScreenMatrix(
-		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
-	Matrix[] ms = new Matrix[] {perspM,scrM};
-	// transform all camera vertexes
-        for (Vertex3D v : vertexes) {
-            transVertex(v, ms);
-            Point3D p = v.getPosition();
-                double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
-            //System.out.println(String.format("[%f],[%f],[%f]",p.getX(), p.getY(), p.getZ()));
-        }
-    }
-    
-    public static void transVertex(Vertex3D v, Matrix[] ms) {
-	if (v == null || ms == null) return;
-        Point3D p = v.getPosition();
-        double[] d = new double[] {p.getX(), p.getY(), p.getZ()};
-	Point3DOdn res = p.toPoint3DOdn();
-	for (Matrix m : ms) {
-	    res.mul(m);
-	}
-	v.setPosition(res.divByW());
-    }
 }

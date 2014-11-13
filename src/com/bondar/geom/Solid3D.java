@@ -206,9 +206,9 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
-    public void defineBackfaces(Point3D[] points, Camera cam) {
+    public void defineBackfaces(Point3D[] points, Point3D camPos) {
 	for (Polygon3DInds poly: polygons) {
-	    poly.setIsBackFace(points, cam);
+	    poly.setIsBackFace(points, camPos);
 	}
     }
     
@@ -251,13 +251,13 @@ public class Solid3D {
     /////////////////////////////////////////////////////////
     // reset
     // points - in world coord's
-    public void redefinePolygonsParams(Point3D[] points, Camera camera, boolean isNeedDefineBackfaces) {
+    public void redefinePolygonsParams(Point3D[] points, Point3D camPos, boolean isNeedDefineBackfaces) {
 	for (Polygon3DInds poly: polygons) {
 	    //poly.setVertexesPosition(points);
             poly.resetNormal(points);
-            //poly.resetAverageZ();
+            //poly.resetAverageZ(points);
             if (isNeedDefineBackfaces)
-                poly.setIsBackFace(points, camera);
+                poly.setIsBackFace(points, camPos);
             // restore backfaces if don't need to rejection
             else poly.setState(Polygon3D.States.VISIBLE);
 	}

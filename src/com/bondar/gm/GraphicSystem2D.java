@@ -1,16 +1,13 @@
 package com.bondar.gm;
 
-import com.bondar.geom.ClipBox2D;
-import com.bondar.geom.Line2D;
+import com.bondar.geom.ClipPolygon2D;
+import com.bondar.geom.ClipRectangle2D;
 import com.bondar.geom.Point2D;
-import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Line2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
-import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.gm.Matrix.AXIS;
-import com.bondar.tools.Mathem;
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -19,6 +16,12 @@ import java.awt.Graphics;
  * @author bondar
  */
 public class GraphicSystem2D {
+    
+    public static enum ClipTypes {
+        None,
+        Rect,
+        Poly
+    }
 
     private static int TONE = 240;
     public static Color BACK_COLOR = new Color(TONE,TONE,TONE);
@@ -33,8 +36,9 @@ public class GraphicSystem2D {
     private int width, height;
     private Point2D old;
     private Matrix transMatrix;
-    private ClipBox2D clipWindow;
-    private boolean isNeedClip;
+    private ClipRectangle2D clipRect;
+    private ClipPolygon2D clipPoly;
+    private ClipTypes clipType;
     private boolean isNeedScale;
     private double xMin, xMax, yMin, yMax;
     private double xc, yc, Xc, Yc;
@@ -45,7 +49,7 @@ public class GraphicSystem2D {
     public GraphicSystem2D() {
 	old = new Point2D();
 	transMatrix = new Matrix();
-	clipWindow = new ClipBox2D(0,0,0,0);
+	clipType = ClipTypes.None;
 	resetScale();
     }
 
@@ -72,23 +76,18 @@ public class GraphicSystem2D {
     }
     
     //////////////////////////////////////////////////
-    // Устанвка окна отсечения
-    public void setClip(boolean isNeedClip) {
-	this.isNeedClip = isNeedClip;
-    }
-    
     // Установка прямоугольного окна отсечения (в координатах X_MAX и Y_MAX)
-    public void setClipWindow(int xmin, int ymin, int xmax, int ymax) {
+    public void setClipRectangle(int xmin, int ymin, int xmax, int ymax) {
 	if (!isCorrectXCoord(xmin) || !isCorrectXCoord(xmax)
 		|| !isCorrectYCoord(ymin) || !isCorrectYCoord(ymax)
 		|| xmin > xmax || ymin > ymax) {
 	    return;
 	}
-	clipWindow = new ClipBox2D(xmin, ymin, xmax, ymax);
+	clipRect = new ClipRectangle2D(xmin, ymin, xmax, ymax);
     }
 
     // Установка поточечного окна отсечения (в координатах X_MAX и Y_MAX)
-    public void setClipWindow(Point2D[] points) {
+    public void setClipPolygon(Point2D[] points) {
 	if (points == null) {
 	    return;
 	}
@@ -97,7 +96,7 @@ public class GraphicSystem2D {
 		return;
 	    }
 	}
-	clipWindow = new ClipBox2D(points);
+	clipPoly = new ClipPolygon2D(points);
     }
 
     //////////////////////////////////////////////////
@@ -226,7 +225,7 @@ public class GraphicSystem2D {
 	    line = getScaleLine(line);
 	}
 	// is need clip?
-	if (isNeedClip) {
+	if (clipType != ClipTypes.None) {
 	    line = getClipLine(line);
 	}
 	// is line visible?
@@ -294,10 +293,10 @@ public class GraphicSystem2D {
     // Пребразование линии с учетом отсечения
     private Line2D getClipLine(double x0, double y0, double x1, double y1) {
 	Line2D line = null;
-	if (clipWindow.getType() == ClipBox2D.Type.Rectangle) {
-	    line = CSclip(x0, y0, x1, y1);
-	} else if (clipWindow.getType() == ClipBox2D.Type.Polygon) {
-	    line = CBclip(x0, y0, x1, y1);
+	if (clipType == ClipTypes.Rect) {
+	    line = clipRect.CSclip(x0, y0, x1, y1);
+	} else if (clipType == ClipTypes.Poly) {
+	    line = clipPoly.CBclip(x0, y0, x1, y1);
 	} else {
 	    line = new Line2D();
 	}
@@ -311,189 +310,6 @@ public class GraphicSystem2D {
     private Line2D getClipLine(Line2D line) {
 	return getClipLine(line.getP1().getX(), line.getP1().getY(),
 		line.getP2().getX(), line.getP2().getY());
-    }
-
-    /////////////////////////////////////////////////////
-    // Алгоритм отсечения Коэна-Сазерленда
-    public Line2D CSclip(double x0, double y0, double x1, double y1) {
-	boolean visible = false;	// не видим/видим
-	int cn, ck, /* Коды концов отрезка */
-		ii = 4, s;      /* Рабочие переменные  */
-	double dx, dy, /* Приращения координат*/
-		dxdy = 0, dydx = 0, /* Наклоны отрезка к сторонам */
-		r;            /* Рабочая переменная  */
-
-	Line2D res = new Line2D(x0, y0, x1, y1, visible);
-	ck = code(x1, y1);
-	cn = code(x0, y0);
-	/* Определение приращений координат и наклонов отрезка
-	 * к осям. Заодно сразу на построение передается отрезок,
-	 * состоящий из единственной точки, попавшей в окно
-	 */
-	dx = x1 - x0;
-	dy = y1 - y0;
-	if (dx != 0) {
-	    dydx = dy / dx;
-	} else if (dy == 0) {
-	    return res;
-	}
-	if (dy != 0) {
-	    dxdy = dx / dy;
-	}
-	/* Основной цикл отсечения */
-	do {
-	    if ((cn & ck) != 0) {
-		break;       /* Целиком вне окна    */
-	    }
-	    if (cn == 0 && ck == 0) { /* Целиком внутри окна */
-		visible = true;
-		break;
-	    }
-	    if (cn == 0) { /* Если Pn внутри окна, то */
-		s = cn;
-		cn = ck;
-		ck = s;  /* перестить точки Pn,Pk и */
-
-		r = x1;
-		x0 = x1;
-		x1 = r;  /* их коды, чтобы Pn  */
-
-		r = y0;
-		y0 = y1;
-		y1 = r;  /* оказалась вне окна */
-	    }
-	    /* Теперь отрезок разделяется. Pn помещается в точку
-	     * пересечения отрезка со стороной окна.
-	     */
-	    if ((cn & 1) != 0) {         /* Пересечение с левой стороной */
-		y0 = y0 + dydx * (clipWindow.getXMin() - x0);
-		x0 = clipWindow.getXMin();
-	    } else if ((cn & 2) != 0) {  /* Пересечение с правой стороной*/
-		y0 = y0 + dydx * (clipWindow.getXMax() - x0);
-		x0 = clipWindow.getXMax();
-	    } else if ((cn & 4) != 0) {  /* Пересечение в нижней стороной*/
-		x0 = x0 + dxdy * (clipWindow.getYMin() - y0);
-		y0 = clipWindow.getYMin();
-	    } else if ((cn & 8) != 0) {  /*Пересечение с верхней стороной*/
-		x0 = x0 + dxdy * (clipWindow.getYMax() - y0);
-		y0 = clipWindow.getYMax();
-	    }
-	    cn = code(x0, y0);        /* Перевычисление кода точки Pn */
-	} while (--ii >= 0);
-
-	if (visible) {
-	    return new Line2D(x0, y0, x1, y1, visible);
-	} else {
-	    return res;
-	}
-    }
-
-    /////////////////////////////////////////////////////
-    // Область попадания точки
-    private int code(double x, double y) {
-	int i = 0;
-	if (x < clipWindow.getXMin() + Mathem.EPSILON_E7) {
-	    ++i;
-	} else if (x > clipWindow.getXMax() - Mathem.EPSILON_E7) {
-	    i += 2;
-	}
-	if (y < clipWindow.getYMin()) {
-	    i += 4;
-	} else if (y > clipWindow.getYMax()) {
-	    i += 8;
-	}
-	return i;
-    }
-
-    /////////////////////////////////////////////////////
-    // Алгоритм отсечения Кирус-Бека
-    private Line2D CBclip(double x0, double y0, double x1, double y1) {
-	int i;
-	boolean visible;
-	double Vx, Vy;
-	double dx, dy, // Директриса отрезка (V1 - V0)
-		t0, t1, // Параметры начальной и конечной точек видимой части отрезка
-		Qx, Qy, // Вектор от начальной точки i-го ребра к точке V
-		Nx, Ny, // Перпендикуляр к i-тому ребру
-		Pi, Qi, // Вектора для нахождения t = -Qi/Pi
-		t;	    // Для вычисления параметров t0 и t1 (>,<)
-	visible = true;
-	t0 = 0;
-	t1 = 1;
-	Vx = x0;
-	Vy = y0;
-	dx = x1 - x0;
-	dy = y1 - y0;
-
-	for (i = 0; i < clipWindow.getCount(); i++) {
-	    Qx = Vx - clipWindow.getPoints()[i].getX();	// Положения относительно ребра
-	    Qy = Vy - clipWindow.getPoints()[i].getY();
-	    Nx = clipWindow.getNormals()[i].getX();	// Перпендикуляры к ребру
-	    Ny = clipWindow.getNormals()[i].getY();
-	    // Ориентация отрезка относительно i-й стороны окна 
-	    // определяется знаком скалярного произведения Pi = Ni * (V1 - V0).
-	    Pi = dx * Nx + dy * Ny;
-	    // Для вычисления значений параметров, соответствующих 
-	    // начальной и конечной точкам видимой части отрезка. Qi = Ni * (V - Li).
-	    Qi = Qx * Nx + Qy * Ny;
-
-	    // Анализ расположения
-	    if (Pi == 0) {  // Отрезок параллелен ребру или вырожден в точку
-		if (Qi < 0) {	// Точка V лежит  с   внешней  стороны  границы
-		    visible = false;
-		    break;
-		}
-	    } else {
-		// Вычисляем значение параметра t 
-		// для точки пересечения отсекаемого отрезка с i-тым ребром
-		t = -Qi / Pi;
-		if (Pi < 0) {
-		    // Отрезок направлен с внутренней на внешнюю сторону i-й граничной линии;
-		    // Поиск значения параметра для КОНЕЧНОЙ точки видимой части отрезка
-		    // (верхнего предела t -> t1).
-		    // Ищется МИНИМАЛЬНОЕ значение из всех получаемых решений.
-		    if (t < t0) {
-			visible = false;
-			break;
-		    }
-		    if (t < t1) {
-			t1 = t;
-		    }
-		} else if (Pi > 0) {
-		    // Отрезок направлен с внешней на внутреннюю сторону i-й граничной линии;
-		    // Поиск значения параметра для НАЧАЛЬНОЙ точки видимой части отрезка
-		    // (нижнего предела t -> t0).
-		    // Ищется МАКСИМАЛЬНОЕ значение.
-		    if (t > t1) {
-			visible = false;
-			break;
-		    }
-		    if (t > t0) {
-			t0 = t;
-		    }
-		}
-	    }
-	}
-	// Вычисление координат точек пересечения отрезка с окном: 
-	// параметрическое представление отсекаемого отрезка:
-	// V(t) = V0 + (V1 - V0)*t, (0 <= t <= 1)
-	if (visible) {
-	    if (t0 > t1) {
-		visible = false;
-	    } else {
-		if (t0 > 0) {
-		    // Меняем координату P0
-		    x0 = Vx + t0 * dx;
-		    y0 = Vy + t0 * dy;
-		}
-		if (t1 < 1) {
-		    // Меняем координату P1
-		    x1 = Vx + t1 * dx;
-		    y1 = Vy + t1 * dy;
-		}
-	    }
-	}
-	return new Line2D(x0, y0, x1, y1, visible);
     }
 
     /////////////////////////////////////////////////////
@@ -744,8 +560,8 @@ public class GraphicSystem2D {
 
     /////////////////////////////////////////////////////
     // get
-    public ClipBox2D getClipWindow() {
-	return clipWindow;
+    public ClipRectangle2D getClipWindow() {
+	return clipRect;
     }
 
     public double getxMin() {
