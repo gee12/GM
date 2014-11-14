@@ -53,10 +53,6 @@ public class FileLoader {
 	Point3D angles = new Point3D();
 	Point3D scale = new Point3D();
 	Point3D[] points = null;
-	/*int[][] indexes = null;
-	Color[] fillColors = null;
-	Color[] borderColors = null;
-	int[] polyAttribs = null;*/
 	Polygon3DInds[] polies = null;
 	
 	String line = null;
@@ -85,7 +81,6 @@ public class FileLoader {
 		case VERTEXES_PARAM:
 		    int vertCount = Integer.parseInt(words[1]);
 		    points = new Point3D[vertCount];
-                    //vertexes = new Vertex3D[vertCount];
 		    int lineNum = 0;
 		    while (lineNum < vertCount) {
 			if ((line = reader.readLine()) == null) {
@@ -104,17 +99,12 @@ public class FileLoader {
 			    coords[i] = Double.parseDouble(coordsStr[i]);
 			}
 			points[lineNum] = new Point3D(coords[0], coords[1], coords[2]);
-			//vertexes[lineNum] = new Vertex3D(points[lineNum]);
 			lineNum++;
 		    }
 		    break;
 		// polygons vertex indexes
 		case POLYGONS_PARAM:
 		    int poliesNum= Integer.parseInt(words[1]);
-		    /*indexes = new int[poliesNum][];
-		    fillColors = new Color[poliesNum];
-		    borderColors = new Color[poliesNum];
-		    polyAttribs = new int[poliesNum];*/
 		    polies = new Polygon3DInds[poliesNum];
 		    lineNum = 0;
 		    while (lineNum < poliesNum) {
@@ -139,25 +129,18 @@ public class FileLoader {
 			if (indsStrSize > indsNum + 1) {
 			    fillColor = new Color(Integer.parseInt(indsStr[indsNum + 1], 16));
 			}
-			//fillColors[lineNum] = fillColor;
 			// border color
 			Color borderColor = Color.BLACK;
 			if (indsStrSize > indsNum + 2) {
 			    borderColor = new Color(Integer.parseInt(indsStr[indsNum + 2], 16));
 			}
-			//borderColors[lineNum] = borderColor;
 			// attributes
 			int attr = 0;
 			if (indsStrSize > indsNum + 3) {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
-			//polyAttribs[lineNum] = attr;
-                        /*Vertex3D[] copy = new Vertex3D[vertexes.length];
-                        for (int i = 0; i < vertexes.length; i++) {
-                            copy[i] = new Vertex3D(vertexes[i].getPosition().getCopy());
-                        }*/
-                        //Vertex3D[] copy = Arrays.copyOf(vertexes, vertexes.length);
-			polies[lineNum] = new Polygon3DInds(indexes, fillColor/*, fillColor*/, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(indexes, fillColor, borderColor, attr);
+//                        polies[lineNum].resetNormal(points);
 			lineNum++;
 		    }
 		    break;
@@ -167,10 +150,7 @@ public class FileLoader {
 	    }
 	}
 	reader.close();
-	//
-	/*for (Polygon3DInds poly : polies) {
-	    poly.setVertexes(vertexes);
-	}*/
+        //
 	Solid3D res = new Solid3D(name, attribs, points, polies);
 	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
 	res.updateAngles(angles.getX(), angles.getY(), angles.getZ());

@@ -249,6 +249,40 @@ public class Solid3D {
     }
     
     /////////////////////////////////////////////////////////
+    // 
+    // Polygons normals need to be updated
+    public void computeVertexesNormal() {
+        int[] touchVertex = new int[vertexes.length];
+        for (Polygon3DInds poly : polygons) {
+            // if (shadeMode != ShadeModes.Gourad)
+            if (poly.getType() == Polygon3D.Types.POINT
+                    || poly.getType() == Polygon3D.Types.LINE) return;
+            
+            int i0 = poly.getIndexes()[0];
+            int i1 = poly.getIndexes()[1];
+            int i2 = poly.getIndexes()[2];
+            
+            touchVertex[i0]++;
+            touchVertex[i1]++;
+            touchVertex[i2]++;
+            
+            // poly.getNormal() - need to be updated
+            Vector3D n = poly.getNormal();
+            vertexes[i0].getNormal().add(n);
+            vertexes[i1].getNormal().add(n);
+            vertexes[i2].getNormal().add(n);
+        }
+        
+        for (int i = 0; i < vertexes.length; i++) {
+            if (touchVertex[i] >= 1) {
+                double inv = 1 / touchVertex[i];
+                vertexes[i].getNormal().mul(inv);
+                vertexes[i].getNormal().normalize();
+            }
+        }
+    }
+    
+    /////////////////////////////////////////////////////////
     // reset
     // points - in world coord's
     public void redefinePolygonsParams(Point3D[] points, Point3D camPos, boolean isNeedDefineBackfaces) {

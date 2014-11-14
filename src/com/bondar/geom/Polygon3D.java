@@ -27,12 +27,9 @@ public abstract class Polygon3D {
     protected States state;
     protected Types type;
     protected int attributes;
-    //private Vertex3D[] vertexes;
     protected int size;
-    protected Color color;
+    protected Color[] color;    // source/shade flat color[0], or verts gourad colors
     protected Color borderColor;
-    //protected Color shadeColor;
-    //protected Color[] shadeVertsColors;
     //protected Bitmap texture;
     protected int materialId;
     protected Vector3D normal;
@@ -40,16 +37,15 @@ public abstract class Polygon3D {
     protected double averageZ;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(int size, Color src, /*Color shade,*/ Color border, int attr) {
-	//this.vertexes = Arrays.copyOf(verts, verts.length);
+    public Polygon3D(int size, Color src, Color border, int attr) {
 	this.size = size;
-	this.color = src;
-//	this.shadeColor = shade;
+//	this.color = src;
+        this.color = new Color[size];
+        color[0] = src;
         this.borderColor = border;
 	this.attributes = attr;
 	this.state = States.VISIBLE;
         this.type = type(size);
-	//shadeVertsColors = null;
         this.normal = new Vector3D();
     }
    
@@ -63,39 +59,7 @@ public abstract class Polygon3D {
 	}
     }
     
-    //
-    /*public boolean isPointInHalfspace(Vertex3D verts, Point3D p) {
-	if (verts == null || p == null
-		|| type == Types.LINE
-		|| type == Types.POINT) return false;
-	// build poly normal
-	Vector3D n = normal(
-                poly.getVertexPosition(0), 
-                poly.getVertexPosition(1), 
-                poly.getVertexPosition(2));
-	// build vector from poly to target point
-	Vector3D v = new Vector3D(poly.getVertexPosition(1), p);
-	// scalar multiply
-	double res = Vector3D.dot(n, v);
-	return (res > 0.0);
-    }*/
-    
-    /*public static boolean isPointInHalfspace(Polygon3D poly, Point3D p) {
-	if (poly == null || p == null
-		|| poly.getType() == Types.LINE
-		|| poly.getType() == Types.POINT) return false;
-	// build poly normal
-	Vector3D n = normal(
-                poly.getVertexPosition(0), 
-                poly.getVertexPosition(1), 
-                poly.getVertexPosition(2));
-	// build vector from poly to target point
-	Vector3D v = new Vector3D(poly.getVertexPosition(1), p);
-	// scalar multiply
-	double res = Vector3D.dot(n, v);
-	return (res > 0.0);
-    }*/
-
+    /////////////////////////////////////////////////////////
     public static final Vector3D normal(Point3D v0, Point3D v1, Point3D v2) {
 	Vector3D u = new Vector3D(v0, v1);
 	Vector3D v = new Vector3D(v0, v2);
@@ -112,11 +76,12 @@ public abstract class Polygon3D {
 	attributes &= ~attr;
     }     
 
-//    public void setShadeColor(Color col) {
-//	this.shadeColor = col;
-//    }
     public void setColor(Color col) {
-	this.color = col;
+	this.color[0] = col;
+    }
+    
+    public void setColor(Color col, int i) {
+	this.color[i] = col;
     }
     
     public void setState(States state) {
@@ -150,16 +115,12 @@ public abstract class Polygon3D {
     }
 
     public Color getColor() {
-        return color;
+        return color[0];
     }
 
-//    public Color getShadeColor() {
-//        return shadeColor;
-//    }
-
-    /*public Color[] getShadeVertsColors() {
-        return shadeVertsColors;
-    }*/
+    public Color getColor(int i) {
+        return color[i];
+    }
 
     public int getMaterialId() {
         return materialId;

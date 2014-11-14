@@ -23,8 +23,8 @@ public class ClipRectangle2D {
     public final static int CODE_NW = 0x0009;
     public final static int CODE_SW = 0x0005;
         
-    private int xMin, xMax, yMin, yMax;
-    private int width, height;
+    private final int xMin, xMax, yMin, yMax;
+    private final int width, height;
 
  
     public ClipRectangle2D(int xmin, int ymin, int xmax, int ymax) {

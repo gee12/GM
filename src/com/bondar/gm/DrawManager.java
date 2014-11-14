@@ -50,7 +50,7 @@ public class DrawManager {
         imageGraphic = image.createGraphics();
         raster = image.getRaster();
         curColor = Color.BLACK;
-        final int TONE = 20;
+        final int TONE = 10;
         backColor = new Color(TONE,TONE,TONE);
         // init crosshair 
         Point2D cx = new Point2D(width/2,height/2);//getScreenCenter());
@@ -67,7 +67,7 @@ public class DrawManager {
         fillRectangle(new Rectangle(0,0,
                 width,height/2), Color.DARK_GRAY);
         fillRectangle(new Rectangle(0,height/2,
-                width,height/2), Color.BLACK);
+                width,height/2), backColor);
         //
 	switch (viewType) {
 	    case GM.RADIO_FACES_TEXT:
@@ -108,25 +108,25 @@ public class DrawManager {
         
     public void drawPoint(Point3D p) {
 	if (p == null) return;
-        setPixel(p.getX(), p.getY(), curColor);
+        drawPoint(p.getX(), p.getY(), curColor);
     }
 
     public void drawPoint(Point3D p, Color col) {
 	if (p == null) return;
-	setPixel(p.getX(), p.getY(), col);
+	drawPoint(p.getX(), p.getY(), col);
     }
 
-    public void setPixel(double x, double y, Color col) {
+    public void drawPoint(double x, double y, Color col) {
         setPixel(Mathem.toInt(x), Mathem.toInt(y), col);
     }
    
-    public void setNoClipPixel(int x, int y, Color col) {
+    public void drawNoClipPoint(int x, int y, Color col) {
         if (col == null) return;
 	image.setRGB(x, y, col.getRGB());	    
     }    
-    public void setPixel(int x, int y, Color col, boolean isNeedClip) {
+    public void drawPoint(int x, int y, Color col, boolean isNeedClip) {
         if (isNeedClip) setPixel(x, y, col);
-        else setNoClipPixel(x, y, col);
+        else drawNoClipPoint(x, y, col);
     }    
 
     public void setPixel(int x, int y, Color col) {
@@ -218,7 +218,7 @@ public class DrawManager {
             // draw the line
             for (int index = 0; index <= dx; index++) {
                 // set the pixel
-                 setPixel(x, y, col, isNeedClip);
+                 drawPoint(x, y, col, isNeedClip);
                 // test if error has overflowed
                 if (error >= 0) {
                     error -= dx2;
@@ -237,7 +237,7 @@ public class DrawManager {
             // draw the line
             for (int index = 0; index <= dy; index++) {
                 // set the pixel
-                setPixel(x, y, col, isNeedClip);
+                drawPoint(x, y, col, isNeedClip);
                 if (error >= 0) {
                     error -= dy2;
                     x += x_inc;
@@ -300,7 +300,7 @@ public class DrawManager {
     }
     
     /////////////////////////////////////////////////////
-    // this function draws a triangle that has a flat bottom
+    // Draw a triangle that has a flat bottom
     public void drawBottomTriangle2D(double x1, double y1, double x2, double y2, 
                          double x3, double y3, Color col) {
         int iy1 = 0, iy3 = 0;
@@ -520,6 +520,849 @@ public class DrawManager {
     }
     
 
+    /////////////////////////////////////////////////////
+    // this function draws a gouraud shaded polygon, based on the affine texture mapper, instead
+    // of interpolating the texture coordinates, we simply interpolate the (R,G,B) values across
+    // the polygons, I simply needed at another interpolant, I have mapped u->red, v->green, w->blue
+    // note that this is the 8-bit version, and I have decided to throw caution at the wind and see
+    // what happens if we do a full RGB interpolation and then at the last minute use the color lookup
+    // to find the appropriate color
+    public void drawGouraudTriangle2D(Vertex3D vert0, Color col0,
+            Vertex3D vert1, Color col1,
+            Vertex3D vert2, Color col2) {
+        if (vert0 == null || col0 == null
+                || vert1 == null || col1 == null
+                || vert2 == null || col2 == null) return;
+        
+        final int TRI_TYPE_NONE = 0;
+        final int TRI_TYPE_FLAT_TOP = 1;
+        final int TRI_TYPE_FLAT_BOTTOM = 2;
+        final int TRI_TYPE_FLAT_MASK = 3;
+        final int TRI_TYPE_GENERAL = 4;
+        final int INTERP_LHS = 0;
+        final int INTERP_RHS  = 1;
+        
+        final int FIXP16_SHIFT = 16;
+//        final int FIXP16_MAG      = 65536;
+//        final int FIXP16_DP_MASK  = 0x0000ffff;
+//        final int FIXP16_WP_MASK  = 0xffff0000;
+        final int FIXP16_ROUND_UP = 0x00008000;  
+        
+        Point3D p0 = vert0.getPosition(),
+                p1 = vert1.getPosition(),
+                p2 = vert2.getPosition();
+        
+        int v0 = 0,
+                v1 = 1,
+                v2 = 2,
+                temp = 0,
+                type = TRI_TYPE_NONE,
+                iRestart = INTERP_LHS;
+
+        int dx, dy, dyl, dyr, // general deltas
+                u, v, w,
+                du, dv, dw,
+                xi, yi, // the current interpolated x,y
+                ui, vi, wi, // the current interpolated u,v
+                index_x, index_y, // looping vars
+                x, y, // hold general x,y
+                xStart,
+                xEnd,
+                yStart,
+                yRestart,
+                yend,
+                xl,
+                dxdyl,
+                xr,
+                dxdyr,
+                dudyl,
+                ul,
+                dvdyl,
+                vl,
+                dwdyl,
+                wl,
+                dudyr,
+                ur,
+                dvdyr,
+                vr,
+                dwdyr,
+                wr;
+
+        int x0, y0, tu0, tv0, tw0, // cached vertices
+                x1, y1, tu1, tv1, tw1,
+                x2, y2, tu2, tv2, tw2;
+
+        int rBase0, gBase0, bBase0,
+                rBase1, gBase1, bBase1,
+                rBase2, gBase2, bBase2;
+//UCHAR  *screen_ptr  = NULL,
+//	   *screen_line = NULL,
+//	   *textmap     = NULL;
+
+// first trivial clipping rejection tests 
+        if (((p0.getY() < clip.getYMin())
+                && (p1.getY() < clip.getYMin())
+                && (p2.getY() < clip.getYMin()))
+                || ((p0.getY() > clip.getYMax())
+                && (p1.getY() > clip.getYMax())
+                && (p2.getY() > clip.getYMax()))
+                || ((p0.getX() < clip.getXMin())
+                && (p1.getX() < clip.getXMin())
+                && (p2.getX() < clip.getXMin()))
+                || ((p0.getX() > clip.getXMax())
+                && (p1.getX() > clip.getXMax())
+                && (p2.getX() > clip.getXMax()))) {
+            return;
+        }
+
+// degenerate triangle
+        if (((p0.getX() == p1.getX()) && (p1.getX() == p2.getX()))
+                || ((p0.getY() == p1.getY()) && (p1.getY() == p2.getY()))) {
+            return;
+        }
+
+// sort vertices
+        if (p1.getY() < p0.getY()) {
+//            SWAP(v0, v1, temp);
+            v0 = Mathem.returnFirst(v1, v1 = v0);
+        }
+        if (p2.getY() < p0.getY()) {
+//            SWAP(v0, v2, temp);
+            v0 = Mathem.returnFirst(v2, v2 = v0);
+        }
+        if (p2.getY() < p1.getY()) {
+//            SWAP(v1, v2, temp);
+            v1 = Mathem.returnFirst(v2, v2 = v1);
+        }
+
+// now test for trivial flat sided cases
+        if (p0.getY() == p1.getY()) {
+            type = TRI_TYPE_FLAT_TOP;
+            if (p1.getX() < p0.getX()) {
+//		{SWAP(v0,v1,temp);}
+                v0 = Mathem.returnFirst(v1, v1 = v0);
+            }
+        } else // now test for trivial flat sided cases
+        if (p1.getY() == p2.getY()) {
+            type = TRI_TYPE_FLAT_BOTTOM;
+            if (p2.getX() < p1.getX()) {
+//		{SWAP(v1,v2,temp);}
+                v1 = Mathem.returnFirst(v2, v2 = v1);
+            }
+        } else {
+            type = TRI_TYPE_GENERAL;
+        }
+
+//_RGB565FROM16BIT(face->lit_color[v0], &r_base0, &g_base0, &b_base0);
+//_RGB565FROM16BIT(face->lit_color[v1], &r_base1, &g_base1, &b_base1);
+//_RGB565FROM16BIT(face->lit_color[v2], &r_base2, &g_base2, &b_base2);
+//// scale to 8 bit 
+//rBase0 <<= 3;
+//gBase0 <<= 2;
+//bBase0 <<= 3;
+//// scale to 8 bit 
+//rBase1 <<= 3;
+//gBase1 <<= 2;
+//bBase1 <<= 3;
+//// scale to 8 bit 
+//rBase2 <<= 3;
+//gBase2 <<= 2;
+//bBase2 <<= 3;
+        rBase0 = col0.getRed();
+        gBase0 = col0.getGreen();
+        bBase0 = col0.getBlue();
+
+        rBase1 = col1.getRed();
+        gBase1 = col1.getGreen();
+        bBase1 = col1.getBlue();
+
+        rBase2 = col2.getRed();
+        gBase2 = col2.getGreen();
+        bBase2 = col2.getBlue();
+
+        // extract vertices for processing, now that we have order
+//        x0  = (int)(p0.getX()+0.5);
+//        y0  = (int)(p0.getY()+0.5);
+        x0 = Mathem.toInt(p0.getX());
+        y0 = Mathem.toInt(p0.getY());
+
+        tu0 = rBase0;
+        tv0 = gBase0;
+        tw0 = bBase0;
+
+//        x1  = (int)(p1.getX()+0.5);
+//        y1  = (int)(p1.getY()+0.5);
+        x1 = Mathem.toInt(p1.getX());
+        y1 = Mathem.toInt(p1.getY());
+
+        tu1 = rBase1;
+        tv1 = gBase1;
+        tw1 = bBase1;
+
+//        x2  = (int)(p2.getX()+0.5);
+//        y2  = (int)(p2.getY()+0.5);
+        x2 = Mathem.toInt(p2.getX());
+        y2 = Mathem.toInt(p2.getY());
+
+        tu2 = rBase2;
+        tv2 = gBase2;
+        tw2 = bBase2;
+
+// set interpolation restart value
+        yRestart = y1;
+// what kind of triangle
+        if ((type & TRI_TYPE_FLAT_MASK) > 0) {
+            if (type == TRI_TYPE_FLAT_TOP) {
+                // compute all deltas
+                dy = (y2 - y0);
+
+                dxdyl = ((x2 - x0) << FIXP16_SHIFT) / dy;
+                dudyl = ((tu2 - tu0) << FIXP16_SHIFT) / dy;
+                dvdyl = ((tv2 - tv0) << FIXP16_SHIFT) / dy;
+                dwdyl = ((tw2 - tw0) << FIXP16_SHIFT) / dy;
+
+                dxdyr = ((x2 - x1) << FIXP16_SHIFT) / dy;
+                dudyr = ((tu2 - tu1) << FIXP16_SHIFT) / dy;
+                dvdyr = ((tv2 - tv1) << FIXP16_SHIFT) / dy;
+                dwdyr = ((tw2 - tw1) << FIXP16_SHIFT) / dy;
+
+                // test for y clipping
+                if (y0 < clip.getYMin()) {
+                    // compute overclip
+                    dy = (clip.getYMin() - y0);
+
+                    // computer new LHS starting values
+                    xl = dxdyl * dy + (x0 << FIXP16_SHIFT);
+                    ul = dudyl * dy + (tu0 << FIXP16_SHIFT);
+                    vl = dvdyl * dy + (tv0 << FIXP16_SHIFT);
+                    wl = dwdyl * dy + (tw0 << FIXP16_SHIFT);
+
+                    // compute new RHS starting values
+                    xr = dxdyr * dy + (x1 << FIXP16_SHIFT);
+                    ur = dudyr * dy + (tu1 << FIXP16_SHIFT);
+                    vr = dvdyr * dy + (tv1 << FIXP16_SHIFT);
+                    wr = dwdyr * dy + (tw1 << FIXP16_SHIFT);
+
+                    // compute new starting y
+                    yStart = clip.getYMin();
+
+                } else {
+		// no clipping
+                    // set starting values
+                    xl = (x0 << FIXP16_SHIFT);
+                    xr = (x1 << FIXP16_SHIFT);
+
+                    ul = (tu0 << FIXP16_SHIFT);
+                    vl = (tv0 << FIXP16_SHIFT);
+                    wl = (tw0 << FIXP16_SHIFT);
+
+                    ur = (tu1 << FIXP16_SHIFT);
+                    vr = (tv1 << FIXP16_SHIFT);
+                    wr = (tw1 << FIXP16_SHIFT);
+
+                    // set starting y
+                    yStart = y0;
+                }
+            } else {
+	// must be flat bottom
+
+                // compute all deltas
+                dy = (y1 - y0);
+
+                dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dy;
+                dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dy;
+                dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dy;
+                dwdyl = ((tw1 - tw0) << FIXP16_SHIFT) / dy;
+
+                dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dy;
+                dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dy;
+                dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dy;
+                dwdyr = ((tw2 - tw0) << FIXP16_SHIFT) / dy;
+
+                // test for y clipping
+                if (y0 < clip.getYMin()) {
+                    // compute overclip
+                    dy = (clip.getYMin() - y0);
+
+                    // computer new LHS starting values
+                    xl = dxdyl * dy + (x0 << FIXP16_SHIFT);
+                    ul = dudyl * dy + (tu0 << FIXP16_SHIFT);
+                    vl = dvdyl * dy + (tv0 << FIXP16_SHIFT);
+                    wl = dwdyl * dy + (tw0 << FIXP16_SHIFT);
+
+                    // compute new RHS starting values
+                    xr = dxdyr * dy + (x0 << FIXP16_SHIFT);
+                    ur = dudyr * dy + (tu0 << FIXP16_SHIFT);
+                    vr = dvdyr * dy + (tv0 << FIXP16_SHIFT);
+                    wr = dwdyr * dy + (tw0 << FIXP16_SHIFT);
+
+                    // compute new starting y
+                    yStart = clip.getYMin();
+                } else {
+		// no clipping
+                    // set starting values
+                    xl = (x0 << FIXP16_SHIFT);
+                    xr = (x0 << FIXP16_SHIFT);
+
+                    ul = (tu0 << FIXP16_SHIFT);
+                    vl = (tv0 << FIXP16_SHIFT);
+                    wl = (tw0 << FIXP16_SHIFT);
+
+                    ur = (tu0 << FIXP16_SHIFT);
+                    vr = (tv0 << FIXP16_SHIFT);
+                    wr = (tw0 << FIXP16_SHIFT);
+
+                    // set starting y
+                    yStart = y0;
+                }
+            }
+            // test for bottom clip, always
+            if ((yend = y2) > clip.getYMax()) {
+                yend = clip.getYMax();
+            }
+            // test for horizontal clipping
+            if ((x0 < clip.getXMin()) || (x0 > clip.getXMax())
+                    || (x1 < clip.getXMin()) || (x1 > clip.getXMax())
+                    || (x2 < clip.getXMin()) || (x2 > clip.getXMax())) {
+    // clip version
+
+	// point screen ptr to starting line
+//	screen_ptr = dest_buffer + (yStart * mem_pitch);
+                for (yi = yStart; yi <= yend; yi++) {
+                    // compute span endpoints
+                    xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+                    xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+                    // compute starting points for u,v,w interpolants
+                    ui = ul + FIXP16_ROUND_UP;
+                    vi = vl + FIXP16_ROUND_UP;
+                    wi = wl + FIXP16_ROUND_UP;
+
+                    // compute u,v interpolants
+                    if ((dx = (xEnd - xStart)) > 0) {
+                        du = (ur - ul) / dx;
+                        dv = (vr - vl) / dx;
+                        dw = (wr - wl) / dx;
+                    } else {
+                        du = (ur - ul);
+                        dv = (vr - vl);
+                        dw = (wr - wl);
+                    }
+
+		///////////////////////////////////////////////////////////////////////
+                    // test for x clipping, LHS
+                    if (xStart < clip.getXMin()) {
+                        // compute x overlap
+                        dx = clip.getXMin() - xStart;
+
+                        // slide interpolants over
+                        ui += dx * du;
+                        vi += dx * dv;
+                        wi += dx * dw;
+
+                        // reset vars
+                        xStart = clip.getXMin();
+
+                    }
+                    // test for x clipping RHS
+                    if (xEnd > clip.getXMax()) {
+                        xEnd = clip.getXMax();
+                    }
+
+		///////////////////////////////////////////////////////////////////////
+                    // draw span
+                    for (xi = xStart; xi <= xEnd; xi++) {
+                        // write textel assume 5.6.5
+//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
+//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
+//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+
+                        // interpolate u,v
+                        ui += du;
+                        vi += dv;
+                        wi += dw;
+                    }
+
+                    // interpolate u,v,w,x along right and left edge
+                    xl += dxdyl;
+                    ul += dudyl;
+                    vl += dvdyl;
+                    wl += dwdyl;
+
+                    xr += dxdyr;
+                    ur += dudyr;
+                    vr += dvdyr;
+                    wr += dwdyr;
+
+		// advance screen ptr
+//		screen_ptr+=mem_pitch;
+                }
+
+            }
+            else {
+	// non-clip version
+
+	// point screen ptr to starting line
+//	screen_ptr = dest_buffer + (yStart * mem_pitch);
+                for (yi = yStart; yi <= yend; yi++) {
+                    // compute span endpoints
+                    xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+                    xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+                    // compute starting points for u,v,w interpolants
+                    ui = ul + FIXP16_ROUND_UP;
+                    vi = vl + FIXP16_ROUND_UP;
+                    wi = wl + FIXP16_ROUND_UP;
+
+                    // compute u,v interpolants
+                    if ((dx = (xEnd - xStart)) > 0) {
+                        du = (ur - ul) / dx;
+                        dv = (vr - vl) / dx;
+                        dw = (wr - wl) / dx;
+                    }
+                    else {
+                        du = (ur - ul);
+                        dv = (vr - vl);
+                        dw = (wr - wl);
+                    }
+
+                    // draw span
+                    for (xi = xStart; xi <= xEnd; xi++) {
+                        // write textel 5.6.5
+//            screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
+//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
+//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        // interpolate u,v
+                        ui += du;
+                        vi += dv;
+                        wi += dw;
+                    }
+
+                    // interpolate u,v,w,x along right and left edge
+                    xl += dxdyl;
+                    ul += dudyl;
+                    vl += dvdyl;
+                    wl += dwdyl;
+
+                    xr += dxdyr;
+                    ur += dudyr;
+                    vr += dvdyr;
+                    wr += dwdyr;
+		// advance screen ptr
+//		screen_ptr+=mem_pitch;
+                }
+            }
+        }
+        else if (type == TRI_TYPE_GENERAL) {
+
+            // first test for bottom clip, always
+            if ((yend = y2) > clip.getYMax()) {
+                yend = clip.getYMax();
+            }
+
+            // pre-test y clipping status
+            if (y1 < clip.getYMin()) {
+		// compute all deltas
+                // LHS
+                dyl = (y2 - y1);
+
+                dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+                dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+                dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+                dwdyl = ((tw2 - tw1) << FIXP16_SHIFT) / dyl;
+
+                // RHS
+                dyr = (y2 - y0);
+
+                dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+                dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+                dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+                dwdyr = ((tw2 - tw0) << FIXP16_SHIFT) / dyr;
+
+                // compute overclip
+                dyr = (clip.getYMin() - y0);
+                dyl = (clip.getYMin() - y1);
+
+                // computer new LHS starting values
+                xl = dxdyl * dyl + (x1 << FIXP16_SHIFT);
+
+                ul = dudyl * dyl + (tu1 << FIXP16_SHIFT);
+                vl = dvdyl * dyl + (tv1 << FIXP16_SHIFT);
+                wl = dwdyl * dyl + (tw1 << FIXP16_SHIFT);
+
+                // compute new RHS starting values
+                xr = dxdyr * dyr + (x0 << FIXP16_SHIFT);
+
+                ur = dudyr * dyr + (tu0 << FIXP16_SHIFT);
+                vr = dvdyr * dyr + (tv0 << FIXP16_SHIFT);
+                wr = dwdyr * dyr + (tw0 << FIXP16_SHIFT);
+
+                // compute new starting y
+                yStart = clip.getYMin();
+
+                // test if we need swap to keep rendering left to right
+                if (dxdyr > dxdyl) {
+                    dxdyl = Mathem.returnFirst(dxdyr, dxdyr = dxdyl);
+                    dudyl = Mathem.returnFirst(dudyr, dudyr = dudyl);
+                    dvdyl = Mathem.returnFirst(dvdyr, dvdyr = dvdyl);
+                    dwdyl = Mathem.returnFirst(dwdyr, dwdyr = dwdyl);
+                    xl = Mathem.returnFirst(xr, xr = xl);
+                    ul = Mathem.returnFirst(ur, ur = ul);
+                    vl = Mathem.returnFirst(vr, vr = vl);
+                    wl = Mathem.returnFirst(wr, wr = wl);
+                    x1 = Mathem.returnFirst(x2, x2 = x1);
+                    y1 = Mathem.returnFirst(y2, y2 = y1);
+                    tu1 = Mathem.returnFirst(tu2, tu2 = tu1);
+                    tv1 = Mathem.returnFirst(tv2, tv2 = tv1);
+                    tw1 = Mathem.returnFirst(tw2, tw2 = tw1);
+
+                    // set interpolation restart
+                    iRestart = INTERP_RHS;
+                }
+            }
+            else if (y0 < clip.getYMin()) {
+		// compute all deltas
+                // LHS
+                dyl = (y1 - y0);
+
+                dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
+                dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
+                dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
+                dwdyl = ((tw1 - tw0) << FIXP16_SHIFT) / dyl;
+
+                // RHS
+                dyr = (y2 - y0);
+
+                dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+                dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+                dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+                dwdyr = ((tw2 - tw0) << FIXP16_SHIFT) / dyr;
+
+                // compute overclip
+                dy = (clip.getYMin() - y0);
+
+                // computer new LHS starting values
+                xl = dxdyl * dy + (x0 << FIXP16_SHIFT);
+                ul = dudyl * dy + (tu0 << FIXP16_SHIFT);
+                vl = dvdyl * dy + (tv0 << FIXP16_SHIFT);
+                wl = dwdyl * dy + (tw0 << FIXP16_SHIFT);
+
+                // compute new RHS starting values
+                xr = dxdyr * dy + (x0 << FIXP16_SHIFT);
+                ur = dudyr * dy + (tu0 << FIXP16_SHIFT);
+                vr = dvdyr * dy + (tv0 << FIXP16_SHIFT);
+                wr = dwdyr * dy + (tw0 << FIXP16_SHIFT);
+
+                // compute new starting y
+                yStart = clip.getYMin();
+
+                // test if we need swap to keep rendering left to right
+                if (dxdyr < dxdyl) {
+                    dxdyl = Mathem.returnFirst(dxdyr, dxdyr = dxdyl);
+                    dudyl = Mathem.returnFirst(dudyr, dudyr = dudyl);
+                    dvdyl = Mathem.returnFirst(dvdyr, dvdyr = dvdyl);
+                    dwdyl = Mathem.returnFirst(dwdyr, dwdyr = dwdyl);
+                    xl = Mathem.returnFirst(xr, xr = xl);
+                    ul = Mathem.returnFirst(ur, ur = ul);
+                    vl = Mathem.returnFirst(vr, vr = vl);
+                    wl = Mathem.returnFirst(wr, wr = wl);
+                    x1 = Mathem.returnFirst(x2, x2 = x1);
+                    y1 = Mathem.returnFirst(y2, y2 = y1);
+                    tu1 = Mathem.returnFirst(tu2, tu2 = tu1);
+                    tv1 = Mathem.returnFirst(tv2, tv2 = tv1);
+                    tw1 = Mathem.returnFirst(tw2, tw2 = tw1);
+
+                    // set interpolation restart
+                    iRestart = INTERP_RHS;
+                }
+            } else {
+		// no initial y clipping
+
+		// compute all deltas
+                // LHS
+                dyl = (y1 - y0);
+
+                dxdyl = ((x1 - x0) << FIXP16_SHIFT) / dyl;
+                dudyl = ((tu1 - tu0) << FIXP16_SHIFT) / dyl;
+                dvdyl = ((tv1 - tv0) << FIXP16_SHIFT) / dyl;
+                dwdyl = ((tw1 - tw0) << FIXP16_SHIFT) / dyl;
+
+                // RHS
+                dyr = (y2 - y0);
+
+                dxdyr = ((x2 - x0) << FIXP16_SHIFT) / dyr;
+                dudyr = ((tu2 - tu0) << FIXP16_SHIFT) / dyr;
+                dvdyr = ((tv2 - tv0) << FIXP16_SHIFT) / dyr;
+                dwdyr = ((tw2 - tw0) << FIXP16_SHIFT) / dyr;
+
+		// no clipping y
+                // set starting values
+                xl = (x0 << FIXP16_SHIFT);
+                xr = (x0 << FIXP16_SHIFT);
+
+                ul = (tu0 << FIXP16_SHIFT);
+                vl = (tv0 << FIXP16_SHIFT);
+                wl = (tw0 << FIXP16_SHIFT);
+
+                ur = (tu0 << FIXP16_SHIFT);
+                vr = (tv0 << FIXP16_SHIFT);
+                wr = (tw0 << FIXP16_SHIFT);
+
+                // set starting y
+                yStart = y0;
+
+                // test if we need swap to keep rendering left to right
+                if (dxdyr < dxdyl) {
+                    dxdyl = Mathem.returnFirst(dxdyr, dxdyr = dxdyl);
+                    dudyl = Mathem.returnFirst(dudyr, dudyr = dudyl);
+                    dvdyl = Mathem.returnFirst(dvdyr, dvdyr = dvdyl);
+                    dwdyl = Mathem.returnFirst(dwdyr, dwdyr = dwdyl);
+                    xl = Mathem.returnFirst(xr, xr = xl);
+                    ul = Mathem.returnFirst(ur, ur = ul);
+                    vl = Mathem.returnFirst(vr, vr = vl);
+                    wl = Mathem.returnFirst(wr, wr = wl);
+                    x1 = Mathem.returnFirst(x2, x2 = x1);
+                    y1 = Mathem.returnFirst(y2, y2 = y1);
+                    tu1 = Mathem.returnFirst(tu2, tu2 = tu1);
+                    tv1 = Mathem.returnFirst(tv2, tv2 = tv1);
+                    tw1 = Mathem.returnFirst(tw2, tw2 = tw1);
+                    // set interpolation restart
+                    iRestart = INTERP_RHS;
+                }
+            }
+            // test for horizontal clipping
+            if ((x0 < clip.getXMin()) || (x0 > clip.getXMax())
+                    || (x1 < clip.getXMin()) || (x1 > clip.getXMax())
+                    || (x2 < clip.getXMin()) || (x2 > clip.getXMax())) {
+    // clip version
+                // x clipping	
+
+	// point screen ptr to starting line
+//	screen_ptr = dest_buffer + (yStart * mem_pitch);
+                for (yi = yStart; yi <= yend; yi++) {
+                    // compute span endpoints
+                    xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+                    xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+                    // compute starting points for u,v,w interpolants
+                    ui = ul + FIXP16_ROUND_UP;
+                    vi = vl + FIXP16_ROUND_UP;
+                    wi = wl + FIXP16_ROUND_UP;
+
+                    // compute u,v interpolants
+                    if ((dx = (xEnd - xStart)) > 0) {
+                        du = (ur - ul) / dx;
+                        dv = (vr - vl) / dx;
+                        dw = (wr - wl) / dx;
+                    }
+                    else {
+                        du = (ur - ul);
+                        dv = (vr - vl);
+                        dw = (wr - wl);
+                    }
+
+		///////////////////////////////////////////////////////////////////////
+                    // test for x clipping, LHS
+                    if (xStart < clip.getXMin()) {
+                        // compute x overlap
+                        dx = clip.getXMin() - xStart;
+
+                        // slide interpolants over
+                        ui += dx * du;
+                        vi += dx * dv;
+                        wi += dx * dw;
+
+                        // set x to left clip edge
+                        xStart = clip.getXMin();
+
+                    }
+                    // test for x clipping RHS
+                    if (xEnd > clip.getXMax()) {
+                        xEnd = clip.getXMax();
+                    }
+
+		///////////////////////////////////////////////////////////////////////
+                    // draw span
+                    for (xi = xStart; xi <= xEnd; xi++) {
+                        // write textel assume 5.6.5
+//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
+//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
+//                                          (wi >> (FIXP16_SHIFT+3)) ) ];   
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        // interpolate u,v
+                        ui += du;
+                        vi += dv;
+                        wi += dw;
+                    }
+
+                    // interpolate u,v,w,x along right and left edge
+                    xl += dxdyl;
+                    ul += dudyl;
+                    vl += dvdyl;
+                    wl += dwdyl;
+
+                    xr += dxdyr;
+                    ur += dudyr;
+                    vr += dvdyr;
+                    wr += dwdyr;
+
+		// advance screen ptr
+//		screen_ptr+=mem_pitch;
+                    // test for yi hitting second region, if so change interpolant
+                    if (yi == yRestart) {
+                        // test interpolation side change flag
+                        if (iRestart == INTERP_LHS) {
+                            // LHS
+                            dyl = (y2 - y1);
+
+                            dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+                            dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+                            dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+                            dwdyl = ((tw2 - tw1) << FIXP16_SHIFT) / dyl;
+
+                            // set starting values
+                            xl = (x1 << FIXP16_SHIFT);
+                            ul = (tu1 << FIXP16_SHIFT);
+                            vl = (tv1 << FIXP16_SHIFT);
+                            wl = (tw1 << FIXP16_SHIFT);
+
+                            // interpolate down on LHS to even up
+                            xl += dxdyl;
+                            ul += dudyl;
+                            vl += dvdyl;
+                            wl += dwdyl;
+                        }
+                        else {
+                            // RHS
+                            dyr = (y1 - y2);
+
+                            dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
+                            dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
+                            dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
+                            dwdyr = ((tw1 - tw2) << FIXP16_SHIFT) / dyr;
+
+                            // set starting values
+                            xr = (x2 << FIXP16_SHIFT);
+                            ur = (tu2 << FIXP16_SHIFT);
+                            vr = (tv2 << FIXP16_SHIFT);
+                            wr = (tw2 << FIXP16_SHIFT);
+
+                            // interpolate down on RHS to even up
+                            xr += dxdyr;
+                            ur += dudyr;
+                            vr += dvdyr;
+                            wr += dwdyr;
+                        }
+                    }
+                }
+            }
+            else {
+	// no x clipping
+                // point screen ptr to starting line
+//	screen_ptr = dest_buffer + (yStart * mem_pitch);
+
+                for (yi = yStart; yi <= yend; yi++) {
+                    // compute span endpoints
+                    xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+                    xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
+
+                    // compute starting points for u,v,w interpolants
+                    ui = ul + FIXP16_ROUND_UP;
+                    vi = vl + FIXP16_ROUND_UP;
+                    wi = wl + FIXP16_ROUND_UP;
+
+                    // compute u,v interpolants
+                    if ((dx = (xEnd - xStart)) > 0) {
+                        du = (ur - ul) / dx;
+                        dv = (vr - vl) / dx;
+                        dw = (wr - wl) / dx;
+                    }
+                    else {
+                        du = (ur - ul);
+                        dv = (vr - vl);
+                        dw = (wr - wl);
+                    }
+
+                    // draw span
+                    for (xi = xStart; xi <= xEnd; xi++) {
+                        // write textel assume 5.6.5
+//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
+//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
+//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        // interpolate u,v
+                        ui += du;
+                        vi += dv;
+                        wi += dw;
+                    }
+
+                    // interpolate u,v,w,x along right and left edge
+                    xl += dxdyl;
+                    ul += dudyl;
+                    vl += dvdyl;
+                    wl += dwdyl;
+
+                    xr += dxdyr;
+                    ur += dudyr;
+                    vr += dvdyr;
+                    wr += dwdyr;
+
+		// advance screen ptr
+//		screen_ptr+=mem_pitch;
+                    // test for yi hitting second region, if so change interpolant
+                    if (yi == yRestart) {
+                        // test interpolation side change flag
+
+                        if (iRestart == INTERP_LHS) {
+                            // LHS
+                            dyl = (y2 - y1);
+
+                            dxdyl = ((x2 - x1) << FIXP16_SHIFT) / dyl;
+                            dudyl = ((tu2 - tu1) << FIXP16_SHIFT) / dyl;
+                            dvdyl = ((tv2 - tv1) << FIXP16_SHIFT) / dyl;
+                            dwdyl = ((tw2 - tw1) << FIXP16_SHIFT) / dyl;
+
+                            // set starting values
+                            xl = (x1 << FIXP16_SHIFT);
+                            ul = (tu1 << FIXP16_SHIFT);
+                            vl = (tv1 << FIXP16_SHIFT);
+                            wl = (tw1 << FIXP16_SHIFT);
+
+                            // interpolate down on LHS to even up
+                            xl += dxdyl;
+                            ul += dudyl;
+                            vl += dvdyl;
+                            wl += dwdyl;
+                        }
+                        else {
+                            // RHS
+                            dyr = (y1 - y2);
+
+                            dxdyr = ((x1 - x2) << FIXP16_SHIFT) / dyr;
+                            dudyr = ((tu1 - tu2) << FIXP16_SHIFT) / dyr;
+                            dvdyr = ((tv1 - tv2) << FIXP16_SHIFT) / dyr;
+                            dwdyr = ((tw1 - tw2) << FIXP16_SHIFT) / dyr;
+
+                            // set starting values
+                            xr = (x2 << FIXP16_SHIFT);
+                            ur = (tu2 << FIXP16_SHIFT);
+                            vr = (tv2 << FIXP16_SHIFT);
+                            wr = (tw2 << FIXP16_SHIFT);
+
+                            // interpolate down on RHS to even up
+                            xr += dxdyr;
+                            ur += dudyr;
+                            vr += dvdyr;
+                            wr += dwdyr;
+                        }
+                    }
+                }
+            }
+        }
+}
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     // DRAW POLYGONS
     

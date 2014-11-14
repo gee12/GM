@@ -115,6 +115,6 @@ public class Polygon3DVerts extends Polygon3D {
     }
     
     public Polygon3DVerts getCopy() {
-	return new Polygon3DVerts(vertexes, color, /*shadeColor, */borderColor, attributes);
+	return new Polygon3DVerts(vertexes, color[0], /*shadeColor, */borderColor, attributes);
     }
 }
