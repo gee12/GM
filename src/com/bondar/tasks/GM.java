@@ -51,24 +51,21 @@ public class GM extends Application implements OptionsPanelListener {
     public static final String RADIO_ROTATE_TEXT = "Поворот";
     public static final String RADIO_TRANSFER_TEXT = "Перемещение";
     public static final String RADIO_SCALE_TEXT = "Масштабирование";
-    public static final String GROUP_TITLE_PROJECTION_TEXT = "ПРОЕКЦИЯ:";
-    public static final String RADIO_ORTOGON_TEXT = "Ортогональная";
-    public static final String RADIO_CENTER_TEXT = "Центральная";
     public static final String GROUP_TITLE_CAMERA_TEXT = "КАМЕРА:";
     public static final String RADIO_CAMERA_EULER_TEXT = "Эйлера";
     public static final String RADIO_CAMERA_UVN_TEXT = "UVN";
     public static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
     public static final String RADIO_PAINTER_TEXT = "Алгритм художника";
     public static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
-    public static final String RADIO_Z_BUFFER_TEXT = "Z-Буффер";
     public static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
     public static final String RADIO_EDGES_TEXT = "Ребра";
     public static final String RADIO_FACES_TEXT = "Грани";
     public static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
     public static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
     public static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
-    public static final String RADIO_SHADE_FLAT_TEXT = "FLAT";
-    public static final String RADIO_SHADE_GOURAD_TEXT = "GOURAUD";
+    public static final String RADIO_SHADE_FLAT_TEXT = "Плоское";
+    public static final String RADIO_SHADE_GOURAD_TEXT = "Гуро";
+    public static final String RADIO_SHADE_FONG_TEXT = "Фонг";
 
     public static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
     
@@ -206,15 +203,11 @@ public class GM extends Application implements OptionsPanelListener {
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT, this);
 	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT, this);
 
-	//addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_CENTER_TEXT, this);
-	//addRadio(GROUP_TITLE_PROJECTION_TEXT, RADIO_ORTOGON_TEXT, this);
-
 	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_EULER_TEXT, this);
 	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_UVN_TEXT, this);
 
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT, this);
 	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT, this);
-	//addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_Z_BUFFER_TEXT, this);
 
 	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
 	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
@@ -225,6 +218,7 @@ public class GM extends Application implements OptionsPanelListener {
         addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_CONST_TEXT, this);
         addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FLAT_TEXT, this);
         addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_GOURAD_TEXT, this);
+        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FONG_TEXT, this);
     }
 
     /////////////////////////////////////////////////////////
@@ -305,6 +299,9 @@ public class GM extends Application implements OptionsPanelListener {
             case RADIO_SHADE_GOURAD_TEXT:
                 renderManager.setRenderArray(
                         shadeManager.gouradShade(renderManager.getRenderArray()));
+                break;
+            case RADIO_SHADE_FONG_TEXT:
+                
                 break;
         }
     }
@@ -669,6 +666,7 @@ public class GM extends Application implements OptionsPanelListener {
         
         g.drawScene(renderManager.getRenderArray(), 
                 getSelectedRadioText(GROUP_TITLE_VIEW_TEXT),
+                getSelectedRadioText(GROUP_TITLE_SHADE_TEXT),
                 crosshairColor);
     }
 

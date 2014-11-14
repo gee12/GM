@@ -5,6 +5,8 @@ package com.bondar.tools;
  * @author truebondar
  */
 public class Mathem {
+    public static final double EPSILON_E1 = 1e-1;
+    public static final double EPSILON_E3 = 1e-3;
     public static final double EPSILON_E5 = 1e-5;
     public static final double EPSILON_E6 = 1e-6;
     public static final double EPSILON_E7 = 1e-7;
@@ -34,6 +36,14 @@ public class Mathem {
     /////////////////////////////////////////////////////
     public static boolean isEquals5(double d1, double d2) {
         return ((Mathem.abs(d1 - d2) < Mathem.EPSILON_E5));
+    }
+    
+    public static boolean isEquals3(double d1, double d2) {
+        return ((Math.abs(d1 - d2) < Mathem.EPSILON_E3));
+    }
+    
+    public static boolean isEquals1(double d1, double d2) {
+        return ((Math.abs(d1 - d2) < Mathem.EPSILON_E1));
     }
     
     /////////////////////////////////////////////////////

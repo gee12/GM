@@ -28,7 +28,7 @@ public abstract class Polygon3D {
     protected Types type;
     protected int attributes;
     protected int size;
-    protected Color[] color;    // source/shade flat color[0], or verts gourad colors
+    protected Color[] colors;    // source/shade flat color[0], or verts gourad colors
     protected Color borderColor;
     //protected Bitmap texture;
     protected int materialId;
@@ -40,8 +40,10 @@ public abstract class Polygon3D {
     public Polygon3D(int size, Color src, Color border, int attr) {
 	this.size = size;
 //	this.color = src;
-        this.color = new Color[size];
-        color[0] = src;
+        this.colors = new Color[size];
+        colors[0] = src;
+//        colors[1] = src;
+//        colors[2] = src;
         this.borderColor = border;
 	this.attributes = attr;
 	this.state = States.VISIBLE;
@@ -77,11 +79,19 @@ public abstract class Polygon3D {
     }     
 
     public void setColor(Color col) {
-	this.color[0] = col;
+	this.colors[0] = col;
+    }
+
+    public void setColor(int r, int g, int b) {
+	this.colors[0] = new Color(r, g, b);
+    }
+        
+    public void setColor(Color col, int i) {
+	this.colors[i] = col;
     }
     
-    public void setColor(Color col, int i) {
-	this.color[i] = col;
+    public void setColor(int r, int g, int b, int i) {
+	this.colors[i] = new Color(r, g, b);
     }
     
     public void setState(States state) {
@@ -115,11 +125,15 @@ public abstract class Polygon3D {
     }
 
     public Color getColor() {
-        return color[0];
+        return colors[0];
+    }
+
+    public Color[] getColors() {
+        return colors;
     }
 
     public Color getColor(int i) {
-        return color[i];
+        return colors[i];
     }
 
     public int getMaterialId() {

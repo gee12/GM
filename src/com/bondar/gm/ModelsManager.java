@@ -70,6 +70,9 @@ public class ModelsManager {
         model.setVertexesPosition(transVerts);
         model.redefinePolygonsParams(transVerts, camera.getPosition(), isNeedDefineBackfaces);
         
+        //
+        model.computeVertexesNormal();
+        
 	// transferFull world vertexes to camera
 	transVerts = TransferManager.transToCamera(transVerts, camera);
 	

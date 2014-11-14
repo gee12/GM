@@ -62,7 +62,7 @@ public class DrawManager {
         CROSSHAIR[3] = new Point2D(cx.getX() + SIZE, cx.getY());
     }
     
-    public void drawScene(Polygon3DVerts[] polies, String viewType, Color crossCol) {
+    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, Color crossCol) {
         //
         fillRectangle(new Rectangle(0,0,
                 width,height/2), Color.DARK_GRAY);
@@ -71,13 +71,13 @@ public class DrawManager {
         //
 	switch (viewType) {
 	    case GM.RADIO_FACES_TEXT:
-		drawPolies(polies);
+		drawPolies(polies, shadeType);
 		break;
 	    case GM.RADIO_EDGES_TEXT:
 		drawBorders(polies);
 		break;
 	    case GM.RADIO_EDGES_FACES_TEXT:
-		drawBorderedPolies(polies);
+		drawBorderedPolies(polies, shadeType);
 		break;
 	}
         //
@@ -143,6 +143,11 @@ public class DrawManager {
 	drawLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
     
+    public void drawLine(Point3D p1, Point3D p2, Color col) {
+	if (p1 == null || p2 == null) return;
+	drawClipLine(p1.getX(), p1.getY(), p2.getX(), p2.getY(), col);
+    }
+        
     public void drawLine(Point2D p1, Point2D p2) {
 	if (p1 == null || p2 == null) return;
 	drawLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
@@ -527,12 +532,18 @@ public class DrawManager {
     // note that this is the 8-bit version, and I have decided to throw caution at the wind and see
     // what happens if we do a full RGB interpolation and then at the last minute use the color lookup
     // to find the appropriate color
-    public void drawGouraudTriangle2D(Vertex3D vert0, Color col0,
-            Vertex3D vert1, Color col1,
-            Vertex3D vert2, Color col2) {
-        if (vert0 == null || col0 == null
-                || vert1 == null || col1 == null
-                || vert2 == null || col2 == null) return;
+//    public void drawGouraudTriangle2D(Point3D p0, Color col0,
+//            Point3D p1, Color col1,
+//            Point3D p2, Color col2) {
+//        if (p0 == null || col0 == null
+//                || p1 == null || col1 == null
+//                || p2 == null || col2 == null) return;
+    public void drawGouraudTriangle2D(Vertex3D[] verts, Color[] colors) {
+        if (verts == null || colors == null
+            || colors[1] == null || colors[2] == null    
+                ) {
+            return;
+        }
         
         final int TRI_TYPE_NONE = 0;
         final int TRI_TYPE_FLAT_TOP = 1;
@@ -547,10 +558,6 @@ public class DrawManager {
 //        final int FIXP16_DP_MASK  = 0x0000ffff;
 //        final int FIXP16_WP_MASK  = 0xffff0000;
         final int FIXP16_ROUND_UP = 0x00008000;  
-        
-        Point3D p0 = vert0.getPosition(),
-                p1 = vert1.getPosition(),
-                p2 = vert2.getPosition();
         
         int v0 = 0,
                 v1 = 1,
@@ -600,58 +607,67 @@ public class DrawManager {
 //	   *textmap     = NULL;
 
 // first trivial clipping rejection tests 
-        if (((p0.getY() < clip.getYMin())
-                && (p1.getY() < clip.getYMin())
-                && (p2.getY() < clip.getYMin()))
-                || ((p0.getY() > clip.getYMax())
-                && (p1.getY() > clip.getYMax())
-                && (p2.getY() > clip.getYMax()))
-                || ((p0.getX() < clip.getXMin())
-                && (p1.getX() < clip.getXMin())
-                && (p2.getX() < clip.getXMin()))
-                || ((p0.getX() > clip.getXMax())
-                && (p1.getX() > clip.getXMax())
-                && (p2.getX() > clip.getXMax()))) {
+        if (((verts[0].getPosition().getY() < clip.getYMin())
+                && (verts[1].getPosition().getY() < clip.getYMin())
+                && (verts[2].getPosition().getY() < clip.getYMin()))
+                
+                || ((verts[0].getPosition().getY() > clip.getYMax())
+                && (verts[1].getPosition().getY() > clip.getYMax())
+                && (verts[2].getPosition().getY() > clip.getYMax()))
+                
+                || ((verts[0].getPosition().getX() < clip.getXMin())
+                && (verts[1].getPosition().getX() < clip.getXMin())
+                && (verts[2].getPosition().getX() < clip.getXMin()))
+                
+                || ((verts[0].getPosition().getX() > clip.getXMax())
+                && (verts[1].getPosition().getX() > clip.getXMax())
+                && (verts[2].getPosition().getX() > clip.getXMax()))) {
             return;
         }
 
-// degenerate triangle
-        if (((p0.getX() == p1.getX()) && (p1.getX() == p2.getX()))
-                || ((p0.getY() == p1.getY()) && (p1.getY() == p2.getY()))) {
+        // degenerate triangle
+        if (Mathem.isEquals1(verts[0].getPosition().getX(), verts[1].getPosition().getX()) 
+                && Mathem.isEquals1(verts[1].getPosition().getX(), verts[2].getPosition().getX())
+                || Mathem.isEquals1(verts[0].getPosition().getY(), verts[1].getPosition().getY()) 
+                && Mathem.isEquals1(verts[1].getPosition().getY(), verts[2].getPosition().getY())) {
             return;
         }
 
-// sort vertices
-        if (p1.getY() < p0.getY()) {
+        // sort vertices
+        if (verts[v1].getPosition().getY() < verts[v0].getPosition().getY()) {
 //            SWAP(v0, v1, temp);
             v0 = Mathem.returnFirst(v1, v1 = v0);
         }
-        if (p2.getY() < p0.getY()) {
+        if (verts[v2].getPosition().getY() < verts[v0].getPosition().getY()) {
 //            SWAP(v0, v2, temp);
             v0 = Mathem.returnFirst(v2, v2 = v0);
         }
-        if (p2.getY() < p1.getY()) {
+        if (verts[v2].getPosition().getY() < verts[v1].getPosition().getY()) {
 //            SWAP(v1, v2, temp);
             v1 = Mathem.returnFirst(v2, v2 = v1);
         }
 
 // now test for trivial flat sided cases
-        if (p0.getY() == p1.getY()) {
+        if (Mathem.isEquals1(verts[v0].getPosition().getY(), verts[v1].getPosition().getY())) {
             type = TRI_TYPE_FLAT_TOP;
-            if (p1.getX() < p0.getX()) {
+            if (verts[v1].getPosition().getX() < verts[v0].getPosition().getX()) {
 //		{SWAP(v0,v1,temp);}
                 v0 = Mathem.returnFirst(v1, v1 = v0);
             }
         } else // now test for trivial flat sided cases
-        if (p1.getY() == p2.getY()) {
+        if (Mathem.isEquals1(verts[v1].getPosition().getY(), verts[v2].getPosition().getY())) {
             type = TRI_TYPE_FLAT_BOTTOM;
-            if (p2.getX() < p1.getX()) {
+            if (verts[v2].getPosition().getX() < verts[v1].getPosition().getX()) {
 //		{SWAP(v1,v2,temp);}
                 v1 = Mathem.returnFirst(v2, v2 = v1);
             }
         } else {
             type = TRI_TYPE_GENERAL;
         }
+        
+        Point3D p0 = verts[v0].getPosition(),
+                p1 = verts[v1].getPosition(),
+                p2 = verts[v2].getPosition();
 
 //_RGB565FROM16BIT(face->lit_color[v0], &r_base0, &g_base0, &b_base0);
 //_RGB565FROM16BIT(face->lit_color[v1], &r_base1, &g_base1, &b_base1);
@@ -668,17 +684,17 @@ public class DrawManager {
 //rBase2 <<= 3;
 //gBase2 <<= 2;
 //bBase2 <<= 3;
-        rBase0 = col0.getRed();
-        gBase0 = col0.getGreen();
-        bBase0 = col0.getBlue();
+        rBase0 = colors[v0].getRed();
+        gBase0 = colors[v0].getGreen();
+        bBase0 = colors[v0].getBlue();
 
-        rBase1 = col1.getRed();
-        gBase1 = col1.getGreen();
-        bBase1 = col1.getBlue();
+        rBase1 = colors[v1].getRed();
+        gBase1 = colors[v1].getGreen();
+        bBase1 = colors[v1].getBlue();
 
-        rBase2 = col2.getRed();
-        gBase2 = col2.getGreen();
-        bBase2 = col2.getBlue();
+        rBase2 = colors[v2].getRed();
+        gBase2 = colors[v2].getGreen();
+        bBase2 = colors[v2].getBlue();
 
         // extract vertices for processing, now that we have order
 //        x0  = (int)(p0.getX()+0.5);
@@ -1291,6 +1307,9 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
+                        if (ui > 255) ui = 255;
+                        if (vi > 255) vi = 255;
+                        if (wi > 255) wi = 255;
                         drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
@@ -1368,17 +1387,24 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     //
-    public void drawPolygon3D(Polygon3DVerts poly) {
-	setColor(poly.getColor());
+    public void drawPolygon3D(Polygon3DVerts poly, String shadeType) {
 	switch(poly.getType()) {
 	    case POINT:
-		drawPoint(poly.getVertexPosition(0));
+		drawPoint(poly.getVertexPosition(0), poly.getColor());
 		break;
 	    case LINE:
-		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1));
+		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1), poly.getColor());
 		break;
 	    default:
-                drawFlatPolygon(poly.getVertexes());
+                switch(shadeType) {
+                    case GM.RADIO_SHADE_CONST_TEXT:
+                    case GM.RADIO_SHADE_FLAT_TEXT:
+                        drawFlatPolygon(poly.getVertexes(), poly.getColor());
+                        break;
+                    case GM.RADIO_SHADE_GOURAD_TEXT:
+                        drawGouraudTriangle2D(poly.getVertexes(), poly.getColors());
+                }
+                
 		break;
 	}
     }
@@ -1398,12 +1424,7 @@ public class DrawManager {
 	}
 	graphic.fillPolygon(xs, ys, size);
     }
-    
-    // Draw flat polygon
-    public void drawFlatPolygon(Vertex3D[] verts) {
-        drawFlatPolygon(verts, curColor);
-    }
-    
+        
     // Draw flat polygon
     public void drawFlatPolygon(Vertex3D[] verts, Color col) {
         if (verts == null || verts.length < 3) return;
@@ -1436,21 +1457,21 @@ public class DrawManager {
     
     /////////////////////////////////////////////////////
     // 
-    public void drawBorderedPolies(Polygon3DVerts[] polies) {
+    public void drawBorderedPolies(Polygon3DVerts[] polies, String shadeType) {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    // shading
-	    drawPolygon3D(poly);
+	    drawPolygon3D(poly, shadeType);
 	    // border
 	    drawPolygonBorder(poly);
 	}
     }
     
-    public void drawPolies(Polygon3DVerts[] polies) {
+    public void drawPolies(Polygon3DVerts[] polies, String shadeType) {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    // shading
-	    drawPolygon3D(poly);
+	    drawPolygon3D(poly, shadeType);
 	}
     }
         

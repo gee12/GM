@@ -121,12 +121,12 @@ public class Polygon3DInds extends Polygon3D {
     }
     
     public Polygon3DInds getCopy() {
-	return new Polygon3DInds(indexes, color[0], borderColor, attributes);
+	return new Polygon3DInds(indexes, colors[0], borderColor, attributes);
     }
     
     // To all-sufficient polygon
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
-         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), color[0], borderColor, attributes);
+         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), colors[0], borderColor, attributes);
          res.normal = normal;
          res.averageZ = averageZ;
          res.normalLength = normalLength;

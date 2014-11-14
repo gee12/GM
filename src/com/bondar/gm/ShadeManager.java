@@ -106,7 +106,7 @@ public class ShadeManager {
         if (gSum > 255) gSum = 255;
         if (bSum > 255) bSum = 255;
         
-        poly.setColor(new Color(rSum, gSum, bSum));
+        poly.setColor(rSum, gSum, bSum);
         return poly;
     }
     
@@ -114,6 +114,12 @@ public class ShadeManager {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
+        }
+        for (Polygon3DVerts poly : polies) {
+            gouradShade(poly);
+            if (poly.getColors()[1] == null || poly.getColors()[2] == null) {
+                int i = 0;
+            }
         }
         return polies;
     }
@@ -219,9 +225,9 @@ public class ShadeManager {
         if (gSum2 > 255) gSum2 = 255;
         if (bSum2 > 255) bSum2 = 255;
         
-        poly.setColor(new Color(rSum0, gSum0, bSum0), 0);
-        poly.setColor(new Color(rSum1, gSum1, bSum1), 1);
-        poly.setColor(new Color(rSum2, gSum2, bSum2), 2);
+        poly.setColor(rSum0, gSum0, bSum0, 0);
+        poly.setColor(rSum1, gSum1, bSum1, 1);
+        poly.setColor(rSum2, gSum2, bSum2, 2);
         return poly;
     }
 }
