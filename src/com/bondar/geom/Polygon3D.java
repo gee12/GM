@@ -4,7 +4,7 @@ import com.bondar.gm.Camera;
 import java.awt.Color;
 
 /**
- * All-sufficient polygon (without indexes for vertexes).
+ * 
  * @author truebondar
  */
 public abstract class Polygon3D {

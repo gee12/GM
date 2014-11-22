@@ -6,11 +6,11 @@ package com.bondar.geom;
  */
 public class Vertex3D {
     
+    private int attributes;
     private Point3D pos;
     private Vector3D normal;
     private Point2D texturePos;
     private float intensity;
-    private int attributes;
 
     public Vertex3D(Point3D pos, Vector3D norm, Point2D textPos, float intens, int attr) {
         this.pos = pos.getCopy();

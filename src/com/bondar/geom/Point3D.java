@@ -1,4 +1,3 @@
-
 package com.bondar.geom;
 
 import com.bondar.gm.Matrix;
@@ -10,7 +9,7 @@ import com.bondar.gm.Matrix;
 public class Point3D {
     
     public final static Point3D Zero = new Point3D(0, 0, 0);
-    protected Matrix vector;
+    protected Matrix vector;    // row-vector
     
     //////////////////////////////////////////////////
     public Point3D() {

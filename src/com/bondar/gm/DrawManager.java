@@ -532,12 +532,6 @@ public class DrawManager {
     // note that this is the 8-bit version, and I have decided to throw caution at the wind and see
     // what happens if we do a full RGB interpolation and then at the last minute use the color lookup
     // to find the appropriate color
-//    public void drawGouraudTriangle2D(Point3D p0, Color col0,
-//            Point3D p1, Color col1,
-//            Point3D p2, Color col2) {
-//        if (p0 == null || col0 == null
-//                || p1 == null || col1 == null
-//                || p2 == null || col2 == null) return;
     public void drawGouraudTriangle2D(Vertex3D[] verts, Color[] colors) {
         if (verts == null || colors == null
             || colors[1] == null || colors[2] == null    
@@ -554,9 +548,6 @@ public class DrawManager {
         final int INTERP_RHS  = 1;
         
         final int FIXP16_SHIFT = 16;
-//        final int FIXP16_MAG      = 65536;
-//        final int FIXP16_DP_MASK  = 0x0000ffff;
-//        final int FIXP16_WP_MASK  = 0xffff0000;
         final int FIXP16_ROUND_UP = 0x00008000;  
         
         int v0 = 0,
@@ -892,7 +883,7 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
 
                         // interpolate u,v
                         ui += du;
@@ -949,7 +940,7 @@ public class DrawManager {
 //            screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1206,7 +1197,7 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];   
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1310,7 +1301,7 @@ public class DrawManager {
                         if (ui > 255) ui = 255;
                         if (vi > 255) vi = 255;
                         if (wi > 255) wi = 255;
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
