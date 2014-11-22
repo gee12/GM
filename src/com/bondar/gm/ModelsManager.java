@@ -2,7 +2,7 @@ package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
-import static com.bondar.tasks.GM.ANGLE_UP;
+import static com.bondar.tasks.Main.ANGLE_UP;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,8 +93,31 @@ public class ModelsManager {
         }*/
     }
     
+    
+    public static void onRotate(List<Solid3D> models, double angle, Matrix.AXIS axis) {
+	for (Solid3D model : models) {
+	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    model.updateAngle(angle, axis);
+	}
+    }
+
+    public static void onTransfer(List<Solid3D> models, double dx, double dy, double dz) {
+	for (Solid3D model : models) {
+	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    model.updateTransfers(dx, dy, dz);
+	}
+    }
+
+    public static void onScale(List<Solid3D> models, double scale) {
+	for (Solid3D solid : models) {
+	    //if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+	    solid.updateScale(scale);
+	}
+    }
+    
+    
     /////////////////////////////////////////////////////////
-    private void animateModel(Solid3D model) {
+    private static void animateModel(Solid3D model) {
 	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
 	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
     }

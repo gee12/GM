@@ -4,8 +4,9 @@ import com.bondar.geom.ClipRectangle2D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3DVerts;
+import com.bondar.geom.Solid2D;
 import com.bondar.geom.Vertex3D;
-import com.bondar.tasks.GM;
+import com.bondar.tasks.Main;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -26,8 +27,6 @@ public class DrawManager {
         FASTEST
     }
 
-    private static final Point2D[] CROSSHAIR = new Point2D[4];
-    
     private Graphics graphic;
     private Graphics2D imageGraphic;
     private int width, height;
@@ -52,17 +51,9 @@ public class DrawManager {
         curColor = Color.BLACK;
         final int TONE = 10;
         backColor = new Color(TONE,TONE,TONE);
-        // init crosshair 
-        Point2D cx = new Point2D(width/2,height/2);//getScreenCenter());
-        //cx = cx.sub(new Point2D(50,50));
-        final int SIZE = 10;
-        CROSSHAIR[0] = new Point2D(cx.getX(), cx.getY() + SIZE);
-        CROSSHAIR[1] = new Point2D(cx.getX(), cx.getY() - SIZE);
-        CROSSHAIR[2] = new Point2D(cx.getX() - SIZE, cx.getY());
-        CROSSHAIR[3] = new Point2D(cx.getX() + SIZE, cx.getY());
     }
     
-    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, Color crossCol) {
+    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, Solid2D crosshair) {
         //
         fillRectangle(new Rectangle(0,0,
                 width,height/2), Color.DARK_GRAY);
@@ -70,20 +61,21 @@ public class DrawManager {
                 width,height/2), backColor);
         //
 	switch (viewType) {
-	    case GM.RADIO_FACES_TEXT:
+	    case Main.RADIO_FACES_TEXT:
 		drawPolies(polies, shadeType);
 		break;
-	    case GM.RADIO_EDGES_TEXT:
+	    case Main.RADIO_EDGES_TEXT:
 		drawBorders(polies);
 		break;
-	    case GM.RADIO_EDGES_FACES_TEXT:
+	    case Main.RADIO_EDGES_FACES_TEXT:
 		drawBorderedPolies(polies, shadeType);
 		break;
 	}
         //
-        setColor(crossCol);
-        drawLine(CROSSHAIR[0], CROSSHAIR[1]);
-        drawLine(CROSSHAIR[2], CROSSHAIR[3]);
+        setColor(crosshair.getColor());
+        Point2D[] points = crosshair.getPoints();
+        drawLine(points[0], points[1]);
+        drawLine(points[2], points[3]);
         //
         graphic.drawImage(image, 0,0,width, height, null);
     }
@@ -547,8 +539,8 @@ public class DrawManager {
         final int INTERP_LHS = 0;
         final int INTERP_RHS  = 1;
         
-        final int FIXP16_SHIFT = 16;
-        final int FIXP16_ROUND_UP = 0x00008000;  
+        final int FIXP16_SHIFT = 0;//16;
+        final int FIXP16_ROUND_UP = 0;//0x00008000;  
         
         int v0 = 0,
                 v1 = 1,
@@ -1388,11 +1380,11 @@ public class DrawManager {
 		break;
 	    default:
                 switch(shadeType) {
-                    case GM.RADIO_SHADE_CONST_TEXT:
-                    case GM.RADIO_SHADE_FLAT_TEXT:
+                    case Main.RADIO_SHADE_CONST_TEXT:
+                    case Main.RADIO_SHADE_FLAT_TEXT:
                         drawFlatPolygon(poly.getVertexes(), poly.getColor());
                         break;
-                    case GM.RADIO_SHADE_GOURAD_TEXT:
+                    case Main.RADIO_SHADE_GOURAD_TEXT:
                         drawGouraudTriangle2D(poly.getVertexes(), poly.getColors());
                 }
                 

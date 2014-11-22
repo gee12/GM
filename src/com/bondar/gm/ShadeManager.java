@@ -11,10 +11,11 @@ import java.util.HashMap;
  * @author truebondar
  */
 public class ShadeManager {
-    private HashMap<Integer, Light> lights = new HashMap<>();
+    
+    private final HashMap<Integer, Light> lights;
 
     public ShadeManager() {
-	
+	lights = new HashMap<>();
     }
     
     public void load() {
@@ -27,7 +28,7 @@ public class ShadeManager {
         //
 	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
 		null, Color.GRAY, null,
-		null, new Vector3D(1, 0, 0),
+		null, new Vector3D(0, 0, 1),
 		0, 0, 0, 0, 0, 0);
 	lights.put(infinite.getIndex(), infinite); 
         //
@@ -88,10 +89,6 @@ public class ShadeManager {
                     
                     break;
                     
-                case DIRECTIONAL:
-                    
-                    break;
-                    
                 case SPOTLIGHT1:
                     
                     break;
@@ -117,9 +114,9 @@ public class ShadeManager {
         }
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
-            if (poly.getColors()[1] == null || poly.getColors()[2] == null) {
-                int i = 0;
-            }
+            Color c0 = poly.getColors()[0];
+            Color c1 = poly.getColors()[1];
+            Color c2 = poly.getColors()[2];
         }
         return polies;
     }
@@ -195,10 +192,6 @@ public class ShadeManager {
                     break;
 
                 case POINT:
-                    
-                    break;
-                    
-                case DIRECTIONAL:
                     
                     break;
                     

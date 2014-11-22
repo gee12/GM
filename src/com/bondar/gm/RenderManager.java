@@ -4,6 +4,7 @@ import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
+import com.bondar.tasks.Main;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,18 @@ public class RenderManager {
 	FAR_Z
     }
     
-    private Polygon3DVerts[] renderArray = null;
+    private Polygon3DVerts[] renderArray;
+    private final ShadeManager shadeManager;
+    
+    public RenderManager() {
+        renderArray = null;
+        shadeManager = new ShadeManager();
+    }
+    
+    /////////////////////////////////////////////////////////
+    public void load() {
+      	shadeManager.load();
+    }
 
     /////////////////////////////////////////////////////////
     //
@@ -47,6 +59,33 @@ public class RenderManager {
 	return Types.toArray(res, Polygon3DVerts.class);
     }
     
+    /////////////////////////////////////////////////////////
+    public void update(Camera cam, String shadingType) {
+	
+        onShading(shadingType);
+        
+	sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
+        transToPerspectAndScreen(cam);
+    }
+     
+    /////////////////////////////////////////////////////////
+    private void onShading(String shadingType) {
+        switch(shadingType) {
+            
+            case Main.RADIO_SHADE_CONST_TEXT:
+                break;
+            case Main.RADIO_SHADE_FLAT_TEXT:
+                shadeManager.flatShade(renderArray);
+                break;
+            case Main.RADIO_SHADE_GOURAD_TEXT:
+                shadeManager.gouradShade(renderArray);
+                break;
+            case Main.RADIO_SHADE_FONG_TEXT:
+                
+                break;
+        }
+    }
+       
     /////////////////////////////////////////////////////////
     // Need to optimized: sort poly indexes, but not polies!
     //

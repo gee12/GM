@@ -16,10 +16,9 @@ public class Light {
     }
     
     public static enum Types {
-	AMBIENT,        // общий
-	INFINITE,       // бесконечно удаленный
-	DIRECTIONAL,
-	POINT,
+	AMBIENT,
+	INFINITE, // DIRECTIONAL
+	POINT,          
 	SPOTLIGHT1,
 	SPOTLIGHT2
     }

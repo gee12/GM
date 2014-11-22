@@ -3,7 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.BoundingBox3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
-import com.bondar.tasks.GM;
+import com.bondar.tasks.Main;
 
 /**
  *

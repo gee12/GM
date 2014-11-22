@@ -2,6 +2,7 @@ package com.bondar.geom;
 
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Line3D;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,9 +13,16 @@ import java.util.List;
 public class Solid2D {
 
     private final Point2D[] points;
+    private Color color;
 
     public Solid2D(Point2D[] points) {
 	this.points = points;
+        this.color = Color.BLACK;
+    }
+    
+    public Solid2D(Point2D[] points, Color col) {
+	this.points = points;
+        this.color = col;
     }
     
     /*
@@ -173,6 +181,13 @@ public class Solid2D {
     }
     
     /////////////////////////////////////////////////////////
+    // set
+    public void setColor(Color col) {
+        this.color = col;
+    }
+    
+    /////////////////////////////////////////////////////////
+    // get
     public Line2D[] getLines() {
 	int polySize = getSize();
 	Line2D[] res = new Line2D[polySize - 1];
@@ -188,6 +203,10 @@ public class Solid2D {
 
     public int getSize() {
 	return points.length;
+    }
+    
+    public Color getColor() {
+        return color;
     }
 
     /////////////////////////////////////////////////////////

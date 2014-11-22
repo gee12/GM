@@ -2,11 +2,6 @@ package com.bondar.tasks;
 
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point2D;
-import com.bondar.geom.Vector3D;
-import com.bondar.geom.Point3D;
-import com.bondar.geom.Point3DOdn;
-import com.bondar.geom.Polygon3D;
-import com.bondar.geom.Polygon3DVerts;
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
 import com.bondar.panels.OptionsPanelListener;
@@ -16,19 +11,18 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import jdk.net.Sockets;
 
 /**
  * Вариант 8
  *
  * @author bondar
  */
-public class GM extends Application implements OptionsPanelListener {
+public class Main extends Application implements OptionsPanelListener {
 
     public static final int FPS = 60;
     public static final int MSEC_TICK = 1000/FPS;
-    public static final int SCREEN_WIDTH = 1100;
-    public static final int SCREEN_HEIGHT = 600;
+    public static final int WINDOW_WIDTH = 1100;
+    public static final int WINDOW_HEIGHT = 600;
     public static final String TITLE_TEXT = "GM";
     
     public static final double SHIFT_STEP = 0.008;
@@ -68,32 +62,26 @@ public class GM extends Application implements OptionsPanelListener {
     public static final String RADIO_SHADE_FONG_TEXT = "Фонг";
 
     public static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
-    
-    private static Cursor EMPTY_CURSOR;
-    private static final Point2D ZERO_POINT = new Point2D();
     private static final Color CROSSHAIR_COLOR_NORM = Color.WHITE;
     private static final Color CROSSHAIR_COLOR_ALLERT = Color.RED;
-    private static Color crosshairColor = CROSSHAIR_COLOR_NORM;
     
-    
+    private static final Point2D ZERO_POINT = new Point2D();
     private final List<Solid3D> focusedModels = new ArrayList<>();
     private Solid3D selectedModel;
     private Solid3D allModel;
-    private Camera camera;
-    private CameraEuler cameraEuler;
-    private CameraUVN cameraUVN;
     private boolean isMousePressed;
     private boolean isGameViewModeEnabled;
-    private final ShadeManager shadeManager = new ShadeManager();
     private final ModelsManager modelsManager = new ModelsManager();
     private final RenderManager renderManager = new RenderManager();
+    private final CameraManager cameraManager = new CameraManager(WINDOW_WIDTH, WINDOW_HEIGHT);
+    private final CursorManager cursorManager = new CursorManager();
 	
     public static void main(String[] args) {
-	new GM(SCREEN_WIDTH, SCREEN_HEIGHT);
+	new Main(WINDOW_WIDTH, WINDOW_HEIGHT);
     }
 
     /////////////////////////////////////////////////////////
-    public GM(int width, int height) {
+    public Main(int width, int height) {
 	super(width, height);
 	requestFocus();
 	setFocusable(true);
@@ -232,25 +220,15 @@ public class GM extends Application implements OptionsPanelListener {
 	    }
 	}*/
 	//
-	shadeManager.load();
+        renderManager.load();
     }
 
     @Override
     protected final void init() {
 	isMousePressed = false;
-        EMPTY_CURSOR = getToolkit().createCustomCursor(
-                new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null");
+        cursorManager.init(getToolkit(), CROSSHAIR_COLOR_NORM, WINDOW_WIDTH, WINDOW_HEIGHT);
 	// radio button to select all models to move
 	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT);
-	// init camera
-	Point3DOdn pos = new Point3DOdn(0,0,-10);
-	Vector3D dir = new Vector3D(0,0,0);
-	Point3D target = new Point3D(0,0,10);
-	double near = 3, far = 1000, dist = 3, fov = 90;
-	Dimension vp = new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT);
-	cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp, CameraEuler.CAM_ROT_SEQ_ZYX);
-	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);
-	camera = cameraEuler;
         
         /*// init fixed values in models
         for (Solid3D model : modelsManager.getModels()) {
@@ -269,15 +247,12 @@ public class GM extends Application implements OptionsPanelListener {
 		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
         
         // 1 - work with isolated objects
-        modelsManager.updateAndAnimate(camera, isNeedDefineBackfaces);
+        modelsManager.updateAndAnimate(cameraManager.getCam(), isNeedDefineBackfaces);
 	
 	// 2 - work with render array (visible polygons)
 	renderManager.buildRenderArray(modelsManager.getModels());
-        
-        onShading();
-        
-	renderManager.sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
-        renderManager.transToPerspectAndScreen(camera);
+        renderManager.update(cameraManager.getCam(), 
+                getSelectedRadioText(GROUP_TITLE_SHADE_TEXT));
         
 	// 3 - 
 	onCollision();
@@ -285,27 +260,7 @@ public class GM extends Application implements OptionsPanelListener {
         //
         //onCrosshair();
     }
-    
-    /////////////////////////////////////////////////////////
-    private void onShading() {
-        switch(getSelectedRadioText(GROUP_TITLE_SHADE_TEXT)) {
-            
-            case RADIO_SHADE_CONST_TEXT:
-                break;
-            case RADIO_SHADE_FLAT_TEXT:
-                renderManager.setRenderArray(
-                        shadeManager.flatShade(renderManager.getRenderArray()));
-                break;
-            case RADIO_SHADE_GOURAD_TEXT:
-                renderManager.setRenderArray(
-                        shadeManager.gouradShade(renderManager.getRenderArray()));
-                break;
-            case RADIO_SHADE_FONG_TEXT:
-                
-                break;
-        }
-    }
-    
+
     /////////////////////////////////////////////////////////
     private void onCollision() {
 	// if collision check is off
@@ -325,57 +280,17 @@ public class GM extends Application implements OptionsPanelListener {
 	// select operation
 	switch (getSelectedRadioText(GROUP_TITLE_OPERATIONS_TEXT)) {
 	    case RADIO_ROTATE_TEXT:
-		onRotate(models, angle, axis);
+		ModelsManager.onRotate(models, angle, axis);
 		break;
 	    case RADIO_TRANSFER_TEXT:
-		onTransfer(models, dx, dy, dz);
+		ModelsManager.onTransfer(models, dx, dy, dz);
 		break;
 	    case RADIO_SCALE_TEXT:
-		onScale(models, scale);
-		break;
-	}
-    }
-    
-    /////////////////////////////////////////////////////////
-    private void onCameraOperation(double angle, Matrix.AXIS axis,
-	    double dx, double dy, double dz, double tx, double ty, double tz) {
-	camera.updateDirection(angle, axis);
-	camera.updatePosition(dx, dy, dz);
-	//camera.updateTarget(tx, ty, tz);
-    }
-    
-    private void onCameraSelection(String cameraType) {
-	switch(cameraType) {
-	    case RADIO_CAMERA_EULER_TEXT:
-		camera = cameraEuler;
-		break;
-	    case RADIO_CAMERA_UVN_TEXT:
-		camera = cameraUVN;
+		ModelsManager.onScale(models, scale);
 		break;
 	}
     }
 
-    private void onRotate(List<Solid3D> models, double angle, Matrix.AXIS axis) {
-	for (Solid3D model : models) {
-	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-	    model.updateAngle(angle, axis);
-	}
-    }
-
-    private void onTransfer(List<Solid3D> models, double dx, double dy, double dz) {
-	for (Solid3D model : models) {
-	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-	    model.updateTransfers(dx, dy, dz);
-	}
-    }
-
-    private void onScale(List<Solid3D> models, double scale) {
-	for (Solid3D solid : models) {
-	    //if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-	    solid.updateScale(scale);
-	}
-    }
-    
     private void onSolidListSelection(String selectedRadioText) {
 	for (Solid3D model : modelsManager.getModels()) {
 	    if (model.getName().equals(selectedRadioText)) {
@@ -394,7 +309,7 @@ public class GM extends Application implements OptionsPanelListener {
 		onSolidListSelection(radioText);
 		break;
 	    case GROUP_TITLE_CAMERA_TEXT:
-		onCameraSelection(radioText);
+		cameraManager.onSwitch(radioText);
 		break;
 	}
     }
@@ -438,10 +353,10 @@ public class GM extends Application implements OptionsPanelListener {
     public void onTurnSceneWithMouse(Point curPoint) {
         if (curPoint == null) return;
         
-        int dx = curPoint.x - SCREEN_WIDTH/2;
-        int dy = curPoint.y - SCREEN_HEIGHT/2;
-        camera.updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
-        //camera.updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
+        int dx = curPoint.x - WINDOW_WIDTH/2;
+        int dy = curPoint.y - WINDOW_HEIGHT/2;
+        cameraManager.getCam().updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
+        //cameraManager.getCamera().updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
         //
         //moveMouseToCenter();
     }
@@ -451,12 +366,12 @@ public class GM extends Application implements OptionsPanelListener {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(ZERO_POINT, camera)) {
-		crosshairColor = CROSSHAIR_COLOR_ALLERT;
+	    if (model.isCameraPointInto(ZERO_POINT, cameraManager.getCam())) {
+		CursorManager.setColor(CROSSHAIR_COLOR_ALLERT);
 		return;
 	    }
         }
-        crosshairColor = CROSSHAIR_COLOR_NORM;
+        CursorManager.setColor(CROSSHAIR_COLOR_NORM);
     }
     
     /////////////////////////////////////////////////////////
@@ -473,7 +388,7 @@ public class GM extends Application implements OptionsPanelListener {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(ZERO_POINT, camera)) {
+	    if (model.isCameraPointInto(ZERO_POINT, cameraManager.getCam())) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		return;
 	    }
@@ -510,7 +425,7 @@ public class GM extends Application implements OptionsPanelListener {
 		for (Solid3D model : modelsManager.getModels()) {
 		    if (model.getState() != Solid3D.States.VISIBLE
 			    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, camera);
+		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, cameraManager.getCam());
 		    // find object borders & check the cursor hit into borders
 		    if (isPointInto) {
 			focusedModels.add(model);
@@ -540,26 +455,20 @@ public class GM extends Application implements OptionsPanelListener {
     public void moveMouseToCenter() {
         try {
             Robot r = new Robot();
-            Point p = getScreenCenter();
+            Point p = getWindowCenterOnScreen();
             r.mouseMove(p.x, p.y);
         } catch (AWTException ex) {
             ex.printStackTrace();
         }
     }
     
-    public Point getScreenCenter() {
+    public Point getWindowCenterOnScreen() {
         Point p = getLocationOnScreen();
-        int cx = (int) (p.x + SCREEN_WIDTH / 2);
-        int cy = (int) (p.y + SCREEN_HEIGHT / 2);
+        int cx = (int) (p.x + WINDOW_WIDTH / 2);
+        int cy = (int) (p.y + WINDOW_HEIGHT / 2);
         return new Point(cx, cy);
     }
-    
-    public boolean isCursonInScreenCenter(Point point) {
-        if (point == null) return false;
-        Point center = getScreenCenter();
-        return (point.x == center.x && point.y == center.y);
-    }
-
+ 
     /////////////////////////////////////////////////////////
     public void onKeyPressed(KeyEvent evt) {
 	double dx = 0, dy = 0, dz = 0, angle = 0,
@@ -623,7 +532,7 @@ public class GM extends Application implements OptionsPanelListener {
 		tz = -CAMERA_SHIFT_STEP;
 		break;
         }
-	onCameraOperation(angle, axis, 
+	cameraManager.onOperation(angle, axis, 
 		dx, dy, dz, 
 		tx, ty, tz);
     }
@@ -641,7 +550,7 @@ public class GM extends Application implements OptionsPanelListener {
         if (isGameViewModeEnabled) {
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         } else {
-            setCursor(EMPTY_CURSOR);
+            setCursor(CursorManager.getEmptyCursor());
             moveMouseToCenter();
         }
         setVisibleOptionsPanel(isGameViewModeEnabled);
@@ -667,7 +576,7 @@ public class GM extends Application implements OptionsPanelListener {
         g.drawScene(renderManager.getRenderArray(), 
                 getSelectedRadioText(GROUP_TITLE_VIEW_TEXT),
                 getSelectedRadioText(GROUP_TITLE_SHADE_TEXT),
-                crosshairColor);
+                CursorManager.getCrosshair());
     }
 
     /////////////////////////////////////////////////////////
