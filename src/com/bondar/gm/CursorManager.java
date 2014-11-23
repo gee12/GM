@@ -13,10 +13,11 @@ import java.awt.image.BufferedImage;
  * @author Иван
  */
 public class CursorManager {
+    
     private static Cursor EMPTY_CURSOR;
     private static Solid2D crosshair;
     
-    public void init(Toolkit toolkit, Color initColor, int width, int height) {
+    public static void init(Toolkit toolkit, Color initColor, int width, int height) {
         EMPTY_CURSOR = toolkit.createCustomCursor(
                 new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null");
         // init crosshair 

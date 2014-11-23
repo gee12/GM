@@ -2,6 +2,7 @@ package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
+import com.bondar.geom.Vertex3D;
 import static com.bondar.tasks.Main.ANGLE_UP;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
@@ -16,14 +17,12 @@ public class ModelsManager {
     
     private static final String MODELS_DIR = "models/";
     private static final String CUBE_TEXT = "Cube";
+    
+    private static final int CLONE_CUBE_NUM = 0;
    
-    private Solid3D[] models;
+    private static Solid3D[] models;
     
-    public ModelsManager() {
-
-    }
-    
-    public void load() {
+    public static void load() {
 	List<Solid3D> loaded = new ArrayList<>();
 	// load models from .GMX files
 	try {
@@ -35,7 +34,7 @@ public class ModelsManager {
         Random rand = new Random();
 	for (Solid3D model : loaded) {
 	    if (model.getName().equals(CUBE_TEXT)) {
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < CLONE_CUBE_NUM; i++) {
 		    Solid3D newCube = new Solid3D(model);
 		    newCube.updateTransfers(rand.nextInt(500)-250, 0, rand.nextInt(500)-250);
 		    loaded.add(newCube);
@@ -46,39 +45,38 @@ public class ModelsManager {
 	models = Types.toArray(loaded, Solid3D.class);
     }
     
-    public void updateAndAnimate(Camera camera, boolean isNeedDefineBackfaces) {
+    public static void updateAndAnimate(Camera camera, boolean isAnimate, boolean isDefineBackfaces) {
 	for (Solid3D model : models) {
-	    animateModel(model);
-	    updateModel(model, camera, isNeedDefineBackfaces);
+            if (isAnimate) animateModel(model);
+	    updateModel(model, camera, isDefineBackfaces);
 	}
     }
     
     /////////////////////////////////////////////////////////
-    private void updateModel(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
+    private static void updateModel(Solid3D model, Camera cam, boolean isDefineBackfaces) {
 	if (model == null) return;
 
 	// culling solid if need
 	if (!model.isSetAttribute(Solid3D.ATTR_NO_CULL))
-	    model.setIsCulled(camera);
+	    model.setIsCulled(cam);
 	if (model.getState() != Solid3D.States.VISIBLE)
 	    return;
 
         // transfer local vertexes to world
 	Point3D[] transVerts = TransferManager.transToWorld(model);
+	// transferFull world vertexes to camera
+	transVerts = TransferManager.transToCamera(transVerts, cam);
         
 	// redefine normals, backfaces
         model.setVertexesPosition(transVerts);
-        model.redefinePolygonsParams(transVerts, camera.getPosition(), isNeedDefineBackfaces);
+        model.redefinePolygonsParams(transVerts, cam.getPosition(), isDefineBackfaces);
         
         //
         model.computeVertexesNormal();
         
-	// transferFull world vertexes to camera
-	transVerts = TransferManager.transToCamera(transVerts, camera);
 	
-	model.setVertexesPosition(transVerts);
-	//model.setTransVertexes(transVerts);
-        
+	//model.setVertexesPosition(transVerts);
+
         
         /*if (model.getState() == Solid3D.States.VISIBLE) {
             // if object not fixed - redefine it's fields
@@ -119,11 +117,13 @@ public class ModelsManager {
     /////////////////////////////////////////////////////////
     private static void animateModel(Solid3D model) {
 	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
+//	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.X);
 	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
+//	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Z);
     }
     
     // get
-    public Solid3D[] getModels() {
+    public static Solid3D[] getModels() {
 	return models;
     }
 }

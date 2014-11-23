@@ -275,7 +275,7 @@ public class Solid3D {
         
         for (int i = 0; i < vertexes.length; i++) {
             if (touchVertex[i] >= 1) {
-                double inv = 1 / touchVertex[i];
+                double inv = 1. / touchVertex[i];
                 vertexes[i].getNormal().mul(inv);
                 vertexes[i].getNormal().normalize();
             }
@@ -290,7 +290,7 @@ public class Solid3D {
 	    //poly.setVertexesPosition(points);
             poly.resetNormal(points);
             //poly.resetAverageZ(points);
-            if (isNeedDefineBackfaces)
+            if (isNeedDefineBackfaces && poly.getSize() >= 3)
                 poly.setIsBackFace(points, camPos);
             // restore backfaces if don't need to rejection
             else poly.setState(Polygon3D.States.VISIBLE);

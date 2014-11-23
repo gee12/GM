@@ -1,9 +1,11 @@
 package com.bondar.gm;
 
+import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
+import com.bondar.geom.Vertex3D;
 import com.bondar.tasks.Main;
 import com.bondar.tools.Types;
 import java.util.ArrayList;
@@ -23,22 +25,16 @@ public class RenderManager {
 	FAR_Z
     }
     
-    private Polygon3DVerts[] renderArray;
-    private final ShadeManager shadeManager;
-    
-    public RenderManager() {
-        renderArray = null;
-        shadeManager = new ShadeManager();
-    }
+    private static Polygon3DVerts[] renderArray = null;
     
     /////////////////////////////////////////////////////////
-    public void load() {
-      	shadeManager.load();
+    public static void load() {
+      	LightManager.load();
     }
 
     /////////////////////////////////////////////////////////
     //
-    public void buildRenderArray(Solid3D[] models) {
+    public static void buildRenderArray(Solid3D[] models) {
 	renderArray = toRenderArray(models);
     }
     
@@ -60,27 +56,58 @@ public class RenderManager {
     }
     
     /////////////////////////////////////////////////////////
-    public void update(Camera cam, String shadingType) {
+    public static void update(Camera cam, String shadingType, boolean isNormalsPoly, boolean isNormalsVert) {
 	
         onShading(shadingType);
         
 	sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
         transToPerspectAndScreen(cam);
+        
+        // transfer nolmals for drawing
+                
+        //
+        if (isNormalsPoly) {
+            for (Polygon3DVerts poly : renderArray) {
+                if (poly.getSize() < 3) continue;
+                Point3D n = poly.getNormal();
+                // !!! transfer to camera for the SECOND TIME !
+//                n = TransferManager.transToCamera(n, cam);
+                
+//                n = TransferManager.transToPerspectAndScreen(n, cam);
+                n = TransferManager.transToPerspective(n, cam);
+                n = TransferManager.transPerspectToScreen(n, cam);
+                poly.setNormal(n.toVector3D());
+            }
+        }
+        //
+        if (isNormalsVert) {
+            for (Polygon3DVerts poly : renderArray) {
+                for (Vertex3D vert : poly.getVertexes()) {
+                    Point3D nv = vert.getNormal();
+                    // !!! transfer to camera for the SECOND TIME !
+                    nv = TransferManager.transToCamera(nv, cam);
+                    
+                    nv = TransferManager.transToPerspectAndScreen(nv, cam);
+                    vert.setNormal(nv.toVector3D());
+                }
+            }
+        }
+        
     }
      
     /////////////////////////////////////////////////////////
-    private void onShading(String shadingType) {
+    private static void onShading(String shadingType) {
         switch(shadingType) {
             
-            case Main.RADIO_SHADE_CONST_TEXT:
+            case Main.RADIO_SHADE_CONST:
                 break;
-            case Main.RADIO_SHADE_FLAT_TEXT:
-                shadeManager.flatShade(renderArray);
+            case Main.RADIO_SHADE_FLAT:
+                LightManager.flatShade(renderArray);
                 break;
-            case Main.RADIO_SHADE_GOURAD_TEXT:
-                shadeManager.gouradShade(renderArray);
+            case Main.RADIO_SHADE_GOURAD:
+                LightManager.gouradShade(renderArray);
                 break;
-            case Main.RADIO_SHADE_FONG_TEXT:
+            case Main.RADIO_SHADE_FONG:
                 
                 break;
         }
@@ -89,7 +116,7 @@ public class RenderManager {
     /////////////////////////////////////////////////////////
     // Need to optimized: sort poly indexes, but not polies!
     //
-    public void sortByZ(SortByZTypes sortType) {
+    public static void sortByZ(SortByZTypes sortType) {
 	sortByZ(renderArray, sortType);
     }
     
@@ -109,19 +136,19 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     // 
-    public void transToPerspectAndScreen(Camera cam) {
+    public static void transToPerspectAndScreen(Camera cam) {
         TransferManager.transToPerspectAndScreen(renderArray, cam);
     }
     
     /////////////////////////////////////////////////////////
     // set
-    public void setRenderArray(Polygon3DVerts[] renderArray) {
-	this.renderArray = renderArray;
+    public static void setRenderArray(Polygon3DVerts[] polies) {
+	renderArray = polies;
     }
     
     /////////////////////////////////////////////////////////
     // get
-    public Polygon3DVerts[] getRenderArray() {
+    public static Polygon3DVerts[] getRenderArray() {
 	return renderArray;
     }
     

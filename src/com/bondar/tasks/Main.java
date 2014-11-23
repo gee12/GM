@@ -19,11 +19,11 @@ import java.util.List;
  */
 public class Main extends Application implements OptionsPanelListener {
 
-    public static final int FPS = 60;
+    public static final int FPS = 30;
     public static final int MSEC_TICK = 1000/FPS;
     public static final int WINDOW_WIDTH = 1100;
     public static final int WINDOW_HEIGHT = 600;
-    public static final String TITLE_TEXT = "GM";
+    public static final String TITLE = "GM";
     
     public static final double SHIFT_STEP = 0.008;
     public static final double SHIFT_BY_Z_STEP = 0.1;
@@ -36,45 +36,46 @@ public class Main extends Application implements OptionsPanelListener {
     
     public static final int VIEW_MODE_KEY = KeyEvent.VK_TAB;
     
-    public static final String GROUP_TITLE_OBJECTS_TEXT = "Объекты:";
-    public static final String RADIO_ALL_MODELS_TEXT = "Все";
-    public static final String GROUP_TITLE_OBJ_CHOISE_TEXT = "ВЫБОР ОБЪЕКТА:";
-    public static final String RADIO_BY_MOUSE_PRESSED_TEXT = "по захвату мышей";
-    public static final String RADIO_BY_LIST_SELECTION_TEXT = "по выбору из списка";
-    public static final String GROUP_TITLE_OPERATIONS_TEXT = "ОПЕРАЦИИ:";
-    public static final String RADIO_ROTATE_TEXT = "Поворот";
-    public static final String RADIO_TRANSFER_TEXT = "Перемещение";
-    public static final String RADIO_SCALE_TEXT = "Масштабирование";
-    public static final String GROUP_TITLE_CAMERA_TEXT = "КАМЕРА:";
-    public static final String RADIO_CAMERA_EULER_TEXT = "Эйлера";
-    public static final String RADIO_CAMERA_UVN_TEXT = "UVN";
-    public static final String GROUP_TITLE_CLIPPING_TEXT = "ОТСЕЧЕНИЕ:";
-    public static final String RADIO_PAINTER_TEXT = "Алгритм художника";
-    public static final String RADIO_BACKFACES_EJECTION_TEXT = "Отброс невидимых полигонов";
-    public static final String GROUP_TITLE_VIEW_TEXT = "ВНЕШНИЙ ВИД:";
-    public static final String RADIO_EDGES_TEXT = "Ребра";
-    public static final String RADIO_FACES_TEXT = "Грани";
-    public static final String RADIO_EDGES_FACES_TEXT = "Ребра и грани";
-    public static final String GROUP_TITLE_SHADE_TEXT = "Затенение:";
-    public static final String RADIO_SHADE_CONST_TEXT = "CONSTANT";
-    public static final String RADIO_SHADE_FLAT_TEXT = "Плоское";
-    public static final String RADIO_SHADE_GOURAD_TEXT = "Гуро";
-    public static final String RADIO_SHADE_FONG_TEXT = "Фонг";
+    public static final String GROUP_TITLE_OBJECTS = "Объекты:";
+    public static final String RADIO_ALL_MODELS = "Все";
+    public static final String GROUP_TITLE_OBJ_CHOISE = "ВЫБОР ОБЪЕКТА:";
+    public static final String RADIO_BY_MOUSE_PRESSED = "по захвату мышей";
+    public static final String RADIO_BY_LIST_SELECTION = "по выбору из списка";
+    public static final String GROUP_TITLE_OPERATIONS = "ОПЕРАЦИИ:";
+    public static final String RADIO_ROTATE = "Поворот";
+    public static final String RADIO_TRANSFER = "Перемещение";
+    public static final String RADIO_SCALE = "Масштабирование";
+    public static final String GROUP_TITLE_CAMERA = "КАМЕРА:";
+    public static final String RADIO_CAMERA_EULER = "Эйлера";
+    public static final String RADIO_CAMERA_UVN = "UVN";
+    public static final String GROUP_TITLE_RENDER = "РЕНДЕРИНГ:";
+    public static final String RADIO_PAINTER = "Алгритм художника";
+    public static final String GROUP_TITLE_VIEW = "ВНЕШНИЙ ВИД:";
+    public static final String RADIO_EDGES = "Ребра";
+    public static final String RADIO_FACES = "Грани";
+    public static final String RADIO_EDGES_FACES = "Ребра и грани";
+    public static final String GROUP_TITLE_SHADE = "Затенение:";
+    public static final String RADIO_SHADE_CONST = "CONSTANT";
+    public static final String RADIO_SHADE_FLAT = "Плоское";
+    public static final String RADIO_SHADE_GOURAD = "Гуро";
+    public static final String RADIO_SHADE_FONG = "Фонг";
 
-    public static final String CHECKBOX_SHIFT_IF_INTERSECT_TEXT = "Сдвигать при пересечении";
+    public static final String CHECKBOX_SHIFT_IF_INTERSECT = "Сдвигать при пересечении";
+    public static final String CHECKBOX_BACKFACES_EJECTION = "Отброс невидимых полигонов";
+    public static final String CHECKBOX_NORMALS_POLY = "Нормали плоскостей";
+    public static final String CHECKBOX_NORMALS_VERT = "Нормали вершин";
+    public static final String CHECKBOX_ANIMATE = "Анимировать";
+    
     private static final Color CROSSHAIR_COLOR_NORM = Color.WHITE;
     private static final Color CROSSHAIR_COLOR_ALLERT = Color.RED;
     
     private static final Point2D ZERO_POINT = new Point2D();
     private final List<Solid3D> focusedModels = new ArrayList<>();
-    private Solid3D selectedModel;
     private Solid3D allModel;
+    private Solid3D selectedModel;
     private boolean isMousePressed;
     private boolean isGameViewModeEnabled;
-    private final ModelsManager modelsManager = new ModelsManager();
-    private final RenderManager renderManager = new RenderManager();
     private final CameraManager cameraManager = new CameraManager(WINDOW_WIDTH, WINDOW_HEIGHT);
-    private final CursorManager cursorManager = new CursorManager();
 	
     public static void main(String[] args) {
 	new Main(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -86,7 +87,7 @@ public class Main extends Application implements OptionsPanelListener {
 	requestFocus();
 	setFocusable(true);
 	setResizable(true);
-	setTitle(TITLE_TEXT);
+	setTitle(TITLE);
 	setLocation(50, 50);
         // for VK_TAB working
         setFocusTraversalKeysEnabled(false);
@@ -182,56 +183,60 @@ public class Main extends Application implements OptionsPanelListener {
     
     private void addControls() {
 	// radioButtons
- 	addRadio(GROUP_TITLE_OBJECTS_TEXT, RADIO_ALL_MODELS_TEXT, this);
+ 	addRadio(GROUP_TITLE_OBJECTS, RADIO_ALL_MODELS, this);
 
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_MOUSE_PRESSED_TEXT, this);
-	addRadio(GROUP_TITLE_OBJ_CHOISE_TEXT, RADIO_BY_LIST_SELECTION_TEXT, this);
+	addRadio(GROUP_TITLE_OBJ_CHOISE, RADIO_BY_MOUSE_PRESSED, this);
+	addRadio(GROUP_TITLE_OBJ_CHOISE, RADIO_BY_LIST_SELECTION, this);
 
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_ROTATE_TEXT, this);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_TRANSFER_TEXT, this);
-	addRadio(GROUP_TITLE_OPERATIONS_TEXT, RADIO_SCALE_TEXT, this);
+	addRadio(GROUP_TITLE_OPERATIONS, RADIO_ROTATE, this);
+	addRadio(GROUP_TITLE_OPERATIONS, RADIO_TRANSFER, this);
+	addRadio(GROUP_TITLE_OPERATIONS, RADIO_SCALE, this);
 
-	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_EULER_TEXT, this);
-	//addRadio(GROUP_TITLE_CAMERA_TEXT, RADIO_CAMERA_UVN_TEXT, this);
+	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_EULER, this);
+	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_UVN, this);
 
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_PAINTER_TEXT, this);
-	addRadio(GROUP_TITLE_CLIPPING_TEXT, RADIO_BACKFACES_EJECTION_TEXT, this);
+	addRadio(GROUP_TITLE_RENDER, RADIO_PAINTER, this);
 
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_FACES_TEXT, this);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_FACES_TEXT, this);
-	addRadio(GROUP_TITLE_VIEW_TEXT, RADIO_EDGES_TEXT, this);
-	// checkBox
-	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT, false, this);
+	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES_FACES, this);
+	addRadio(GROUP_TITLE_VIEW, RADIO_FACES, this);
+	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES, this);
         
-        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_CONST_TEXT, this);
-        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FLAT_TEXT, this);
-        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_GOURAD_TEXT, this);
-        addRadio(GROUP_TITLE_SHADE_TEXT, RADIO_SHADE_FONG_TEXT, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_GOURAD, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
+	// checkBox
+	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);
+	addCheckBox(CHECKBOX_BACKFACES_EJECTION, false, this);
+	addCheckBox(CHECKBOX_NORMALS_POLY, false, this);
+	addCheckBox(CHECKBOX_NORMALS_VERT, false, this);
+	addCheckBox(CHECKBOX_ANIMATE, false, this);
     }
 
     /////////////////////////////////////////////////////////
     @Override
     protected final void load() {
-	modelsManager.load();
+	ModelsManager.load();
 	//
-	/*for (Solid3D model : modelsManager.getModels()) {
+	/*for (Solid3D model : ModelsManager.getModels()) {
 	    if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
-		addRadio(GROUP_TITLE_OBJECTS_TEXT, model.getName(), this);
+		addRadio(GROUP_TITLE_OBJECTS, model.getName(), this);
 	    }
 	}*/
 	//
-        renderManager.load();
+        RenderManager.load();
     }
 
     @Override
     protected final void init() {
 	isMousePressed = false;
-        cursorManager.init(getToolkit(), CROSSHAIR_COLOR_NORM, WINDOW_WIDTH, WINDOW_HEIGHT);
+        CursorManager.init(getToolkit(), CROSSHAIR_COLOR_NORM, WINDOW_WIDTH, WINDOW_HEIGHT);
 	// radio button to select all models to move
-	allModel = new Solid3D(RADIO_ALL_MODELS_TEXT);
+	allModel = new Solid3D(RADIO_ALL_MODELS);
+        selectedModel = allModel;
         
         /*// init fixed values in models
-        for (Solid3D model : modelsManager.getModels()) {
+        for (Solid3D model : ModelsManager.getModels()) {
             model.resetBounds();
             for (Polygon3D poly: model.getPolygons()) {
                 poly.resetNormal();
@@ -243,20 +248,19 @@ public class Main extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     @Override
     protected void update() {
-        boolean isNeedDefineBackfaces = 
-		getSelectedRadioText(GROUP_TITLE_CLIPPING_TEXT).equals(RADIO_BACKFACES_EJECTION_TEXT);
+        boolean isAnimate = isSelectedCheckBox(CHECKBOX_ANIMATE);
+        boolean isDefineBackfaces = isSelectedCheckBox(CHECKBOX_BACKFACES_EJECTION);
         
         // 1 - work with isolated objects
-        modelsManager.updateAndAnimate(cameraManager.getCam(), isNeedDefineBackfaces);
-	
+        ModelsManager.updateAndAnimate(cameraManager.getCam(), isAnimate, isDefineBackfaces);
 	// 2 - work with render array (visible polygons)
-	renderManager.buildRenderArray(modelsManager.getModels());
-        renderManager.update(cameraManager.getCam(), 
-                getSelectedRadioText(GROUP_TITLE_SHADE_TEXT));
-        
+	RenderManager.buildRenderArray(ModelsManager.getModels());
+        RenderManager.update(cameraManager.getCam(), 
+                getSelectedRadioText(GROUP_TITLE_SHADE),
+                isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
+                isSelectedCheckBox(CHECKBOX_NORMALS_VERT));
 	// 3 - 
 	onCollision();
-        
         //
         //onCrosshair();
     }
@@ -264,9 +268,9 @@ public class Main extends Application implements OptionsPanelListener {
     /////////////////////////////////////////////////////////
     private void onCollision() {
 	// if collision check is off
-	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT_TEXT)
+	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT)
 		|| isMousePressed) return;
-	//InteractionManager.collision(modelsManager.getModels());
+	//InteractionManager.collision(ModelsManager.getModels());
     }
   
     /////////////////////////////////////////////////////////
@@ -275,40 +279,47 @@ public class Main extends Application implements OptionsPanelListener {
 	// if selected all models
 	if (models.contains(allModel)) {
 	    models.clear();
-	    models.addAll(Types.toList(modelsManager.getModels()));
+	    //models.addAll(Types.toList(ModelsManager.getModels()));
+            for (Solid3D model : ModelsManager.getModels()) {
+                if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+                models.add(model);
+            }
 	}
 	// select operation
-	switch (getSelectedRadioText(GROUP_TITLE_OPERATIONS_TEXT)) {
-	    case RADIO_ROTATE_TEXT:
+	switch (getSelectedRadioText(GROUP_TITLE_OPERATIONS)) {
+	    case RADIO_ROTATE:
 		ModelsManager.onRotate(models, angle, axis);
 		break;
-	    case RADIO_TRANSFER_TEXT:
+	    case RADIO_TRANSFER:
 		ModelsManager.onTransfer(models, dx, dy, dz);
 		break;
-	    case RADIO_SCALE_TEXT:
+	    case RADIO_SCALE:
 		ModelsManager.onScale(models, scale);
 		break;
 	}
     }
 
     private void onSolidListSelection(String selectedRadioText) {
-	for (Solid3D model : modelsManager.getModels()) {
+        if (selectedRadioText.equals(RADIO_ALL_MODELS)) {
+            // if suddenly selected solid don't finded
+            selectedModel = allModel;
+            return;
+        }
+	for (Solid3D model : ModelsManager.getModels()) {
 	    if (model.getName().equals(selectedRadioText)) {
 		selectedModel = model;
 		return;
 	    }
 	}
-	// if suddenly selected solid don't finded
-	selectedModel = allModel;
     }
 
     @Override
     public void onRadioSelected(String groupTitle, String radioText) {
 	switch(groupTitle) {
-	    case GROUP_TITLE_OBJECTS_TEXT:
+	    case GROUP_TITLE_OBJECTS:
 		onSolidListSelection(radioText);
 		break;
-	    case GROUP_TITLE_CAMERA_TEXT:
+	    case GROUP_TITLE_CAMERA:
 		cameraManager.onSwitch(radioText);
 		break;
 	}
@@ -356,13 +367,13 @@ public class Main extends Application implements OptionsPanelListener {
         int dx = curPoint.x - WINDOW_WIDTH/2;
         int dy = curPoint.y - WINDOW_HEIGHT/2;
         cameraManager.getCam().updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
-        //cameraManager.getCamera().updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
+        cameraManager.getCam().updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
         //
         //moveMouseToCenter();
     }
 
     protected void onCrosshair() {
-	for (Solid3D model : modelsManager.getModels()) {
+	for (Solid3D model : ModelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
@@ -376,15 +387,15 @@ public class Main extends Application implements OptionsPanelListener {
     
     /////////////////////////////////////////////////////////
     public void onCursorSwitch(/*Point curPoint*/) {
-	if (/*curPoint == null || */modelsManager == null || modelsManager.getModels() == null) return;
+	if (/*curPoint == null || */ModelsManager.getModels() == null) return;
 	// set cursor type
-	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT).equals(RADIO_BY_LIST_SELECTION_TEXT)) {
+	if (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE).equals(RADIO_BY_LIST_SELECTION)) {
 	    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 	    return;
 	}
 	setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	//Point2D p = getGraphicSystem().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-	for (Solid3D model : modelsManager.getModels()) {
+	for (Solid3D model : ModelsManager.getModels()) {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
@@ -418,11 +429,11 @@ public class Main extends Application implements OptionsPanelListener {
     public void onMousePressed(Point curPoint) {
 	if (curPoint == null) return;
 	isMousePressed = true;
-	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE_TEXT)) {
+	switch (getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE)) {
 	    //
-	    case RADIO_BY_MOUSE_PRESSED_TEXT:
+	    case RADIO_BY_MOUSE_PRESSED:
 		//Point2D p = getDrawManager().convPToWorld(new Point3DOdn(curPoint.x, curPoint.y, 0)).toPoint2D();
-		for (Solid3D model : modelsManager.getModels()) {
+		for (Solid3D model : ModelsManager.getModels()) {
 		    if (model.getState() != Solid3D.States.VISIBLE
 			    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, cameraManager.getCam());
@@ -438,7 +449,7 @@ public class Main extends Application implements OptionsPanelListener {
 		}
 		break;
 	    //
-	    case RADIO_BY_LIST_SELECTION_TEXT:
+	    case RADIO_BY_LIST_SELECTION:
 		focusedModels.add(selectedModel);
 		break;
 	}
@@ -546,6 +557,7 @@ public class Main extends Application implements OptionsPanelListener {
             break;
         }
     }
+    
     public void switchViewMode() {
         if (isGameViewModeEnabled) {
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -556,42 +568,15 @@ public class Main extends Application implements OptionsPanelListener {
         setVisibleOptionsPanel(isGameViewModeEnabled);
         isGameViewModeEnabled = !isGameViewModeEnabled;
     }
+    
     /////////////////////////////////////////////////////////
     @Override
     protected void paint(DrawManager g) {
-	//g.drawBackground();
-//        g.fillRectangle(new Rectangle(0,0,
-//                SCREEN_WIDTH,SCREEN_HEIGHT/2), Color.DARK_GRAY);
-//        g.fillRectangle(new Rectangle(0,SCREEN_HEIGHT/2,
-//                SCREEN_WIDTH,SCREEN_HEIGHT/2), Color.BLACK);
-	if (modelsManager == null ||
-                modelsManager.getModels() == null) return;
-	//
-//	drawPolies(g, renderManager.getRenderArray());
-        //
-//        g.setColor(crosshairColor);
-//        g.drawLine(CROSSHAIR[0], CROSSHAIR[1]);
-//        g.drawLine(CROSSHAIR[2], CROSSHAIR[3]);
-        
-        g.drawScene(renderManager.getRenderArray(), 
-                getSelectedRadioText(GROUP_TITLE_VIEW_TEXT),
-                getSelectedRadioText(GROUP_TITLE_SHADE_TEXT),
+        g.drawScene(RenderManager.getRenderArray(), 
+                getSelectedRadioText(GROUP_TITLE_VIEW),
+                getSelectedRadioText(GROUP_TITLE_SHADE),
+                isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
+                isSelectedCheckBox(CHECKBOX_NORMALS_VERT),
                 CursorManager.getCrosshair());
     }
-
-    /////////////////////////////////////////////////////////
-//    private void drawPolies(DrawManager g, Polygon3DVerts[] polies) {
-//	if (g == null) return;
-//	switch (getSelectedRadioText(GROUP_TITLE_VIEW_TEXT)) {
-//	    case RADIO_FACES_TEXT:
-//		g.drawPolies(polies);
-//		break;
-//	    case RADIO_EDGES_TEXT:
-//		g.drawBorders(polies);
-//		break;
-//	    case RADIO_EDGES_FACES_TEXT:
-//		g.drawBorderedPolies(polies);
-//		break;
-//	}
-//    }
 }

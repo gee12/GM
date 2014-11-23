@@ -129,17 +129,17 @@ public class FileLoader {
 			if (indsStrSize > indsNum + 1) {
 			    fillColor = new Color(Integer.parseInt(indsStr[indsNum + 1], 16));
 			}
-			// border color
-			Color borderColor = Color.BLACK;
+			// transparency
+			float transparency = 0;
 			if (indsStrSize > indsNum + 2) {
-			    borderColor = new Color(Integer.parseInt(indsStr[indsNum + 2], 16));
+			    transparency = Float.parseFloat(indsStr[indsNum + 2]);
 			}
 			// attributes
 			int attr = 0;
 			if (indsStrSize > indsNum + 3) {
 			    attr = Integer.parseInt(indsStr[indsNum + 3]);
 			}
-			polies[lineNum] = new Polygon3DInds(indexes, fillColor, borderColor, attr);
+			polies[lineNum] = new Polygon3DInds(indexes, fillColor, transparency, attr);
 //                        polies[lineNum].resetNormal(points);
 			lineNum++;
 		    }

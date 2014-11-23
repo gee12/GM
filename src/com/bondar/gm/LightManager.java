@@ -10,15 +10,11 @@ import java.util.HashMap;
  *
  * @author truebondar
  */
-public class ShadeManager {
+public class LightManager {
     
-    private final HashMap<Integer, Light> lights;
+    private static final HashMap<Integer, Light> lights = new HashMap<>();
 
-    public ShadeManager() {
-	lights = new HashMap<>();
-    }
-    
-    public void load() {
+    public static void load() {
         //
 	Light ambient = new Light(0, "Ambient white", Light.Types.AMBIENT, 0, Light.States.OFF,
 		Color.BLACK, null, null,
@@ -27,8 +23,8 @@ public class ShadeManager {
 	lights.put(ambient.getIndex(), ambient);
         //
 	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
-		null, Color.GRAY, null,
-		null, new Vector3D(0, 0, 1),
+		null, Color.WHITE, null,
+		null, new Vector3D(0, 0, -1),
 		0, 0, 0, 0, 0, 0);
 	lights.put(infinite.getIndex(), infinite); 
         //
@@ -39,7 +35,7 @@ public class ShadeManager {
 	lights.put(point.getIndex(), point); 
     }
     
-    public Polygon3DVerts[] flatShade(Polygon3DVerts[] polies) {
+    public static Polygon3DVerts[] flatShade(Polygon3DVerts[] polies) {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
             flatShade(poly);
@@ -47,7 +43,7 @@ public class ShadeManager {
         return polies;
     }
     
-    public Polygon3D flatShade(Polygon3DVerts poly) {
+    public static Polygon3D flatShade(Polygon3DVerts poly) {
         if (poly == null) return null;
         
         Color scrColor = poly.getColor();
@@ -107,21 +103,18 @@ public class ShadeManager {
         return poly;
     }
     
-    public Polygon3DVerts[] gouradShade(Polygon3DVerts[] polies) {
+    public static Polygon3DVerts[] gouradShade(Polygon3DVerts[] polies) {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
-        }
-        for (Polygon3DVerts poly : polies) {
-            gouradShade(poly);
-            Color c0 = poly.getColors()[0];
-            Color c1 = poly.getColors()[1];
-            Color c2 = poly.getColors()[2];
+//            Color c0 = poly.getColors()[0];
+//            Color c1 = poly.getColors()[1];
+//            Color c2 = poly.getColors()[2];
         }
         return polies;
     }
     
-    public Polygon3D gouradShade(Polygon3DVerts poly) {
+    public static Polygon3D gouradShade(Polygon3DVerts poly) {
         if (poly == null) return null;
         
         Color scrColor = poly.getColor();

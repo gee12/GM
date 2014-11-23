@@ -13,8 +13,8 @@ public class Polygon3DVerts extends Polygon3D {
     private Vertex3D[] vertexes;
     
     /////////////////////////////////////////////////////////
-    public Polygon3DVerts(Vertex3D[] verts, Color src, /*Color shade,*/ Color border, int attr) {
-        super(verts.length, src, /*shade,*/ border, attr);
+    public Polygon3DVerts(Vertex3D[] verts, Color src, float transp, int attr) {
+        super(verts.length, src, transp, attr);
 	this.vertexes = verts;//Arrays.copyOf(verts, verts.length);
     }
     
@@ -115,6 +115,6 @@ public class Polygon3DVerts extends Polygon3D {
     }
     
     public Polygon3DVerts getCopy() {
-	return new Polygon3DVerts(vertexes, colors[0], /*shadeColor, */borderColor, attributes);
+	return new Polygon3DVerts(vertexes, colors[0], transp, attributes);
     }
 }

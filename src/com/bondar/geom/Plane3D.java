@@ -22,7 +22,7 @@ public class Plane3D {
 	this.p = p;
 	this.v = v;
 	if (needNormalize)
-	    v.normalize();
+	    this.v = v.normalize();
     }
     
     // get

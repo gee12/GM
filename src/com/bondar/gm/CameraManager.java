@@ -17,8 +17,8 @@ public class CameraManager {
     
     /////////////////////////////////////////////////////////
     public CameraManager(int width, int height) {
-        Point3DOdn pos = new Point3DOdn(0,0,-10);
-	Vector3D dir = new Vector3D(0,0,0);
+        Point3DOdn pos = new Point3DOdn(0,0,-15);
+	Vector3D dir = new Vector3D(0.5,0.78,0);//-0.78,0.78,0);
 	Point3D target = new Point3D(0,0,10);
 	double near = 3, far = 1000, dist = 3, fov = 90;
 	Dimension vp = new Dimension(width, height);
@@ -30,10 +30,10 @@ public class CameraManager {
     /////////////////////////////////////////////////////////
     public void onSwitch(String cameraType) {
 	switch(cameraType) {
-	    case Main.RADIO_CAMERA_EULER_TEXT:
+	    case Main.RADIO_CAMERA_EULER:
 		camera = cameraEuler;
 		break;
-	    case Main.RADIO_CAMERA_UVN_TEXT:
+	    case Main.RADIO_CAMERA_UVN:
 		camera = cameraUVN;
 		break;
 	}

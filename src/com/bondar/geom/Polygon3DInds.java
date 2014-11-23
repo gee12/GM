@@ -1,7 +1,6 @@
 package com.bondar.geom;
 
 import static com.bondar.geom.Polygon3D.ATTR_2_SIDES;
-import com.bondar.gm.Camera;
 import java.awt.Color;
 
 /**
@@ -15,8 +14,8 @@ public class Polygon3DInds extends Polygon3D {
     protected int indexes[];
 
     /////////////////////////////////////////////////////////
-    public Polygon3DInds(int[] inds, Color src, /*Color shade,*/ Color border, int attr) {
-        super(inds.length, src, /*shade,*/ border, attr);
+    public Polygon3DInds(int[] inds, Color src, float transp, int attr) {
+        super(inds.length, src, transp, attr);
 	this.indexes = inds;
     }
 
@@ -28,8 +27,7 @@ public class Polygon3DInds extends Polygon3D {
     
     // normal has been updated !
     public boolean isPointInHalfspace(Point3D[] points, Point3D p) {
-	if (points == null || p == null || type == Types.LINE
-		|| type == Types.POINT) return false;
+	if (points == null || p == null || size < 3) return false;
 	Vector3D v = new Vector3D(points[indexes[0]], p);
 	double res = Vector3D.dot(normal, v);
 	return (res > 0.0); 
@@ -121,12 +119,12 @@ public class Polygon3DInds extends Polygon3D {
     }
     
     public Polygon3DInds getCopy() {
-	return new Polygon3DInds(indexes, colors[0], borderColor, attributes);
+	return new Polygon3DInds(indexes, colors[0], transp, attributes);
     }
     
     // To all-sufficient polygon
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
-         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), colors[0], borderColor, attributes);
+         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), colors[0], transp, attributes);
          res.normal = normal;
          res.averageZ = averageZ;
          res.normalLength = normalLength;

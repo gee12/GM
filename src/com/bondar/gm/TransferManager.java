@@ -271,6 +271,17 @@ public class TransferManager {
 	return transVertex(vert, scrM);
     }
     
+    public static Point3D transToPerspectAndScreen(Point3D vert, Camera cam) {
+	if (vert == null || cam == null) return null;
+	// create matrixes
+	Matrix perspM = Matrix.perspectMatrix(cam.getViewDist(), cam.getAspectRatio());
+	Matrix scrM = Matrix.perspectToScreenMatrix(
+		cam.getViewPort().getWidth(), cam.getViewPort().getHeight());
+	Matrix[] ms = new Matrix[] {perspM,scrM};
+	// transform camera vertex
+        return transVertex(vert, ms);
+    }
+    
     /////////////////////////////////////////////////////////
     public static Point3D transVertex(Point3D v, Matrix m) {
 	if (v == null || m == null) return null;

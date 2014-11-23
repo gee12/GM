@@ -42,6 +42,11 @@ public class Point3DOdn extends Point3D {
 	}
 	return this;
     }
+    // 
+    public Point3DOdn mul(double s) {
+	super.mul(s);
+        return this;
+    }
     // set
     public void setW(double w) {
 	vector.setAt(0, 3, w);

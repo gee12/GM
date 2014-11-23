@@ -3,8 +3,10 @@ package com.bondar.gm;
 import com.bondar.geom.ClipRectangle2D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
+import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid2D;
+import com.bondar.geom.Vector3D;
 import com.bondar.geom.Vertex3D;
 import com.bondar.tasks.Main;
 import com.bondar.tools.Mathem;
@@ -26,6 +28,10 @@ public class DrawManager {
         FAST,
         FASTEST
     }
+    public static final Color POLY_NORMAL_COLOR = Color.RED;
+    public static final Color VERT_NORMAL_COLOR = Color.GREEN;
+    
+    public static final Color EDGES_COLOR = Color.WHITE;
 
     private Graphics graphic;
     private Graphics2D imageGraphic;
@@ -53,33 +59,36 @@ public class DrawManager {
         backColor = new Color(TONE,TONE,TONE);
     }
     
-    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, Solid2D crosshair) {
-        //
+    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, 
+            boolean isNormalsPoly, boolean isNormalsVert, Solid2D crosshair) {
+        // background
         fillRectangle(new Rectangle(0,0,
                 width,height/2), Color.DARK_GRAY);
         fillRectangle(new Rectangle(0,height/2,
-                width,height/2), backColor);
-        //
+                width,height/2), Color.DARK_GRAY);
+        // polygons
 	switch (viewType) {
-	    case Main.RADIO_FACES_TEXT:
-		drawPolies(polies, shadeType);
+	    case Main.RADIO_FACES:
+		drawPolies(polies, shadeType, isNormalsPoly, isNormalsVert);
 		break;
-	    case Main.RADIO_EDGES_TEXT:
-		drawBorders(polies);
+	    case Main.RADIO_EDGES:
+		drawEdges(polies, isNormalsPoly, isNormalsVert);
 		break;
-	    case Main.RADIO_EDGES_FACES_TEXT:
-		drawBorderedPolies(polies, shadeType);
+	    case Main.RADIO_EDGES_FACES:
+		drawBorderedPolies(polies, shadeType, isNormalsPoly, isNormalsVert);
 		break;
 	}
-        //
-        setColor(crosshair.getColor());
-        Point2D[] points = crosshair.getPoints();
-        drawLine(points[0], points[1]);
-        drawLine(points[2], points[3]);
-        //
+        //crosshair
+        if (crosshair != null) {
+            setColor(crosshair.getColor());
+            Point2D[] points = crosshair.getPoints();
+            drawLine(points[0], points[1]);
+            drawLine(points[2], points[3]);
+        }
+        // image
         graphic.drawImage(image, 0,0,width, height, null);
     }
-
+    
     /////////////////////////////////////////////////////
     // DRAW RECTANGLES
     public void drawBackground() {
@@ -252,7 +261,7 @@ public class DrawManager {
     /////////////////////////////////////////////////////
     // Draw a triangle
     // by means of decomposes triangle into a pair of flat top, flat bottom.
-    public void drawTriangle2D(double x1, double y1, double x2, double y2,
+    public void drawFlatTriangle2D(double x1, double y1, double x2, double y2,
             double x3, double y3, Color col) {
 
         // test for h lines and v lines
@@ -631,14 +640,33 @@ public class DrawManager {
         }
 
 // now test for trivial flat sided cases
-        if (Mathem.isEquals1(verts[v0].getPosition().getY(), verts[v1].getPosition().getY())) {
+//        if (Mathem.isEquals1(verts[v0].getPosition().getY(), verts[v1].getPosition().getY())) {
+//            type = TRI_TYPE_FLAT_TOP;
+//            if (verts[v1].getPosition().getX() < verts[v0].getPosition().getX()) {
+////		{SWAP(v0,v1,temp);}
+//                v0 = Mathem.returnFirst(v1, v1 = v0);
+//            }
+//        } else // now test for trivial flat sided cases
+//        if (Mathem.isEquals1(verts[v1].getPosition().getY(), verts[v2].getPosition().getY())) {
+//            type = TRI_TYPE_FLAT_BOTTOM;
+//            if (verts[v2].getPosition().getX() < verts[v1].getPosition().getX()) {
+////		{SWAP(v1,v2,temp);}
+//                v1 = Mathem.returnFirst(v2, v2 = v1);
+//            }
+        if (Mathem.toInt(verts[v0].getPosition().getY()) == Mathem.toInt(verts[v1].getPosition().getY())) {
+            if (Mathem.toInt(verts[v0].getPosition().getY()) == Mathem.toInt(verts[v2].getPosition().getY())) {
+                
+                // draw line ?!
+                
+                return;
+            }
             type = TRI_TYPE_FLAT_TOP;
             if (verts[v1].getPosition().getX() < verts[v0].getPosition().getX()) {
 //		{SWAP(v0,v1,temp);}
                 v0 = Mathem.returnFirst(v1, v1 = v0);
             }
         } else // now test for trivial flat sided cases
-        if (Mathem.isEquals1(verts[v1].getPosition().getY(), verts[v2].getPosition().getY())) {
+        if (Mathem.toInt(verts[v1].getPosition().getY()) == Mathem.toInt(verts[v2].getPosition().getY())) {
             type = TRI_TYPE_FLAT_BOTTOM;
             if (verts[v2].getPosition().getX() < verts[v1].getPosition().getX()) {
 //		{SWAP(v1,v2,temp);}
@@ -875,8 +903,8 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
-
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -932,7 +960,7 @@ public class DrawManager {
 //            screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1189,7 +1217,7 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];   
-//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1290,10 +1318,7 @@ public class DrawManager {
 //   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
 //                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
 //                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        if (ui > 255) ui = 255;
-                        if (vi > 255) vi = 255;
-                        if (wi > 255) wi = 255;
-//                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1369,32 +1394,7 @@ public class DrawManager {
     // DRAW POLYGONS
     
     /////////////////////////////////////////////////////
-    //
-    public void drawPolygon3D(Polygon3DVerts poly, String shadeType) {
-	switch(poly.getType()) {
-	    case POINT:
-		drawPoint(poly.getVertexPosition(0), poly.getColor());
-		break;
-	    case LINE:
-		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1), poly.getColor());
-		break;
-	    default:
-                switch(shadeType) {
-                    case Main.RADIO_SHADE_CONST_TEXT:
-                    case Main.RADIO_SHADE_FLAT_TEXT:
-                        drawFlatPolygon(poly.getVertexes(), poly.getColor());
-                        break;
-                    case Main.RADIO_SHADE_GOURAD_TEXT:
-                        drawGouraudTriangle2D(poly.getVertexes(), poly.getColors());
-                }
-                
-		break;
-	}
-    }
-    
-    /////////////////////////////////////////////////////
-    // Draw filled polygon
-    // (with awt.Graphics.fillPolygon())
+    // Draw filled polygon (awt.Graphics)
     public void drawAwtPolygon(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
@@ -1414,21 +1414,76 @@ public class DrawManager {
         Point3D p1 = verts[0].getPosition();
         Point3D p2 = verts[1].getPosition();
         Point3D p3 = verts[2].getPosition();
-        drawTriangle2D(p1.getX(), p1.getY(),
+        drawFlatTriangle2D(p1.getX(), p1.getY(),
                         p2.getX(), p2.getY(),
                         p3.getX(), p3.getY(), col);
     }
-    
-    // Draw polygon border (edges/wire)
-    public void drawPolygonBorder(Polygon3DVerts poly) {
-        if (poly == null) return;
-        //graphic.setColor(poly.getBorderColor());
-        setColor(poly.getBorderColor());
-        drawPolygonBorder(poly.getVertexes());
+
+    public void drawPolies(Polygon3DVerts[] polies, String shadeType, boolean isNormalsPoly, boolean isNormalsVert) {
+	if (polies == null) return;
+	for (Polygon3DVerts poly : polies) {
+	    drawPolygon3D(poly, shadeType);
+            //
+            if (isNormalsPoly) {
+                drawPolygonNormal(poly);
+            }
+            if (isNormalsVert) {
+                drawVertexNormals(poly);
+            }
+	}
     }
     
-    // Draw polygon border (edges/wire)
-    public void drawPolygonBorder(Vertex3D[] verts) {
+    public void drawPolygon3D(Polygon3DVerts poly, String shadeType) {
+	switch(poly.getType()) {
+	    case POINT:
+		drawPoint(poly.getVertexPosition(0), poly.getColor());
+		break;
+	    case LINE:
+		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1), poly.getColor());
+		break;
+	    default:
+                switch(shadeType) {
+                    case Main.RADIO_SHADE_CONST:
+                    case Main.RADIO_SHADE_FLAT:
+                        drawFlatPolygon(poly.getVertexes(), poly.getColor());
+                        break;
+                    case Main.RADIO_SHADE_GOURAD:
+                        drawGouraudTriangle2D(poly.getVertexes(), poly.getColors());
+                }
+                
+		break;
+	}
+    }
+    
+    //////////////////////////////////////////////////
+    // Draw edges
+    public void drawEdges(Polygon3DVerts[] polies, boolean isNormalsPoly, boolean isNormalsVert) {
+	if (polies == null) return;
+	for (Polygon3DVerts poly : polies) {
+	    drawEdges(poly);
+            //
+            if (isNormalsPoly) {
+                drawPolygonNormal(poly);
+            }
+            if (isNormalsVert) {
+                drawVertexNormals(poly);
+            }
+	}
+    }
+    
+    public void drawEdges(Polygon3DVerts poly) {
+        if (poly == null) return;
+        setColor(poly.getColor());
+        drawEdges(poly.getVertexes());
+    }
+    
+    public void drawEdges(Polygon3DVerts poly, Color col) {
+        if (poly == null) return;
+        setColor(col);
+        drawEdges(poly.getVertexes());
+    }
+    
+    public void drawEdges(Vertex3D[] verts) {
 	if (verts == null) return;
 	int size = verts.length;
         if (size == 0) return;
@@ -1438,34 +1493,48 @@ public class DrawManager {
 	drawLine(verts[size-1].getPosition(), verts[0].getPosition());
     }
     
-    /////////////////////////////////////////////////////
-    // 
-    public void drawBorderedPolies(Polygon3DVerts[] polies, String shadeType) {
+    //////////////////////////////////////////////////        
+    // Draw polygons and edges
+    public void drawBorderedPolies(Polygon3DVerts[] polies, String shadeType,
+            boolean isNormalsPoly, boolean isNormalsVert) {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    // shading
 	    drawPolygon3D(poly, shadeType);
-	    // border
-	    drawPolygonBorder(poly);
+	    // edges
+            if (poly.getSize() >= 3) {
+                drawEdges(poly, EDGES_COLOR);
+            }
+            if (isNormalsPoly) {
+                drawPolygonNormal(poly);
+            }
+            if (isNormalsVert) {
+                drawVertexNormals(poly);
+            }
 	}
     }
     
-    public void drawPolies(Polygon3DVerts[] polies, String shadeType) {
-	if (polies == null) return;
-	for (Polygon3DVerts poly : polies) {
-	    // shading
-	    drawPolygon3D(poly, shadeType);
-	}
-    }
+    //////////////////////////////////////////////////
+    // Draw normals
+    public void drawPolygonNormal(Polygon3DVerts poly) {
+        if (poly == null || poly.getSize() < 3) return;
         
-    public void drawBorders(Polygon3DVerts[] polies) {
-	if (polies == null) return;
-	for (Polygon3DVerts poly : polies) {
-	    // border
-	    drawPolygonBorder(poly);
-	}
+        Point3D n = poly.getNormal();
+        drawLine(poly.getVertexPosition(0), n, POLY_NORMAL_COLOR);
     }
-    
+
+    public void drawVertexNormals(Polygon3DVerts poly) {
+        if (poly == null || poly.getSize() < 3) return;
+        
+        Point3D n0 = poly.getVertexes()[0].getNormal();
+        Point3D n1 = poly.getVertexes()[1].getNormal();
+        Point3D n2 = poly.getVertexes()[2].getNormal();
+
+        drawLine(poly.getVertexPosition(0), n0, VERT_NORMAL_COLOR);
+        drawLine(poly.getVertexPosition(1), n1, VERT_NORMAL_COLOR);
+        drawLine(poly.getVertexPosition(2), n2, VERT_NORMAL_COLOR);
+    }
+
     //////////////////////////////////////////////////
     // set
     public void setGraphics(Graphics g) {
@@ -1483,7 +1552,6 @@ public class DrawManager {
     
     public void setColor(Color col) {
         if (col == null) return;
-	//g.setColor(color);
         curColor = col;
     }
 

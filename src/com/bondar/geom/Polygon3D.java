@@ -29,7 +29,8 @@ public abstract class Polygon3D {
     protected int attributes;
     protected int size;
     protected Color[] colors;    // source/shade flat color[0], or verts gourad colors
-    protected Color borderColor;
+//    protected Color borderColor;
+    protected float transp;
     //protected Bitmap texture;
     protected int materialId;
     protected Vector3D normal;
@@ -37,14 +38,14 @@ public abstract class Polygon3D {
     protected double averageZ;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(int size, Color src, Color border, int attr) {
+    public Polygon3D(int size, Color src, float transp, int attr) {
 	this.size = size;
 //	this.color = src;
         this.colors = new Color[size];
         colors[0] = src;
 //        colors[1] = src;
 //        colors[2] = src;
-        this.borderColor = border;
+        this.transp = transp;
 	this.attributes = attr;
 	this.state = States.VISIBLE;
         this.type = type(size);
@@ -98,6 +99,10 @@ public abstract class Polygon3D {
         this.state = state;
     }
     
+    public void setNormal(Vector3D n) {
+        this.normal = n;
+    }
+    
     /////////////////////////////////////////////////////////
     // get
     public Types getType() {
@@ -116,9 +121,9 @@ public abstract class Polygon3D {
 	return size;
     }
     
-    public Color getBorderColor() {
-	return borderColor;
-    }
+//    public Color getBorderColor() {
+//	return borderColor;
+//    }
     
     public States getState() {
 	return state;

@@ -33,7 +33,9 @@ public abstract class Camera {
 	    double dist, double fov, Dimension vp, Point3D target, int mode) {
 	this.attr = attr;
 	this.pos = pos;
-	this.dir = dir;
+        this.dir = dir;
+//	this.dir = new Vector3D();
+//        updateDirection(dir);
 	this.viewPort = vp;
 	this.buildMode = mode;
 	this.target = target;
@@ -85,6 +87,14 @@ public abstract class Camera {
         if (az != 0.0) pos.mul(Matrix.rotationMatrix(-az, Z));
     }
     
+    public void updateDirection(Vector3D v) {
+        double ax = v.getX(), ay = v.getY(), az = v.getZ();
+	dir.add(new Point3D(ax, ay, az));
+        if (ax != 0.0) pos.mul(Matrix.rotationMatrix(-ax, X));
+        if (ay != 0.0) pos.mul(Matrix.rotationMatrix(-ay, Y));
+        if (az != 0.0) pos.mul(Matrix.rotationMatrix(-az, Z));
+    }
+        
     public void updatePosition(double dx, double dy, double dz) {
 	pos.add(new Point3D(dx, dy, dz));
     }

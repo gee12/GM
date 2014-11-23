@@ -20,7 +20,7 @@ public class Vector3D extends Point3DOdn {
     
     public Vector3D(Point3D p0, Point3D p1) {
 	//super(p1.getCopy().sub(p0).toArray3());
-	super(p1.getX() - p0.getX(),
+	super((p1.getX() - p0.getX()),
 		p1.getY() - p0.getY(),
 		p1.getZ() - p0.getZ());
     }
@@ -31,13 +31,18 @@ public class Vector3D extends Point3DOdn {
     
     /////////////////////////////////////////////////////////
     //
-    public void normalize() {
+    public Vector3D normalize() {
 	double length = length();
 	if (length < Mathem.EPSILON_E5)
-	    return;
-	mul(1. / length);
+	    return null;
+	return this.mul(1. / length);
     }
-    
+
+    public Vector3D mul(double s) {
+	super.mul(s);
+        return this;
+    }
+        
     public Vector3D mul(Vector3D v) {
 	return mul(this, v);
     }

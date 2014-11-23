@@ -179,6 +179,8 @@ public class Matrix {
 	    {0, Math.sin(phi), -(Math.cos(phi)), 0},
 	    {0, 0, ro, 1}});
     }
+    
+    //////////////////////////////////////////////////
     public static Matrix perspectMatrix(double d, double ar) {
 	return new Matrix(new double[][]{
 	    {d, 0, 0, 0},
