@@ -48,9 +48,9 @@ public class Vector3D extends Point3DOdn {
     }
     
     public static Vector3D mul(Vector3D v1, Vector3D v2) {
-	double x = (v1.getY() * v2.getZ()) - (v1.getZ() * v2.getY());
-	double y = (v1.getX() * v2.getZ()) - (v1.getZ() * v2.getX());
-	double z = (v1.getX() * v2.getY()) - (v1.getY() * v2.getX());
+	double x = ((v1.getY() * v2.getZ()) - (v1.getZ() * v2.getY()));
+	double y = -((v1.getX() * v2.getZ()) - (v1.getZ() * v2.getX()));
+	double z = ((v1.getX() * v2.getY()) - (v1.getY() * v2.getX()));
 	return new Vector3D(x, y, z);
     }
     

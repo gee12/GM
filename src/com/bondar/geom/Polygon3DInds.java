@@ -63,8 +63,7 @@ public class Polygon3DInds extends Polygon3D {
     }
 
     public double zByXY(Vertex3D[] verts, double x, double y) {
- 	if (verts == null ||
-                type == Types.LINE || type == Types.POINT) return 0;
+ 	if (verts == null || size < 3) return 0;
         return Triangle3D.zByXY(
                 verts[0].getPosition(), 
                 verts[1].getPosition(), 
@@ -80,7 +79,7 @@ public class Polygon3DInds extends Polygon3D {
     /////////////////////////////////////////////////////////
     // reset
     public void resetNormal(Point3D[] points) {
- 	if (type == Types.LINE || type == Types.POINT) return;
+ 	if (size < 3) return;
         normal = normal(
                 points[indexes[0]], 
                 points[indexes[1]], 

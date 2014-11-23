@@ -1520,7 +1520,12 @@ public class DrawManager {
         if (poly == null || poly.getSize() < 3) return;
         
         Point3D n = poly.getNormal();
-        drawLine(poly.getVertexPosition(0), n, POLY_NORMAL_COLOR);
+        
+        Point3D c = poly.getVertexPosition(0).add(poly.getVertexPosition(1)).
+                add(poly.getVertexPosition(2)).mul(0.333);
+        
+//        drawLine(poly.getVertexPosition(0), n, POLY_NORMAL_COLOR);
+        drawLine(c, n, POLY_NORMAL_COLOR);
     }
 
     public void drawVertexNormals(Polygon3DVerts poly) {

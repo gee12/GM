@@ -64,18 +64,15 @@ public class ModelsManager {
 
         // transfer local vertexes to world
 	Point3D[] transVerts = TransferManager.transToWorld(model);
-	// transferFull world vertexes to camera
-	transVerts = TransferManager.transToCamera(transVerts, cam);
+        // transferFull world vertexes to camera
+        transVerts = TransferManager.transToCamera(transVerts, cam);
         
 	// redefine normals, backfaces
         model.setVertexesPosition(transVerts);
         model.redefinePolygonsParams(transVerts, cam.getPosition(), isDefineBackfaces);
         
-        //
-        model.computeVertexesNormal();
-        
-	
-	//model.setVertexesPosition(transVerts);
+//      model.computeVertexesNormal();
+//	model.setVertexesPosition(transVerts);
 
         
         /*if (model.getState() == Solid3D.States.VISIBLE) {

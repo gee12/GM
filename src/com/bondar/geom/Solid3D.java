@@ -234,14 +234,6 @@ public class Solid3D {
 	    state = States.CULLED;
 	else state = States.VISIBLE;
     }
-
-    /*public void setTransVertexes(Point3D[] verts) {
-	transVerts = verts;
-    }*/
-
-    /*public void resetBounds() {
-	bounds.resetBounds(localVerts);
-    }*/
     
     // scale.getX() - need to correct
     public boolean isCameraPointInto(Point2D cp, Camera cam) {
@@ -284,8 +276,10 @@ public class Solid3D {
     
     /////////////////////////////////////////////////////////
     // reset
-    // points - in world coord's
+    // points - in camera coord's
     public void redefinePolygonsParams(Point3D[] points, Point3D camPos, boolean isNeedDefineBackfaces) {
+        int[] touchVertex = new int[vertexes.length];
+        
 	for (Polygon3DInds poly: polygons) {
 	    //poly.setVertexesPosition(points);
             poly.resetNormal(points);
@@ -294,7 +288,34 @@ public class Solid3D {
                 poly.setIsBackFace(points, camPos);
             // restore backfaces if don't need to rejection
             else poly.setState(Polygon3D.States.VISIBLE);
+            
+
+            // compute vertexes normal
+            if (/*poly.getShadeMode() != ShadeModes.Gourad &&*/ poly.getSize() >= 3) {
+                int i0 = poly.getIndexes()[0];
+                int i1 = poly.getIndexes()[1];
+                int i2 = poly.getIndexes()[2];
+
+                touchVertex[i0]++;
+                touchVertex[i1]++;
+                touchVertex[i2]++;
+
+                // poly.getNormal() - need to be updated
+                Vector3D n = poly.getNormal();
+                vertexes[i0].getNormal().add(n);
+                vertexes[i1].getNormal().add(n);
+                vertexes[i2].getNormal().add(n);
+            }
 	}
+        
+        // for Gourad shading
+        for (int i = 0; i < vertexes.length; i++) {
+            if (touchVertex[i] >= 1) {
+                double inv = 1. / touchVertex[i];
+                vertexes[i].getNormal().mul(inv);
+                vertexes[i].getNormal().normalize();
+            }
+        }
     }
     
     public void resetPoliesNormals(Point3D[] points) {

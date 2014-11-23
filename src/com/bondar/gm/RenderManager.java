@@ -5,6 +5,7 @@ import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
+import com.bondar.geom.Vector3D;
 import com.bondar.geom.Vertex3D;
 import com.bondar.tasks.Main;
 import com.bondar.tools.Types;
@@ -69,14 +70,18 @@ public class RenderManager {
         if (isNormalsPoly) {
             for (Polygon3DVerts poly : renderArray) {
                 if (poly.getSize() < 3) continue;
+//                Point3D n = poly.getNormal();
                 Point3D n = poly.getNormal();
                 // !!! transfer to camera for the SECOND TIME !
 //                n = TransferManager.transToCamera(n, cam);
                 
-//                n = TransferManager.transToPerspectAndScreen(n, cam);
-                n = TransferManager.transToPerspective(n, cam);
-                n = TransferManager.transPerspectToScreen(n, cam);
-                poly.setNormal(n.toVector3D());
+                n = TransferManager.transToPerspectAndScreen(n, cam);
+//                n = TransferManager.transToPerspective(n, cam);
+//                n = TransferManager.transPerspectToScreen(n, cam);
+                Vector3D v =  n.toVector3D();
+//                v = v.normalize();
+//                poly.setNormal(n.toVector3D().normalize());
+                poly.setNormal(v);
             }
         }
         //
@@ -85,7 +90,7 @@ public class RenderManager {
                 for (Vertex3D vert : poly.getVertexes()) {
                     Point3D nv = vert.getNormal();
                     // !!! transfer to camera for the SECOND TIME !
-                    nv = TransferManager.transToCamera(nv, cam);
+//                    nv = TransferManager.transToCamera(nv, cam);
                     
                     nv = TransferManager.transToPerspectAndScreen(nv, cam);
                     vert.setNormal(nv.toVector3D());

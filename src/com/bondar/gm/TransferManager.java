@@ -39,10 +39,10 @@ public class TransferManager {
 	model.setTransVertexes(verts);
     }*/
     
-    public static void transToPerspectAndScreen(Polygon3DVerts[] polies, Camera camera) {
+    public static void transToPerspectAndScreen(Polygon3DVerts[] polies, Camera cam) {
 	if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
-            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), camera));
+            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), cam));
         }
     }
     /*public static void transferFull(Solid3D model, Camera camera, boolean isNeedDefineBackfaces) {
