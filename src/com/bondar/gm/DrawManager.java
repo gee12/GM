@@ -535,41 +535,37 @@ public class DrawManager {
     // to find the appropriate color
     public void drawGouraudTriangle2D(Vertex3D[] verts, Color[] colors) {
         if (verts == null || colors == null
-            || colors[1] == null || colors[2] == null    
-                ) {
+            || colors[1] == null || colors[2] == null) {
             return;
         }
-        
         final int TRI_TYPE_NONE = 0;
         final int TRI_TYPE_FLAT_TOP = 1;
         final int TRI_TYPE_FLAT_BOTTOM = 2;
         final int TRI_TYPE_FLAT_MASK = 3;
         final int TRI_TYPE_GENERAL = 4;
+        
         final int INTERP_LHS = 0;
         final int INTERP_RHS  = 1;
         
-        final int FIXP16_SHIFT = 0;//16;
-        final int FIXP16_ROUND_UP = 0;//0x00008000;  
+        final int FIXP16_SHIFT = 16;
+        final int FIXP16_ROUND_UP = 0x00008000;
         
         int v0 = 0,
                 v1 = 1,
                 v2 = 2,
-                temp = 0,
                 type = TRI_TYPE_NONE,
                 iRestart = INTERP_LHS;
 
         int dx, dy, dyl, dyr, // general deltas
-                u, v, w,
                 du, dv, dw,
                 xi, yi, // the current interpolated x,y
                 ui, vi, wi, // the current interpolated u,v
-                index_x, index_y, // looping vars
                 x, y, // hold general x,y
                 xStart,
                 xEnd,
                 yStart,
                 yRestart,
-                yend,
+                yEnd,
                 xl,
                 dxdyl,
                 xr,
@@ -594,11 +590,8 @@ public class DrawManager {
         int rBase0, gBase0, bBase0,
                 rBase1, gBase1, bBase1,
                 rBase2, gBase2, bBase2;
-//UCHAR  *screen_ptr  = NULL,
-//	   *screen_line = NULL,
-//	   *textmap     = NULL;
 
-// first trivial clipping rejection tests 
+        // first trivial clipping rejection tests 
         if (((verts[0].getPosition().getY() < clip.getYMin())
                 && (verts[1].getPosition().getY() < clip.getYMin())
                 && (verts[2].getPosition().getY() < clip.getYMin()))
@@ -627,49 +620,28 @@ public class DrawManager {
 
         // sort vertices
         if (verts[v1].getPosition().getY() < verts[v0].getPosition().getY()) {
-//            SWAP(v0, v1, temp);
             v0 = Mathem.returnFirst(v1, v1 = v0);
         }
         if (verts[v2].getPosition().getY() < verts[v0].getPosition().getY()) {
-//            SWAP(v0, v2, temp);
             v0 = Mathem.returnFirst(v2, v2 = v0);
         }
         if (verts[v2].getPosition().getY() < verts[v1].getPosition().getY()) {
-//            SWAP(v1, v2, temp);
             v1 = Mathem.returnFirst(v2, v2 = v1);
         }
 
-// now test for trivial flat sided cases
-//        if (Mathem.isEquals1(verts[v0].getPosition().getY(), verts[v1].getPosition().getY())) {
-//            type = TRI_TYPE_FLAT_TOP;
-//            if (verts[v1].getPosition().getX() < verts[v0].getPosition().getX()) {
-////		{SWAP(v0,v1,temp);}
-//                v0 = Mathem.returnFirst(v1, v1 = v0);
-//            }
-//        } else // now test for trivial flat sided cases
-//        if (Mathem.isEquals1(verts[v1].getPosition().getY(), verts[v2].getPosition().getY())) {
-//            type = TRI_TYPE_FLAT_BOTTOM;
-//            if (verts[v2].getPosition().getX() < verts[v1].getPosition().getX()) {
-////		{SWAP(v1,v2,temp);}
-//                v1 = Mathem.returnFirst(v2, v2 = v1);
-//            }
         if (Mathem.toInt(verts[v0].getPosition().getY()) == Mathem.toInt(verts[v1].getPosition().getY())) {
-            if (Mathem.toInt(verts[v0].getPosition().getY()) == Mathem.toInt(verts[v2].getPosition().getY())) {
-                
-                // draw line ?!
-                
-                return;
-            }
+//            if (Mathem.toInt(verts[v0].getPosition().getY()) == Mathem.toInt(verts[v2].getPosition().getY())) {
+//                // draw line ?!
+//                return;
+//            }
             type = TRI_TYPE_FLAT_TOP;
             if (verts[v1].getPosition().getX() < verts[v0].getPosition().getX()) {
-//		{SWAP(v0,v1,temp);}
                 v0 = Mathem.returnFirst(v1, v1 = v0);
             }
         } else // now test for trivial flat sided cases
         if (Mathem.toInt(verts[v1].getPosition().getY()) == Mathem.toInt(verts[v2].getPosition().getY())) {
             type = TRI_TYPE_FLAT_BOTTOM;
             if (verts[v2].getPosition().getX() < verts[v1].getPosition().getX()) {
-//		{SWAP(v1,v2,temp);}
                 v1 = Mathem.returnFirst(v2, v2 = v1);
             }
         } else {
@@ -680,21 +652,6 @@ public class DrawManager {
                 p1 = verts[v1].getPosition(),
                 p2 = verts[v2].getPosition();
 
-//_RGB565FROM16BIT(face->lit_color[v0], &r_base0, &g_base0, &b_base0);
-//_RGB565FROM16BIT(face->lit_color[v1], &r_base1, &g_base1, &b_base1);
-//_RGB565FROM16BIT(face->lit_color[v2], &r_base2, &g_base2, &b_base2);
-//// scale to 8 bit 
-//rBase0 <<= 3;
-//gBase0 <<= 2;
-//bBase0 <<= 3;
-//// scale to 8 bit 
-//rBase1 <<= 3;
-//gBase1 <<= 2;
-//bBase1 <<= 3;
-//// scale to 8 bit 
-//rBase2 <<= 3;
-//gBase2 <<= 2;
-//bBase2 <<= 3;
         rBase0 = colors[v0].getRed();
         gBase0 = colors[v0].getGreen();
         bBase0 = colors[v0].getBlue();
@@ -708,8 +665,6 @@ public class DrawManager {
         bBase2 = colors[v2].getBlue();
 
         // extract vertices for processing, now that we have order
-//        x0  = (int)(p0.getX()+0.5);
-//        y0  = (int)(p0.getY()+0.5);
         x0 = Mathem.toInt(p0.getX());
         y0 = Mathem.toInt(p0.getY());
 
@@ -717,8 +672,6 @@ public class DrawManager {
         tv0 = gBase0;
         tw0 = bBase0;
 
-//        x1  = (int)(p1.getX()+0.5);
-//        y1  = (int)(p1.getY()+0.5);
         x1 = Mathem.toInt(p1.getX());
         y1 = Mathem.toInt(p1.getY());
 
@@ -726,8 +679,6 @@ public class DrawManager {
         tv1 = gBase1;
         tw1 = bBase1;
 
-//        x2  = (int)(p2.getX()+0.5);
-//        y2  = (int)(p2.getY()+0.5);
         x2 = Mathem.toInt(p2.getX());
         y2 = Mathem.toInt(p2.getY());
 
@@ -735,10 +686,12 @@ public class DrawManager {
         tv2 = gBase2;
         tw2 = bBase2;
 
-// set interpolation restart value
+        // set interpolation restart value
         yRestart = y1;
-// what kind of triangle
+        // what kind of triangle
         if ((type & TRI_TYPE_FLAT_MASK) > 0) {
+            ////////////////////////////////////////////////////////////////////
+            // FLAT TOP TRIANGLE
             if (type == TRI_TYPE_FLAT_TOP) {
                 // compute all deltas
                 dy = (y2 - y0);
@@ -791,8 +744,8 @@ public class DrawManager {
                     yStart = y0;
                 }
             } else {
-	// must be flat bottom
-
+                ////////////////////////////////////////////////////////////////
+                // FLAT BOTTOM TRIANGLE
                 // compute all deltas
                 dy = (y1 - y0);
 
@@ -844,18 +797,18 @@ public class DrawManager {
                 }
             }
             // test for bottom clip, always
-            if ((yend = y2) > clip.getYMax()) {
-                yend = clip.getYMax();
+            if ((yEnd = y2) > clip.getYMax()) {
+                yEnd = clip.getYMax();
             }
-            // test for horizontal clipping
+            ////////////////////////////////////////////////////////////////
+            // DRAW TOP/BOTTOM TRIANGLE
+            
+            // CLIP HORISONTAL?
             if ((x0 < clip.getXMin()) || (x0 > clip.getXMax())
                     || (x1 < clip.getXMin()) || (x1 > clip.getXMax())
                     || (x2 < clip.getXMin()) || (x2 > clip.getXMax())) {
-    // clip version
-
-	// point screen ptr to starting line
-//	screen_ptr = dest_buffer + (yStart * mem_pitch);
-                for (yi = yStart; yi <= yend; yi++) {
+                // CLIP VERSION
+                for (yi = yStart; yi <= yEnd; yi++) {
                     // compute span endpoints
                     xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
                     xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
@@ -876,41 +829,34 @@ public class DrawManager {
                         dw = (wr - wl);
                     }
 
-		///////////////////////////////////////////////////////////////////////
-                    // test for x clipping, LHS
+                    ////////////////////////////////////////////////////////////
+                    // CLIP LEFT
                     if (xStart < clip.getXMin()) {
                         // compute x overlap
                         dx = clip.getXMin() - xStart;
-
                         // slide interpolants over
                         ui += dx * du;
                         vi += dx * dv;
                         wi += dx * dw;
-
                         // reset vars
                         xStart = clip.getXMin();
-
                     }
-                    // test for x clipping RHS
+                    // CLIP RIGHT
                     if (xEnd > clip.getXMax()) {
                         xEnd = clip.getXMax();
                     }
 
-		///////////////////////////////////////////////////////////////////////
-                    // draw span
+                    ////////////////////////////////////////////////////////////
+                    // DRAW CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        // write textel assume 5.6.5
-//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
-//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
-//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
-                        
+                        drawNoClipPoint(xi, yi, new Color(ui >> FIXP16_SHIFT, 
+                                vi >> FIXP16_SHIFT, 
+                                wi >> FIXP16_SHIFT));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
                         wi += dw;
                     }
-
                     // interpolate u,v,w,x along right and left edge
                     xl += dxdyl;
                     ul += dudyl;
@@ -921,18 +867,12 @@ public class DrawManager {
                     ur += dudyr;
                     vr += dvdyr;
                     wr += dwdyr;
-
-		// advance screen ptr
-//		screen_ptr+=mem_pitch;
                 }
-
             }
             else {
-	// non-clip version
-
-	// point screen ptr to starting line
-//	screen_ptr = dest_buffer + (yStart * mem_pitch);
-                for (yi = yStart; yi <= yend; yi++) {
+                ////////////////////////////////////////////////////////////////
+                // NON-CLIP VERSION
+                for (yi = yStart; yi <= yEnd; yi++) {
                     // compute span endpoints
                     xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
                     xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
@@ -954,19 +894,17 @@ public class DrawManager {
                         dw = (wr - wl);
                     }
 
-                    // draw span
+                    ////////////////////////////////////////////////////////////
+                    // DRAW NON-CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        // write textel 5.6.5
-//            screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
-//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
-//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui >> FIXP16_SHIFT, 
+                                vi >> FIXP16_SHIFT, 
+                                wi >> FIXP16_SHIFT));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
                         wi += dw;
                     }
-
                     // interpolate u,v,w,x along right and left edge
                     xl += dxdyl;
                     ul += dudyl;
@@ -977,19 +915,19 @@ public class DrawManager {
                     ur += dudyr;
                     vr += dvdyr;
                     wr += dwdyr;
-		// advance screen ptr
-//		screen_ptr+=mem_pitch;
                 }
             }
         }
+        ////////////////////////////////////////////////////////////////////////
+        // GENERAL TRIANGLE
         else if (type == TRI_TYPE_GENERAL) {
 
-            // first test for bottom clip, always
-            if ((yend = y2) > clip.getYMax()) {
-                yend = clip.getYMax();
+            // CLIP BOTTOM
+            if ((yEnd = y2) > clip.getYMax()) {
+                yEnd = clip.getYMax();
             }
 
-            // pre-test y clipping status
+            // INITIAL TOP CLIP (Y1)
             if (y1 < clip.getYMin()) {
 		// compute all deltas
                 // LHS
@@ -1049,6 +987,7 @@ public class DrawManager {
                     iRestart = INTERP_RHS;
                 }
             }
+            // INITIAL TOP CLIP (Y0)
             else if (y0 < clip.getYMin()) {
 		// compute all deltas
                 // LHS
@@ -1105,8 +1044,8 @@ public class DrawManager {
                     iRestart = INTERP_RHS;
                 }
             } else {
-		// no initial y clipping
-
+                ////////////////////////////////////////////////////////////////
+                // NO INITIAL TOP CLIP
 		// compute all deltas
                 // LHS
                 dyl = (y1 - y0);
@@ -1159,16 +1098,14 @@ public class DrawManager {
                     iRestart = INTERP_RHS;
                 }
             }
-            // test for horizontal clipping
+            ////////////////////////////////////////////////////////////////////
+            // NEED HORISONTAL CLIP?
             if ((x0 < clip.getXMin()) || (x0 > clip.getXMax())
                     || (x1 < clip.getXMin()) || (x1 > clip.getXMax())
                     || (x2 < clip.getXMin()) || (x2 > clip.getXMax())) {
-    // clip version
-                // x clipping	
 
-	// point screen ptr to starting line
-//	screen_ptr = dest_buffer + (yStart * mem_pitch);
-                for (yi = yStart; yi <= yend; yi++) {
+                // DRAW CLIPPED GENERAL TRIANGLE
+                for (yi = yStart; yi <= yEnd; yi++) {
                     // compute span endpoints
                     xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
                     xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
@@ -1190,8 +1127,8 @@ public class DrawManager {
                         dw = (wr - wl);
                     }
 
-		///////////////////////////////////////////////////////////////////////
-                    // test for x clipping, LHS
+                    ////////////////////////////////////////////////////////////
+                    // CLIP LEFT
                     if (xStart < clip.getXMin()) {
                         // compute x overlap
                         dx = clip.getXMin() - xStart;
@@ -1205,25 +1142,22 @@ public class DrawManager {
                         xStart = clip.getXMin();
 
                     }
-                    // test for x clipping RHS
+                    // CLIP RIGHT
                     if (xEnd > clip.getXMax()) {
                         xEnd = clip.getXMax();
                     }
 
-		///////////////////////////////////////////////////////////////////////
-                    // draw span
+                    ///////////////////////////////////////////////////////////////////////
+                    // DRAW CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        // write textel assume 5.6.5
-//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
-//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
-//                                          (wi >> (FIXP16_SHIFT+3)) ) ];   
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui >> FIXP16_SHIFT, 
+                                vi >> FIXP16_SHIFT, 
+                                wi >> FIXP16_SHIFT));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
                         wi += dw;
                     }
-
                     // interpolate u,v,w,x along right and left edge
                     xl += dxdyl;
                     ul += dudyl;
@@ -1235,9 +1169,8 @@ public class DrawManager {
                     vr += dvdyr;
                     wr += dwdyr;
 
-		// advance screen ptr
-//		screen_ptr+=mem_pitch;
-                    // test for yi hitting second region, if so change interpolant
+                    ////////////////////////////////////////////////////////////
+                    // TEST FOR yi HIT IN SECOND REGION (SO CHANGE INTERPOLANT KOEFFICIENTS)
                     if (yi == yRestart) {
                         // test interpolation side change flag
                         if (iRestart == INTERP_LHS) {
@@ -1286,11 +1219,9 @@ public class DrawManager {
                 }
             }
             else {
-	// no x clipping
-                // point screen ptr to starting line
-//	screen_ptr = dest_buffer + (yStart * mem_pitch);
-
-                for (yi = yStart; yi <= yend; yi++) {
+                ////////////////////////////////////////////////////////////////
+                // DRAW NON-CLIPPING GENERAL TRIANGLE
+                for (yi = yStart; yi <= yEnd; yi++) {
                     // compute span endpoints
                     xStart = ((xl + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
                     xEnd = ((xr + FIXP16_ROUND_UP) >> FIXP16_SHIFT);
@@ -1311,20 +1242,17 @@ public class DrawManager {
                         dv = (vr - vl);
                         dw = (wr - wl);
                     }
-
-                    // draw span
+                    ////////////////////////////////////////////////////////////
+                    // DRAW NON-CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        // write textel assume 5.6.5
-//   		    screen_ptr[xi] = rgblookup[( ((ui >> (FIXP16_SHIFT+3)) << 11) + 
-//                                         ((vi >> (FIXP16_SHIFT+2)) << 5) + 
-//                                          (wi >> (FIXP16_SHIFT+3)) ) ];  
-                        drawNoClipPoint(xi, yi, new Color(ui, vi, wi));
+                        drawNoClipPoint(xi, yi, new Color(ui >> FIXP16_SHIFT, 
+                                vi >> FIXP16_SHIFT, 
+                                wi >> FIXP16_SHIFT));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
                         wi += dw;
                     }
-
                     // interpolate u,v,w,x along right and left edge
                     xl += dxdyl;
                     ul += dudyl;
@@ -1335,13 +1263,11 @@ public class DrawManager {
                     ur += dudyr;
                     vr += dvdyr;
                     wr += dwdyr;
-
-		// advance screen ptr
-//		screen_ptr+=mem_pitch;
-                    // test for yi hitting second region, if so change interpolant
+                    
+                    ////////////////////////////////////////////////////////////
+                    // TEST FOR yi HIT IN SECOND REGION (SO CHANGE INTERPOLANT KOEFFICIENTS)
                     if (yi == yRestart) {
                         // test interpolation side change flag
-
                         if (iRestart == INTERP_LHS) {
                             // LHS
                             dyl = (y2 - y1);
@@ -1521,8 +1447,10 @@ public class DrawManager {
         
         Point3D n = poly.getNormal();
         
-        Point3D c = poly.getVertexPosition(0).add(poly.getVertexPosition(1)).
-                add(poly.getVertexPosition(2)).mul(0.333);
+        Point3D c = poly.getVertexPosition(0).getCopy();
+        c.add(poly.getVertexPosition(1));
+        c.add(poly.getVertexPosition(2));
+        c.mul(0.333);
         
 //        drawLine(poly.getVertexPosition(0), n, POLY_NORMAL_COLOR);
         drawLine(c, n, POLY_NORMAL_COLOR);
