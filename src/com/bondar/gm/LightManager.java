@@ -23,7 +23,7 @@ public class LightManager {
 	lights.put(ambient.getIndex(), ambient);
         //
 	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
-		null, Color.WHITE, null,
+		null, Color.GRAY, null,
 		null, new Vector3D(0, 0, -1),
 		0, 0, 0, 0, 0, 0);
 	lights.put(infinite.getIndex(), infinite); 
@@ -66,8 +66,7 @@ public class LightManager {
                     break;
 
                 case INFINITE:
-                    if (poly.getType() == Polygon3D.Types.LINE
-                        || poly.getType() == Polygon3D.Types.POINT) return null;
+                    if (poly.getSize() < 3) return null;
                     
                     Vector3D n = poly.getNormal();
                     double dp = Vector3D.dot(n, light.getDirection());
@@ -107,9 +106,6 @@ public class LightManager {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
-//            Color c0 = poly.getColors()[0];
-//            Color c1 = poly.getColors()[1];
-//            Color c2 = poly.getColors()[2];
         }
         return polies;
     }
@@ -152,8 +148,7 @@ public class LightManager {
                     break;
 
                 case INFINITE:
-                    if (poly.getType() == Polygon3D.Types.LINE
-                        || poly.getType() == Polygon3D.Types.POINT) return null;
+                    if (poly.getSize() < 3) return null;
                     
                     // vertex 0
                     Vector3D n0 = poly.getVertexes()[0].getNormal();

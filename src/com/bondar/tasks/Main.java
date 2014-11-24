@@ -5,10 +5,8 @@ import com.bondar.geom.Point2D;
 import com.bondar.panels.Application;
 import com.bondar.gm.*;
 import com.bondar.panels.OptionsPanelListener;
-import com.bondar.tools.Types;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +63,7 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String CHECKBOX_NORMALS_POLY = "Нормали плоскостей";
     public static final String CHECKBOX_NORMALS_VERT = "Нормали вершин";
     public static final String CHECKBOX_ANIMATE = "Анимировать";
+    public static final String CHECKBOX_TEXTURE = "Отобразить текстуры";
     
     private static final Color CROSSHAIR_COLOR_NORM = Color.WHITE;
     private static final Color CROSSHAIR_COLOR_ALLERT = Color.RED;
@@ -195,22 +194,23 @@ public class Main extends Application implements OptionsPanelListener {
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_EULER, this);
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_UVN, this);
 
-	addRadio(GROUP_TITLE_RENDER, RADIO_PAINTER, this);
+//	addRadio(GROUP_TITLE_RENDER, RADIO_PAINTER, this);
 
-	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES_FACES, this);
 	addRadio(GROUP_TITLE_VIEW, RADIO_FACES, this);
 	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES, this);
+	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES_FACES, this);
         
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
         addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_GOURAD, this);
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
+//        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);
-	addCheckBox(CHECKBOX_BACKFACES_EJECTION, false, this);
+	addCheckBox(CHECKBOX_TEXTURE, true, this);
+	addCheckBox(CHECKBOX_BACKFACES_EJECTION, true, this);
 	addCheckBox(CHECKBOX_NORMALS_POLY, false, this);
 	addCheckBox(CHECKBOX_NORMALS_VERT, false, this);
-	addCheckBox(CHECKBOX_ANIMATE, false, this);
+	addCheckBox(CHECKBOX_ANIMATE, true, this);
     }
 
     /////////////////////////////////////////////////////////
@@ -218,13 +218,16 @@ public class Main extends Application implements OptionsPanelListener {
     protected final void load() {
 	ModelsManager.load();
 	//
-	/*for (Solid3D model : ModelsManager.getModels()) {
+	for (Solid3D model : ModelsManager.getModels()) {
 	    if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
 		addRadio(GROUP_TITLE_OBJECTS, model.getName(), this);
 	    }
-	}*/
+	}
+        ModelsManager.clone("Cube", 1000);
 	//
         RenderManager.load();
+        //
+        TextureManager.load();
     }
 
     @Override
@@ -575,6 +578,7 @@ public class Main extends Application implements OptionsPanelListener {
         g.drawScene(RenderManager.getRenderArray(), 
                 getSelectedRadioText(GROUP_TITLE_VIEW),
                 getSelectedRadioText(GROUP_TITLE_SHADE),
+                isSelectedCheckBox(CHECKBOX_TEXTURE),
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT),
                 CursorManager.getCrosshair());

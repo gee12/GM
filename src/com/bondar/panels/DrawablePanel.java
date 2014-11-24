@@ -30,7 +30,7 @@ public class DrawablePanel extends JPanel {
     protected void paintComponent(Graphics g) {
 	super.paintComponent(g);
 	drawManager.setGraphics(g);
-	//drawManager.setDimension(g.getClipBounds().width, g.getClipBounds().height);
+	drawManager.setDimension(g.getClipBounds().width, g.getClipBounds().height);
 	app.paint(drawManager);
     }
 }

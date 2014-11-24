@@ -5,18 +5,21 @@ import java.awt.Color;
 
 /**
  * Polygon with indexes for vertexes (no all-sufficient polygon).
- * Field 'vertexes' - all solid vertexes (not only polygon).
- * Field 'indexes' - array of indexes of polygon's vertexes in all solid vertexes.
  * @author truebondar
  */
 public class Polygon3DInds extends Polygon3D {
 
-    protected int indexes[];
+    protected int indexes[];    // indexes of polygon's vertexes in all solid vertexes.
 
     /////////////////////////////////////////////////////////
-    public Polygon3DInds(int[] inds, Color src, float transp, int attr) {
-        super(inds.length, src, transp, attr);
+    public Polygon3DInds(int[] inds, float transp, int attr, Color srcColor) {
+        super(inds.length, transp, attr, srcColor);
 	this.indexes = inds;
+    }
+    
+    public Polygon3DInds(int[] inds, float transp, int attr, int textId, Point2D[] textPoints) {
+        super(inds.length, transp, attr, textId, textPoints);
+        this.indexes = inds;
     }
 
     /////////////////////////////////////////////////////////
@@ -118,19 +121,23 @@ public class Polygon3DInds extends Polygon3D {
     }
     
     public Polygon3DInds getCopy() {
-	return new Polygon3DInds(indexes, colors[0], transp, attributes);
+        if (isSetAttribute(ATTR_TEXTURED))
+            return new Polygon3DInds(indexes, transp, attributes, textureId, texturePoints);
+        else return new Polygon3DInds(indexes, transp, attributes, colors[0]);
     }
     
     // To all-sufficient polygon
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
-         Polygon3DVerts res = new Polygon3DVerts(getVertexes(verts), colors[0], transp, attributes);
-         res.normal = normal;
-         res.averageZ = averageZ;
-         res.normalLength = normalLength;
-         res.materialId = materialId;
-         res.state = state;
-         res.type = type;
-         return res;
+        Polygon3DVerts res;
+        if (isSetAttribute(ATTR_TEXTURED))
+            res = new Polygon3DVerts(getVertexes(verts), transp, attributes, textureId, texturePoints);
+        else res = new Polygon3DVerts(getVertexes(verts), transp, attributes, colors[0]);
+        res.normal = normal;
+        res.averageZ = averageZ;
+        res.normalLength = normalLength;
+        res.materialId = materialId;
+        res.state = state;
+        res.type = type;
+        return res;
     }
-
 }

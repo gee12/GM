@@ -1,7 +1,6 @@
 package com.bondar.geom;
 
 import com.bondar.gm.Camera;
-import com.bondar.gm.Matrix;
 import java.awt.Color;
 
 /**
@@ -13,9 +12,14 @@ public class Polygon3DVerts extends Polygon3D {
     private Vertex3D[] vertexes;
     
     /////////////////////////////////////////////////////////
-    public Polygon3DVerts(Vertex3D[] verts, Color src, float transp, int attr) {
-        super(verts.length, src, transp, attr);
+    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, Color src) {
+        super(verts.length, transp, attr, src);
 	this.vertexes = verts;//Arrays.copyOf(verts, verts.length);
+    }
+    
+    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, int textId, Point2D[] textPoints) {
+        super(verts.length, transp, attr, textId, textPoints);
+        this.vertexes = verts;
     }
     
     /////////////////////////////////////////////////////////
@@ -115,6 +119,8 @@ public class Polygon3DVerts extends Polygon3D {
     }
     
     public Polygon3DVerts getCopy() {
-	return new Polygon3DVerts(vertexes, colors[0], transp, attributes);
+        if (isSetAttribute(ATTR_TEXTURED))
+            return new Polygon3DVerts(vertexes, transp, attributes, textureId, texturePoints);
+        else return new Polygon3DVerts(vertexes, transp, attributes, colors[0]);
     }
 }

@@ -1,6 +1,5 @@
 package com.bondar.geom;
 
-import com.bondar.gm.Camera;
 import java.awt.Color;
 
 /**
@@ -23,35 +22,53 @@ public abstract class Polygon3D {
     public static final int ATTR_FIXED = 1;
     public static final int ATTR_2_SIDES = 2;
     public static final int ATTR_TRANSPARENT = 4;
+    public static final int ATTR_TEXTURED = 16;
+    
+    public static final Color SRC_COLOR = Color.WHITE;
     
     protected States state;
     protected Types type;
     protected int attributes;
     protected int size;
     protected Color[] colors;    // source/shade flat color[0], or verts gourad colors
-//    protected Color borderColor;
     protected float transp;
-    //protected Bitmap texture;
-    protected int materialId;
+    
     protected Vector3D normal;
     protected double normalLength;
     protected double averageZ;
+    
+    protected int textureId;
+    protected Point2D[] texturePoints;
+    protected int materialId;
 
     /////////////////////////////////////////////////////////
-    public Polygon3D(int size, Color src, float transp, int attr) {
+    public Polygon3D(int size, float transp, int attr, Color src) {
 	this.size = size;
-//	this.color = src;
+        this.transp = transp;
+	this.attributes = attr;
         this.colors = new Color[size];
         colors[0] = src;
 //        colors[1] = src;
 //        colors[2] = src;
-        this.transp = transp;
-	this.attributes = attr;
 	this.state = States.VISIBLE;
         this.type = type(size);
         this.normal = new Vector3D();
     }
-   
+    
+    /////////////////////////////////////////////////////////
+    public Polygon3D(int size, float transp, int attr, int textId, Point2D[] textPoints) {
+	this.size = size;
+        this.transp = transp;
+	this.attributes = attr;
+        this.textureId = textId;
+        this.texturePoints = textPoints;
+        this.colors = new Color[size];
+        colors[0] = SRC_COLOR;
+	this.state = States.VISIBLE;
+        this.type = type(size);
+        this.normal = new Vector3D();
+    }
+    
     /////////////////////////////////////////////////////////
     public static Types type(int size) {
 	switch (size) {
@@ -117,19 +134,22 @@ public abstract class Polygon3D {
 	return (attributes & attr) != 0;
     }
     
+
+    public static boolean isSetAttribute(int attributes, int attr) {
+	return (attributes & attr) != 0;
+    }
+    
     public int getSize() {
 	return size;
     }
-    
-//    public Color getBorderColor() {
-//	return borderColor;
-//    }
     
     public States getState() {
 	return state;
     }
 
     public Color getColor() {
+//        if (isSetAttribute(Polygon3D.ATTR_TEXTURED))
+//            return SRC_COLOR;
         return colors[0];
     }
 
@@ -138,6 +158,8 @@ public abstract class Polygon3D {
     }
 
     public Color getColor(int i) {
+//        if (isSetAttribute(Polygon3D.ATTR_TEXTURED))
+//            return SRC_COLOR;
         return colors[i];
     }
 
@@ -155,6 +177,14 @@ public abstract class Polygon3D {
 
     public double getAverageZ() {
         return averageZ;
+    }
+
+    public int getTextureId() {
+        return textureId;
+    }
+
+    public Point2D[] getTexturePoints() {
+        return texturePoints;
     }
 
     /*public Polygon3D getCopy() {

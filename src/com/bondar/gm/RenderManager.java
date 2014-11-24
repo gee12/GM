@@ -35,11 +35,11 @@ public class RenderManager {
 
     /////////////////////////////////////////////////////////
     //
-    public static void buildRenderArray(Solid3D[] models) {
+    public static void buildRenderArray(List<Solid3D> models) {
 	renderArray = toRenderArray(models);
     }
     
-    public static Polygon3DVerts[] toRenderArray(Solid3D[] models) {
+    public static Polygon3DVerts[] toRenderArray(List<Solid3D> models) {
 	if (models == null) return null;
 	List<Polygon3DVerts> res = new ArrayList<>();
 	for (Solid3D model : models) {

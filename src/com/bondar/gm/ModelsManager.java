@@ -2,9 +2,7 @@ package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
-import com.bondar.geom.Vertex3D;
 import static com.bondar.tasks.Main.ANGLE_UP;
-import com.bondar.tools.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,35 +14,43 @@ import java.util.Random;
 public class ModelsManager {
     
     private static final String MODELS_DIR = "models/";
-    private static final String CUBE_TEXT = "Cube";
-    
-    private static final int CLONE_CUBE_NUM = 0;
+    private static final double ROTATE_ANGLE = ANGLE_UP/100;
    
-    private static Solid3D[] models;
+    private static List<Solid3D> models;
     
+    /////////////////////////////////////////////////////////
+    // load models from .gmx file
     public static void load() {
-	List<Solid3D> loaded = new ArrayList<>();
-	// load models from .GMX files
 	try {
-	    loaded = FileLoader.readGMXDir(MODELS_DIR);
+	    models = FileLoader.readModelsDir(MODELS_DIR);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
-	// clone models
+    }
+    
+    /////////////////////////////////////////////////////////
+    // clone models
+    public static void clone(String modelName, int num) {
+	List<Solid3D> clones = new ArrayList<>();
         Random rand = new Random();
-	for (Solid3D model : loaded) {
-	    if (model.getName().equals(CUBE_TEXT)) {
-		for (int i = 0; i < CLONE_CUBE_NUM; i++) {
-		    Solid3D newCube = new Solid3D(model);
-		    newCube.updateTransfers(rand.nextInt(500)-250, 0, rand.nextInt(500)-250);
-		    loaded.add(newCube);
+	for (Solid3D model : models) {
+	    if (model.getName().equals(modelName)) {
+		for (int i = 0; i < num; i++) {
+		    Solid3D clone = new Solid3D(model);
+		    clone.updateTransfers(rand.nextInt(500)-250, rand.nextInt(200)-100, rand.nextInt(500)-250);
+		    clone.updateAngles(Math.toRadians(rand.nextInt(360)), 
+                            Math.toRadians(rand.nextInt(360)), 
+                                    Math.toRadians(rand.nextInt(360)));
+		    clones.add(clone);
 		}
 		break;
 	    }
 	}
-	models = Types.toArray(loaded, Solid3D.class);
+	models.addAll(clones);
     }
     
+    /////////////////////////////////////////////////////////
+    //
     public static void updateAndAnimate(Camera camera, boolean isAnimate, boolean isDefineBackfaces) {
 	for (Solid3D model : models) {
             if (isAnimate) animateModel(model);
@@ -91,21 +97,18 @@ public class ModelsManager {
     
     public static void onRotate(List<Solid3D> models, double angle, Matrix.AXIS axis) {
 	for (Solid3D model : models) {
-	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    model.updateAngle(angle, axis);
 	}
     }
 
     public static void onTransfer(List<Solid3D> models, double dx, double dy, double dz) {
 	for (Solid3D model : models) {
-	    //if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    model.updateTransfers(dx, dy, dz);
 	}
     }
 
     public static void onScale(List<Solid3D> models, double scale) {
 	for (Solid3D solid : models) {
-	    //if (solid.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    solid.updateScale(scale);
 	}
     }
@@ -114,13 +117,18 @@ public class ModelsManager {
     /////////////////////////////////////////////////////////
     private static void animateModel(Solid3D model) {
 	if (model == null || model.isSetAttribute(Solid3D.ATTR_FIXED)) return;
-//	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.X);
+	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.X);
 	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Y);
-//	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Z);
+	model.updateAngle(ANGLE_UP/5, Matrix.AXIS.Z);
+        Point3D pos = model.getPosition();
+        
+        model.setPosition(new Point3D(Math.cos(ROTATE_ANGLE)*pos.getX() + Math.sin(ROTATE_ANGLE)*pos.getZ(), 
+                pos.getY(), 
+                -Math.sin(ROTATE_ANGLE)*pos.getX() + Math.cos(ROTATE_ANGLE)*pos.getZ()));
     }
     
     // get
-    public static Solid3D[] getModels() {
+    public static List<Solid3D> getModels() {
 	return models;
     }
 }

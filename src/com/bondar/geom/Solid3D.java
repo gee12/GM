@@ -6,6 +6,7 @@ import com.bondar.gm.TransferManager;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
+import java.util.Arrays;
 
 /**
  *
@@ -46,7 +47,7 @@ public class Solid3D {
 	this.name = name;
 	this.attributes = attribs;
 	this.localVerts = verts;//getVertexesCopy(verts);
-	this.polygons = polies;//getPolygonsCopy(polies);
+	this.polygons = getPolygonsCopy(polies); //Arrays.copyOf(polies, polies.length); - don't work (copy links)
 	reInit();
     }
     public Solid3D(String name) {
@@ -323,6 +324,12 @@ public class Solid3D {
 	    poly.resetNormal(points);
 	}
     }
+    
+    /////////////////////////////////////////////////////////
+    // set
+    public void setPosition(Point3D pos) {
+        this.pos = pos;
+    }
      
     /////////////////////////////////////////////////////////
     // get
@@ -336,12 +343,6 @@ public class Solid3D {
 	return localVerts[i];
     }
     
-    /*public Point3D getTransVertex(int i) {
-	if (i >= transVerts.length || i < 0)
-	    return null;
-	return transVerts[i];
-    }*/
-    
     public Vertex3D[] getVertexes() {
         return vertexes;
     }
@@ -349,10 +350,6 @@ public class Solid3D {
     public Point3D[] getLocalVertexes() {
 	return localVerts;
     }
-    
-    /*public Point3D[] getTransVertexes() {
-	return transVerts;
-    }*/
     
     public static Point2D[] getVertexes2D(Point3D[] vertexes) {
 	int size = vertexes.length;
