@@ -11,22 +11,63 @@ import java.awt.Color;
 public class Light {
     
     public static enum States {
-	ON,
-	OFF
+	ON("ON"),
+	OFF("OFF");
+        
+        private String text;
+
+        States(String text) {
+            this.text = text;
+        }
+
+        public String getText() {
+            return this.text;
+        }
+
+        public static States fromString(String text) {
+            if (text != null) {
+                for (States b : States.values()) {
+                    if (text.equalsIgnoreCase(b.text)) {
+                        return b;
+                    }
+                }
+            }
+            return null;
+        }
     }
     
     public static enum Types {
-	AMBIENT,
-	INFINITE, // DIRECTIONAL
-	POINT,          
-	SPOTLIGHT1,
-	SPOTLIGHT2
+	AMBIENT("AMBIENT"),
+	INFINITE("INFINITE"), // DIRECTIONAL
+	POINT("POINT"),          
+	SPOTLIGHT1("SPOTLIGHT1"),
+	SPOTLIGHT2("SPOTLIGHT2");
+        
+        private String text;
+
+        Types(String text) {
+            this.text = text;
+        }
+
+        public String getText() {
+            return this.text;
+        }
+
+        public static Types fromString(String text) {
+            if (text != null) {
+                for (Types b : Types.values()) {
+                    if (text.equalsIgnoreCase(b.text)) {
+                        return b;
+                    }
+                }
+            }
+            return null;
+        }
     }
     
     private States state;
     private int id;
     private String name;
-    private int attributes;
     private Types type;
  
     private Color c_ambient;   // ambient light intensity
@@ -43,7 +84,7 @@ public class Light {
     private int   iaux1, iaux2; // auxiliary vars for future expansion
     private float faux1, faux2;
 
-    public Light(int id, String name, Types type, int attr, States state,
+    public Light(int id, String name, Types type, States state,
 	    Color c_ambient, Color c_diffuse, Color c_specular, 
 	    Point3D pos, Vector3D dir, 
 	    float kc, float kl, float kq,
@@ -51,7 +92,6 @@ public class Light {
 	this.id = id;
 	this.name = name;
 	this.type = type;
-	this.attributes = attr;
 	this.state = state;
 	this.c_ambient = c_ambient;
 	this.c_diffuse = c_diffuse;
@@ -68,29 +108,14 @@ public class Light {
     
     /////////////////////////////////////////////////////////
     // set
-    public final void setAttributes(int attr) {
-	attributes |= attr;
-    }
-
-    public final void unsetAttribute(int attr) {
-	attributes &= ~attr;
-    }
         
     /////////////////////////////////////////////////////////
     // get
-    public boolean isSetAttribute(int attr) {
-	return (attributes & attr) != 0;
-    }   
-
-    public int getAttributes() {
-	return attributes;
-    }
-
     public States getState() {
 	return state;
     }
 
-    public int getIndex() {
+    public int getId() {
 	return id;
     }
 

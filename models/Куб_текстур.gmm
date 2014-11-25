@@ -2,7 +2,7 @@
 name: Cube
 attr: 0
 pos: 0 0 5
-angles: 0 0 0
+dir: 0 0 0
 scale: 0 0 0
 verts: 8
 -1 -1 -1

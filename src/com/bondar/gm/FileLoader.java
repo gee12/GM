@@ -5,6 +5,7 @@ import com.bondar.geom.Solid3D;
 import com.bondar.geom.Polygon3DInds;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Polygon3D;
+import com.bondar.geom.Vector3D;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -24,24 +25,112 @@ import javax.imageio.ImageIO;
  */
 public class FileLoader {
     
-    private static final String MODELS_EXTENSION = ".gmx";
+    private static final String MODELS_EXTENSION = ".gmm";
+    private static final String LIGHTS_EXTENSION = ".gml";
     private static final String SEPARATOR = " ";
     private static final String TEXTURE_POINTS_SEPARATOR = ",";
+    
     private static final String NAME_PARAM = "name:";
     private static final String POSITION_PARAM = "pos:";
-    private static final String ANGLES_PARAM = "angles:";
+    private static final String DIRECTION_PARAM = "dir:";
     private static final String SCALE_PARAM = "scale:";
     private static final String VERTEXES_PARAM = "verts:";
     private static final String POLYGONS_PARAM = "polyns:";
     private static final String ATTRIBUTES_PARAM = "attr:";
     private static final String ATTRIBUTES_MATERIAL = "mater:";
-    
+    private static final String ID_PARAM = "id:";
+    private static final String TYPE_PARAM = "type:";
+    private static final String STATE_PARAM = "state:";
+    private static final String C_AMBIENT_PARAM = "c_ambient:";
+    private static final String C_DIFFUSE_PARAM = "c_diffuse:";
+    private static final String C_SPECULAR_PARAM = "c_specular:";
+    private static final String KC_PARAM = "kc:";
+    private static final String KL_PARAM = "kl:";
+    private static final String KQ_PARAM = "kq:";
     
     /////////////////////////////////////////////////////////
-    public static HashMap<Integer, Texture> readTexturesDir(String dirName, String listFileName) throws Exception {
+    public static HashMap<Integer, Light> readLightsDir(String dirName)
+            throws Exception {
+	HashMap<Integer, Light> res = new HashMap<>();
+	String[] lightsFiles = Files.getMaskedFilesInDir(dirName, LIGHTS_EXTENSION);
+	for (String fileName : lightsFiles) {
+	    Light light = FileLoader.readLightFile(dirName + fileName);
+	    res.put(light.getId(), light);
+	}
+	return res;
+    }
+    
+    /////////////////////////////////////////////////////////
+    public static Light readLightFile(String fileName) throws Exception {
+	BufferedReader reader = new BufferedReader(
+		new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
+	//
+	String name = Files.withOutExtAndPath(fileName);
+        int id = 0;
+        Light.Types type = Light.Types.AMBIENT;
+        Light.States state = Light.States.OFF;
+	Point3D pos = new Point3D();
+	Vector3D dir = new Vector3D();
+	Color cAmbient = null;
+	Color cDiffuce = null;
+	Color cSpecular = null;
+        int kc = 0, kl = 0, kq = 0;
+	
+	String line = null;
+	while ((line = reader.readLine()) != null) {
+	    String[] words = line.split(SEPARATOR);
+	    switch (words[0]) {
+		//
+		case NAME_PARAM:
+		    name = words[1];
+		    break;
+                case ID_PARAM:
+                    id = Integer.parseInt(words[1]);
+                    break;
+                case TYPE_PARAM:
+                    type = Light.Types.fromString(words[1]);
+                    break;
+                case STATE_PARAM:
+                    state = Light.States.fromString(words[1]);
+                    break;
+                case POSITION_PARAM:
+                    pos = readPoint3D(words);
+                    break;
+                case DIRECTION_PARAM:
+                    dir = readPoint3D(words).toVector3D();
+                    break;
+                case C_AMBIENT_PARAM:
+                    // or Color.decode("#FF0096");
+                    cAmbient = new Color(Integer.parseInt(words[1], 16));
+                    break;
+                case C_DIFFUSE_PARAM:
+                    cDiffuce = new Color(Integer.parseInt(words[1], 16));
+                    break;
+                case C_SPECULAR_PARAM:
+                    cSpecular = new Color(Integer.parseInt(words[1], 16));
+                    break;
+                case KC_PARAM:
+                    kc = Integer.parseInt(words[1]);
+                    break;
+                case KL_PARAM:
+                    kl = Integer.parseInt(words[1]);
+                    break;
+                case KQ_PARAM:
+                    kq = Integer.parseInt(words[1]);
+                    break;
+            }
+        }
+        reader.close();
+        return new Light(id, name, type, state, cAmbient, cDiffuce, cSpecular, 
+                pos, dir, kc, kl, kq, 0,0,0);
+    }
+    
+    /////////////////////////////////////////////////////////
+    public static HashMap<Integer, Texture> readTexturesDir(String dirName, String mapFileName)
+            throws Exception {
 	HashMap<Integer, Texture> res = new HashMap<>();
 	BufferedReader reader = new BufferedReader(
-		new InputStreamReader(new FileInputStream(dirName + listFileName), "UTF-8"));
+		new InputStreamReader(new FileInputStream(dirName + mapFileName), "UTF-8"));
         String line = null;
         while ((line = reader.readLine()) != null) {
 	    String[] words = line.split(SEPARATOR);
@@ -63,18 +152,19 @@ public class FileLoader {
     }
     
     /////////////////////////////////////////////////////////
-    public static List<Solid3D> readModelsDir(String dirName) throws Exception {
+    public static List<Solid3D> readModelsDir(String dirName)
+            throws Exception {
 	List<Solid3D> res = new ArrayList<>();
 	String[] solidsFiles = Files.getMaskedFilesInDir(dirName, MODELS_EXTENSION);
 	for (String fileName : solidsFiles) {
-	    Solid3D solid = FileLoader.readGMXFile(dirName + fileName);
+	    Solid3D solid = FileLoader.readModelFile(dirName + fileName);
 	    res.add(solid);
 	}
 	return res;
     }
 
     /////////////////////////////////////////////////////////
-    public static Solid3D readGMXFile(String fileName)
+    public static Solid3D readModelFile(String fileName)
 	    throws Exception {
 	BufferedReader reader = new BufferedReader(
 		new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
@@ -82,7 +172,7 @@ public class FileLoader {
 	String name = Files.withOutExtAndPath(fileName);
 	int attribs = 0;
 	Point3D pos = new Point3D();
-	Point3D angles = new Point3D();
+	Point3D dir = new Point3D();
 	Point3D scale = new Point3D();
 	Point3D[] points = null;
 	Polygon3DInds[] polies = null;
@@ -103,8 +193,8 @@ public class FileLoader {
 		case POSITION_PARAM:
 		    pos = readPoint3D(words);
 		    break;
-		case ANGLES_PARAM:
-		    angles = readPoint3D(words);
+		case DIRECTION_PARAM:
+		    dir = readPoint3D(words);
 		    break;
 		case SCALE_PARAM:
 		    scale = readPoint3D(words);
@@ -208,14 +298,14 @@ public class FileLoader {
         //
 	Solid3D res = new Solid3D(name, attribs, points, polies);
 	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
-	res.updateAngles(angles.getX(), angles.getY(), angles.getZ());
+	res.updateAngles(dir.getX(), dir.getY(), dir.getZ());
 	res.updateScale(scale.getX(), scale.getY(), scale. getZ());
 
 	return res;
     }
     
     public static Point3D readPoint3D(String[] words) {
-	if (words.length < 3) return null;
+	if (words.length < 4) return null;
 	double[] coords = new double[3];
 	for (int i = 0; i < 3; i++) {
 	    coords[i] = Double.parseDouble(words[i+1]);

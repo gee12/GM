@@ -10,7 +10,7 @@ import java.util.HashMap;
 public class TextureManager {
     
     private static final String TEXTURES_DIR = "textures/";
-    private static final String TEXTURES_LIST = "list.txt";
+    private static final String TEXTURES_MAP = "map.txt";
 
     private static HashMap<Integer, Texture> textures = new HashMap<>();
     
@@ -18,7 +18,7 @@ public class TextureManager {
     // load textures
     public static void load() {
 	try {
-	    textures = FileLoader.readTexturesDir(TEXTURES_DIR, TEXTURES_LIST);
+	    textures = FileLoader.readTexturesDir(TEXTURES_DIR, TEXTURES_MAP);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
