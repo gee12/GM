@@ -14,6 +14,7 @@ import java.util.Random;
 public class ModelsManager {
     
     private static final String MODELS_DIR = "models/";
+    private static final String MODELS_EXTENSION = ".gmm";
     private static final double ROTATE_ANGLE = ANGLE_UP/100;
    
     private static List<Solid3D> models;
@@ -22,7 +23,7 @@ public class ModelsManager {
     // load models from .gmx file
     public static void load() {
 	try {
-	    models = FileLoader.readModelsDir(MODELS_DIR);
+	    models = FileLoader.readModelsDir(MODELS_DIR, MODELS_EXTENSION);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}

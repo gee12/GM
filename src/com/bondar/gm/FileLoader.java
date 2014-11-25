@@ -25,8 +25,6 @@ import javax.imageio.ImageIO;
  */
 public class FileLoader {
     
-    private static final String MODELS_EXTENSION = ".gmm";
-    private static final String LIGHTS_EXTENSION = ".gml";
     private static final String SEPARATOR = " ";
     private static final String TEXTURE_POINTS_SEPARATOR = ",";
     
@@ -49,10 +47,10 @@ public class FileLoader {
     private static final String KQ_PARAM = "kq:";
     
     /////////////////////////////////////////////////////////
-    public static HashMap<Integer, Light> readLightsDir(String dirName)
+    public static HashMap<Integer, Light> readLightsDir(String dirName, String lightsExt)
             throws Exception {
 	HashMap<Integer, Light> res = new HashMap<>();
-	String[] lightsFiles = Files.getMaskedFilesInDir(dirName, LIGHTS_EXTENSION);
+	String[] lightsFiles = Files.getMaskedFilesInDir(dirName, lightsExt);
 	for (String fileName : lightsFiles) {
 	    Light light = FileLoader.readLightFile(dirName + fileName);
 	    res.put(light.getId(), light);
@@ -152,10 +150,10 @@ public class FileLoader {
     }
     
     /////////////////////////////////////////////////////////
-    public static List<Solid3D> readModelsDir(String dirName)
+    public static List<Solid3D> readModelsDir(String dirName, String modelsExt)
             throws Exception {
 	List<Solid3D> res = new ArrayList<>();
-	String[] solidsFiles = Files.getMaskedFilesInDir(dirName, MODELS_EXTENSION);
+	String[] solidsFiles = Files.getMaskedFilesInDir(dirName, modelsExt);
 	for (String fileName : solidsFiles) {
 	    Solid3D solid = FileLoader.readModelFile(dirName + fileName);
 	    res.add(solid);

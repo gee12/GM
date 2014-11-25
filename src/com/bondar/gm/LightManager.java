@@ -13,34 +13,20 @@ import java.util.HashMap;
 public class LightManager {
     
     private static final String TEXTURES_DIR = "lights/";
+    private static final String LIGHTS_EXTENSION = ".gml";
 
     private static HashMap<Integer, Light> lights = new HashMap<>();
 
+    ////////////////////////////////////////////////////////
     public static void load() {
 	try {
-	    lights = FileLoader.readLightsDir(TEXTURES_DIR);
+	    lights = FileLoader.readLightsDir(TEXTURES_DIR, LIGHTS_EXTENSION);
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
-//	Light ambient = new Light(0, "Ambient white", Light.Types.AMBIENT, 0, Light.States.OFF,
-//		Color.BLACK, null, null,
-//		null, null,
-//		0, 0, 0, 0, 0, 0);
-//	lights.put(ambient.getIndex(), ambient);
-//        //
-//	Light infinite = new Light(1, "Infinite yellow", Light.Types.INFINITE, 0, Light.States.ON,
-//		null, Color.GRAY, null,
-//		null, new Vector3D(0, 0, -1),
-//		0, 0, 0, 0, 0, 0);
-//	lights.put(infinite.getIndex(), infinite); 
-//        //
-// 	Light point = new Light(2, "Point yellow", Light.Types.POINT, 0, Light.States.OFF,
-//		Color.YELLOW, null, null,
-//		null, new Vector3D(0, -1, 0),
-//		0, 1, 0, 0, 0, 0);
-//	lights.put(point.getIndex(), point); 
     }
     
+    ////////////////////////////////////////////////////////
     public static Polygon3DVerts[] flatShade(Polygon3DVerts[] polies) {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
@@ -108,6 +94,7 @@ public class LightManager {
         return poly;
     }
     
+    ////////////////////////////////////////////////////////
     public static Polygon3DVerts[] gouradShade(Polygon3DVerts[] polies) {
         if (polies == null) return null;
         for (Polygon3DVerts poly : polies) {
@@ -217,4 +204,16 @@ public class LightManager {
         poly.setColor(rSum2, gSum2, bSum2, 2);
         return poly;
     }
+    
+        
+    public static Color toLight(Color src, Color light) {
+        if (src == null || light == null) return null;
+        
+        int r = ((light.getRed() * src.getRed()) >> 8);
+        int g = ((light.getGreen() * src.getGreen()) >> 8);
+        int b = ((light.getBlue() * src.getBlue()) >> 8);
+        
+        return new Color(r, g, b, src.getAlpha());
+    }
+    
 }

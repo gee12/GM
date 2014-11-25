@@ -4,7 +4,7 @@ id: 1
 type: Infinite
 state: On
 
-c_diffuse: 555555
+c_diffuse: 999999
 
 dir: 0 0 -1
 
