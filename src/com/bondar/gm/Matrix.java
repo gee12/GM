@@ -70,27 +70,36 @@ public class Matrix {
     }
     
     public static Matrix rotationZMatrix(double a) {
-	return new Matrix(new double[][] {
-		{Math.cos(a), Math.sin(a), 0, 0},
-		{-Math.sin(a), Math.cos(a), 0, 0},
+	double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
+		{cosA, sinA, 0, 0},
+		{-sinA, cosA, 0, 0},
 		{0, 0, 1, 0},
 		{0, 0, 0, 1}});
+        return m;
     }
 
     public static Matrix rotationYMatrix(double a) {
-	return new Matrix(new double[][] {
-		{Math.cos(a), 0, -Math.sin(a), 0},
+	double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
+		{cosA, 0, -sinA, 0},
 		{0, 1, 0, 0},
-		{Math.sin(a), 0, Math.cos(a), 0},
+		{sinA, 0, cosA, 0},
 		{0, 0, 0, 1}});
+        return m;
     }
 
     public static Matrix rotationXMatrix(double a) {
-	return new Matrix(new double[][] {
+        double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
 		{1, 0, 0, 0},
-		{0, Math.cos(a), Math.sin(a), 0},
-		{0, -Math.sin(a), Math.cos(a), 0},
+		{0, cosA, sinA, 0},
+		{0, -sinA, cosA, 0},
 		{0, 0, 0, 1}});
+        return m;
     }
     
     //////////////////////////////////////////////////
@@ -106,30 +115,39 @@ public class Matrix {
 	}
     }
     public static Matrix rotationTransZMatrix(double a, Point3D p0) {
-	return new Matrix(new double[][] {
-		{Math.cos(a), Math.sin(a), 0, 0},
-		{-Math.sin(a), Math.cos(a), 0, 0},
+        double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
+		{cosA, sinA, 0, 0},
+		{-sinA, cosA, 0, 0},
 		{0, 0, 1, 0},
-		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
-		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+		{p0.getX()*(1-cosA)+p0.getY()*sinA,
+		    p0.getY()*(1-cosA)-p0.getX()*sinA, 0, 1}});
+        return m;
     }
 
     public static Matrix rotationTransYMatrix(double a, Point3D p0) {
-	return new Matrix(new double[][] {
-		{Math.cos(a), 0, -Math.sin(a), 0},
+        double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
+		{cosA, 0, -sinA, 0},
 		{0, 1, 0, 0},
-		{Math.sin(a), 0, Math.cos(a), 0},
-		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
-		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+		{sinA, 0, cosA, 0},
+		{p0.getX()*(1-cosA)+p0.getY()*sinA,
+		    p0.getY()*(1-cosA)-p0.getX()*sinA, 0, 1}});
+        return m;
     }
 
     public static Matrix rotationTransXMatrix(double a, Point3D p0) {
-	return new Matrix(new double[][] {
+        double cosA = Math.cos(a);
+        double sinA = Math.sin(a);
+	Matrix m = new Matrix(new double[][] {
 		{1, 0, 0, 0},
-		{0, Math.cos(a), Math.sin(a), 0},
-		{0, -Math.sin(a), Math.cos(a), 0},
-		{p0.getX()*(1-Math.cos(a))+p0.getY()*Math.sin(a),
-		    p0.getY()*(1-Math.cos(a))-p0.getX()*Math.sin(a), 0, 1}});
+		{0, cosA, sinA, 0},
+		{0, -sinA, cosA, 0},
+		{p0.getX()*(1-cosA)+p0.getY()*sinA,
+		    p0.getY()*(1-cosA)-p0.getX()*sinA, 0, 1}});
+        return m;
     }    
     
     //////////////////////////////////////////////////
@@ -173,11 +191,16 @@ public class Matrix {
     
     //////////////////////////////////////////////////
     public static Matrix viewMatrix(double ro, double theta, double phi) {
-	return new Matrix(new double[][]{
-	    {-Math.sin(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.cos(theta)), 0},
-	    {Math.cos(theta), -(Math.cos(phi) * Math.cos(theta)), -(Math.sin(phi) * Math.sin(theta)), 0},
-	    {0, Math.sin(phi), -(Math.cos(phi)), 0},
+        double sinTheta = Math.sin(theta);
+        double cosTheta = Math.cos(theta);
+        double cosPhi = Math.cos(phi);
+        double sinPhi = Math.sin(phi);
+	Matrix m = new Matrix(new double[][]{
+	    {-sinTheta, -(cosPhi * cosTheta), -(sinPhi * cosTheta), 0},
+	    {cosTheta, -(cosPhi * cosTheta), -(sinPhi * sinTheta), 0},
+	    {0, sinPhi, -cosPhi, 0},
 	    {0, 0, ro, 1}});
+        return m;
     }
     
     //////////////////////////////////////////////////

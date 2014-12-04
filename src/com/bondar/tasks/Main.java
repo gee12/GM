@@ -65,7 +65,10 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String CHECKBOX_ANIMATE = "Анимировать";
     public static final String CHECKBOX_TEXTURE = "Отобразить текстуры";
     
-    private static final Color CROSSHAIR_COLOR_NORM = Color.WHITE;
+    public static final Color FONT_COLOR = Color.LIGHT_GRAY;
+    public static final Font FONT = new Font("Tahoma", Font.PLAIN, 15);
+    
+    private static final Color CROSSHAIR_COLOR_NORM = FONT_COLOR;
     private static final Color CROSSHAIR_COLOR_ALLERT = Color.RED;
     
     private static final Point2D ZERO_POINT = new Point2D();
@@ -224,9 +227,7 @@ public class Main extends Application implements OptionsPanelListener {
 	    }
 	}
         ModelsManager.clone("Cube", 1000);
-	//
         RenderManager.load();
-        //
         TextureManager.load();
     }
 
@@ -237,15 +238,6 @@ public class Main extends Application implements OptionsPanelListener {
 	// radio button to select all models to move
 	allModel = new Solid3D(RADIO_ALL_MODELS);
         selectedModel = allModel;
-        
-        /*// init fixed values in models
-        for (Solid3D model : ModelsManager.getModels()) {
-            model.resetBounds();
-            for (Polygon3D poly: model.getPolygons()) {
-                poly.resetNormal();
-                poly.resetAverageZ();
-            }
-        }*/
     }
 
     /////////////////////////////////////////////////////////
@@ -263,9 +255,9 @@ public class Main extends Application implements OptionsPanelListener {
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT));
 	// 3 - 
-	onCollision();
+//	onCollision();
         //
-        //onCrosshair();
+        onCrosshair();
     }
 
     /////////////////////////////////////////////////////////
@@ -273,7 +265,7 @@ public class Main extends Application implements OptionsPanelListener {
 	// if collision check is off
 	if (!isSelectedCheckBox(CHECKBOX_SHIFT_IF_INTERSECT)
 		|| isMousePressed) return;
-	//InteractionManager.collision(ModelsManager.getModels());
+	InteractionManager.collision(ModelsManager.getModels());
     }
   
     /////////////////////////////////////////////////////////
@@ -582,5 +574,40 @@ public class Main extends Application implements OptionsPanelListener {
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT),
                 CursorManager.getCrosshair());
+        g.drawMultilineText(infoText(), FONT, FONT_COLOR, 10, 20);
     }
+    
+    private String infoText() {
+        StringBuilder res = new StringBuilder();
+        try {
+            res.append("Камера: ");
+            res.append(cameraManager.getCam().getPosition().toString());
+            //
+            res.append("\nМоделей: ");
+            int modelsNum = ModelsManager.getSize();
+            res.append(modelsNum);
+            int visible = 0;
+            for (Solid3D model : ModelsManager.getModels()) {
+                if (model.getState() == Solid3D.States.VISIBLE)
+                    visible++;
+            }
+            //
+            res.append("  Видимых: ");
+            res.append(visible);
+            //
+            res.append("\nПолигонов: ");
+            res.append(RenderManager.getSize());
+            //
+            res.append("\nИсточников света (активных): ");
+            int lights = 0;
+            for (Light light : LightManager.getLights().values()) {
+                if (light.getState() == Light.States.ON)
+                    lights++;
+            }
+            res.append(lights);
+        } catch(Exception ex) {}
+        return res.toString();
+    }
+    
+
 }

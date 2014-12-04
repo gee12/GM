@@ -116,4 +116,9 @@ public class Point3D {
     public Vector3D toVector3D() {
         return new Vector3D(getX(), getY(), getZ());
     }
+    
+    @Override
+    public String toString() {
+        return String.format("[%.2f;%.2f;%.2f]", getX(), getY(), getZ());
+    }
 }

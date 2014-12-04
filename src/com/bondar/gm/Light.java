@@ -146,5 +146,17 @@ public class Light {
     public Color getC_specular() {
         return c_specular;
     }
+
+    public float getKc() {
+        return kc;
+    }
+
+    public float getKl() {
+        return kl;
+    }
+
+    public float getKq() {
+        return kq;
+    }
     
 }

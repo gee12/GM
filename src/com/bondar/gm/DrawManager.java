@@ -9,11 +9,19 @@ import com.bondar.geom.Vertex3D;
 import com.bondar.tasks.Main;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 
 /**
  *
@@ -2002,6 +2010,9 @@ public class DrawManager {
     }            
 
     /////////////////////////////////////////////////////
+    // Draw textured polygon with flat shading.
+    // PS: NEED TO OPTIMIZE !
+    // Need to use a finished COLORS MAP, but not define textel color intensity.
     public void drawTexturedFlatTriangle(Vertex3D[] verts, BufferedImage texture, Point2D[] texturePoints, Color lightCol) {
         if (verts == null || texture == null || texturePoints == null || lightCol == null) {
             return;
@@ -2285,9 +2296,9 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
+                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
                                 vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, col));
+                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2327,9 +2338,9 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
+                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
                                 vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, col));
+                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2550,9 +2561,9 @@ public class DrawManager {
                     ///////////////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
+                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
                                 vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, col));
+                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2633,9 +2644,9 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
+                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
                                 vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, col));
+                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2748,6 +2759,7 @@ public class DrawManager {
 		break;
 	    default:
                 if (!isTextured) {
+                    // not textured
                     switch(shadeType) {
                         case Main.RADIO_SHADE_CONST:
                         case Main.RADIO_SHADE_FLAT:
@@ -2758,6 +2770,7 @@ public class DrawManager {
                             break;
                     }
                 } else {
+                    // textured
                     BufferedImage texture = TextureManager.getImage(poly.getTextureId());
                     switch(shadeType) {
                         case Main.RADIO_SHADE_CONST:
@@ -2865,7 +2878,33 @@ public class DrawManager {
         drawLine(poly.getVertexPosition(1), n1, VERT_NORMAL_COLOR);
         drawLine(poly.getVertexPosition(2), n2, VERT_NORMAL_COLOR);
     }
-
+    
+    //////////////////////////////////////////////////
+    // draw text
+    public void drawText(String text, Font font, Color col, int x, int y) {
+        if (text == null || x < 0 || x >= width || y < 0 || y >= height) return;
+        graphic.setFont(font); 
+        graphic.setColor(col);
+        graphic.drawString(text, x, y);
+    }
+    
+    public void drawText(String text, int x, int y) {
+        if (text == null || x < 0 || x >= width || y < 0 || y >= height) return;
+        graphic.drawString(text, x, y);
+    }
+    
+    public void drawMultilineText(String text, Font font, Color col, int x, int y) {
+        final int vertShift = 5;
+        graphic.setFont(font); 
+        graphic.setColor(col);        
+        FontRenderContext frc = ((Graphics2D)graphic).getFontRenderContext();
+        TextLayout layout = new TextLayout(text, font, frc);
+        String[] lines = text.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            graphic.drawString(lines[i], x, Mathem.toInt(y + i * (layout.getBounds().getHeight() + vertShift)));
+        }
+    }
+    
     //////////////////////////////////////////////////
     // set
     public void setGraphics(Graphics g) {
@@ -2882,13 +2921,15 @@ public class DrawManager {
     }
     
     public void setColor(Color col) {
-        if (col == null) return;
         curColor = col;
     }
 
     public void setBackColor(Color col) {
-        if (col == null) return;
         backColor = col;
+    }
+    
+    public void setFont(Font font) {
+        graphic.setFont(font);
     }
     
 }

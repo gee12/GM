@@ -132,4 +132,8 @@ public class ModelsManager {
     public static List<Solid3D> getModels() {
 	return models;
     }
+    
+    public static int getSize() {
+        return models.size();
+    }
 }

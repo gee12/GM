@@ -237,4 +237,8 @@ public class RenderManager {
 		    (maxZ1 > maxZ2) ? -1 : 0;
 	}
     };    
+    
+    public static int getSize() {
+        return renderArray.length;
+    }
 }

@@ -72,7 +72,7 @@ public class FileLoader {
 	Color cAmbient = null;
 	Color cDiffuce = null;
 	Color cSpecular = null;
-        int kc = 0, kl = 0, kq = 0;
+        float kc = 0, kl = 0, kq = 0;
 	
 	String line = null;
 	while ((line = reader.readLine()) != null) {
@@ -108,13 +108,13 @@ public class FileLoader {
                     cSpecular = new Color(Integer.parseInt(words[1], 16));
                     break;
                 case KC_PARAM:
-                    kc = Integer.parseInt(words[1]);
+                    kc = Float.parseFloat(words[1]);
                     break;
                 case KL_PARAM:
-                    kl = Integer.parseInt(words[1]);
+                    kl = Float.parseFloat(words[1]);
                     break;
                 case KQ_PARAM:
-                    kq = Integer.parseInt(words[1]);
+                    kq = Float.parseFloat(words[1]);
                     break;
             }
         }

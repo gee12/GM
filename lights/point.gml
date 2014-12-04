@@ -2,12 +2,14 @@
 name: Point
 id: 2
 type: Point
-state: Off
+state: On
 
-c_ambient: ff0000
+c_ambient: 000000
+c_diffuse: ff0000
+c_specular: 000000
 
-dir: 0 -1 0
+dir: 0 0 -1
 
 kc: 0
-kl: 1
+kl: 0.01
 kq: 0
