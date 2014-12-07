@@ -1,10 +1,8 @@
 package com.bondar.panels;
 
 import com.bondar.gm.DrawManager;
-import com.bondar.gm.GraphicSystem2D;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import javax.swing.JPanel;
 
 /**
@@ -30,7 +28,8 @@ public class DrawablePanel extends JPanel {
     protected void paintComponent(Graphics g) {
 	super.paintComponent(g);
 	drawManager.setGraphics(g);
-	drawManager.setDimension(g.getClipBounds().width, g.getClipBounds().height);
+//	drawManager.setDimension(g.getClipBounds().width, g.getClipBounds().height);
+        app.setDrawPanelDimension(g.getClipBounds().width, g.getClipBounds().height);
 	app.paint(drawManager);
     }
 }

@@ -19,8 +19,8 @@ public class Main extends Application implements OptionsPanelListener {
 
     public static final int FPS = 30;
     public static final int MSEC_TICK = 1000/FPS;
-    public static final int WINDOW_WIDTH = 1100;
-    public static final int WINDOW_HEIGHT = 600;
+    public static final int SRC_WIDTH = 1100;
+    public static final int SRC_HEIGHT = 600;
     public static final String TITLE = "GM";
     
     public static final double SHIFT_STEP = 0.008;
@@ -46,8 +46,9 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String GROUP_TITLE_CAMERA = "КАМЕРА:";
     public static final String RADIO_CAMERA_EULER = "Эйлера";
     public static final String RADIO_CAMERA_UVN = "UVN";
-    public static final String GROUP_TITLE_RENDER = "РЕНДЕРИНГ:";
+    public static final String GROUP_TITLE_DEPTH = "ГЛУБИНА:";
     public static final String RADIO_PAINTER = "Алгритм художника";
+    public static final String RADIO_Z_BUFFER = "Z буффер";
     public static final String GROUP_TITLE_VIEW = "ВНЕШНИЙ ВИД:";
     public static final String RADIO_EDGES = "Ребра";
     public static final String RADIO_FACES = "Грани";
@@ -77,10 +78,9 @@ public class Main extends Application implements OptionsPanelListener {
     private Solid3D selectedModel;
     private boolean isMousePressed;
     private boolean isGameViewModeEnabled;
-    private final CameraManager cameraManager = new CameraManager(WINDOW_WIDTH, WINDOW_HEIGHT);
 	
     public static void main(String[] args) {
-	new Main(WINDOW_WIDTH, WINDOW_HEIGHT);
+	new Main(SRC_WIDTH, SRC_HEIGHT);
     }
 
     /////////////////////////////////////////////////////////
@@ -97,6 +97,13 @@ public class Main extends Application implements OptionsPanelListener {
 	addListeners();
 	addControls();
 	start(MSEC_TICK);
+    }
+    
+    @Override
+    protected void setDrawPanelDimension(int width, int height) {
+        super.setDrawPanelDimension(width, height);
+//        DrawManager.setDimension(getWidth(), getHeight());
+        CameraManager.setViewPort(getWidth(), getHeight());
     }
     
     private void addListeners() {
@@ -197,7 +204,8 @@ public class Main extends Application implements OptionsPanelListener {
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_EULER, this);
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_UVN, this);
 
-//	addRadio(GROUP_TITLE_RENDER, RADIO_PAINTER, this);
+	addRadio(GROUP_TITLE_DEPTH, RADIO_PAINTER, this);
+	addRadio(GROUP_TITLE_DEPTH, RADIO_Z_BUFFER, this);
 
 	addRadio(GROUP_TITLE_VIEW, RADIO_FACES, this);
 	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES, this);
@@ -234,10 +242,11 @@ public class Main extends Application implements OptionsPanelListener {
     @Override
     protected final void init() {
 	isMousePressed = false;
-        CursorManager.init(getToolkit(), CROSSHAIR_COLOR_NORM, WINDOW_WIDTH, WINDOW_HEIGHT);
+        CursorManager.init(getToolkit(), CROSSHAIR_COLOR_NORM, drawPanelWidth, drawPanelHeight);
 	// radio button to select all models to move
 	allModel = new Solid3D(RADIO_ALL_MODELS);
         selectedModel = allModel;
+        CameraManager.init(drawPanelWidth, drawPanelHeight);
     }
 
     /////////////////////////////////////////////////////////
@@ -247,10 +256,10 @@ public class Main extends Application implements OptionsPanelListener {
         boolean isDefineBackfaces = isSelectedCheckBox(CHECKBOX_BACKFACES_EJECTION);
         
         // 1 - work with isolated objects
-        ModelsManager.updateAndAnimate(cameraManager.getCam(), isAnimate, isDefineBackfaces);
+        ModelsManager.updateAndAnimate(CameraManager.getCam(), isAnimate, isDefineBackfaces);
 	// 2 - work with render array (visible polygons)
 	RenderManager.buildRenderArray(ModelsManager.getModels());
-        RenderManager.update(cameraManager.getCam(), 
+        RenderManager.update(CameraManager.getCam(), 
                 getSelectedRadioText(GROUP_TITLE_SHADE),
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT));
@@ -315,7 +324,7 @@ public class Main extends Application implements OptionsPanelListener {
 		onSolidListSelection(radioText);
 		break;
 	    case GROUP_TITLE_CAMERA:
-		cameraManager.onSwitch(radioText);
+		CameraManager.onSwitch(radioText);
 		break;
 	}
     }
@@ -359,10 +368,10 @@ public class Main extends Application implements OptionsPanelListener {
     public void onTurnSceneWithMouse(Point curPoint) {
         if (curPoint == null) return;
         
-        int dx = curPoint.x - WINDOW_WIDTH/2;
-        int dy = curPoint.y - WINDOW_HEIGHT/2;
-        cameraManager.getCam().updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
-        cameraManager.getCam().updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
+        int dx = curPoint.x - drawPanelWidth/2;
+        int dy = curPoint.y - drawPanelHeight/2;
+        CameraManager.getCam().updateDirection(dx * CAMERA_ANGLE, Matrix.AXIS.Y);
+        CameraManager.getCam().updateDirection(dy * CAMERA_ANGLE, Matrix.AXIS.X);
         //
         //moveMouseToCenter();
     }
@@ -372,7 +381,7 @@ public class Main extends Application implements OptionsPanelListener {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(ZERO_POINT, cameraManager.getCam())) {
+	    if (model.isCameraPointInto(ZERO_POINT, CameraManager.getCam())) {
 		CursorManager.setColor(CROSSHAIR_COLOR_ALLERT);
 		return;
 	    }
@@ -394,7 +403,7 @@ public class Main extends Application implements OptionsPanelListener {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(ZERO_POINT, cameraManager.getCam())) {
+	    if (model.isCameraPointInto(ZERO_POINT, CameraManager.getCam())) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		return;
 	    }
@@ -431,7 +440,7 @@ public class Main extends Application implements OptionsPanelListener {
 		for (Solid3D model : ModelsManager.getModels()) {
 		    if (model.getState() != Solid3D.States.VISIBLE
 			    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, cameraManager.getCam());
+		    boolean isPointInto = model.isCameraPointInto(ZERO_POINT, CameraManager.getCam());
 		    // find object borders & check the cursor hit into borders
 		    if (isPointInto) {
 			focusedModels.add(model);
@@ -470,8 +479,8 @@ public class Main extends Application implements OptionsPanelListener {
     
     public Point getWindowCenterOnScreen() {
         Point p = getLocationOnScreen();
-        int cx = (int) (p.x + WINDOW_WIDTH / 2);
-        int cy = (int) (p.y + WINDOW_HEIGHT / 2);
+        int cx = (int) (p.x + drawPanelWidth / 2);
+        int cy = (int) (p.y + drawPanelHeight / 2);
         return new Point(cx, cy);
     }
  
@@ -538,7 +547,7 @@ public class Main extends Application implements OptionsPanelListener {
 		tz = -CAMERA_SHIFT_STEP;
 		break;
         }
-	cameraManager.onOperation(angle, axis, 
+	CameraManager.onOperation(angle, axis, 
 		dx, dy, dz, 
 		tx, ty, tz);
     }
@@ -581,30 +590,20 @@ public class Main extends Application implements OptionsPanelListener {
         StringBuilder res = new StringBuilder();
         try {
             res.append("Камера: ");
-            res.append(cameraManager.getCam().getPosition().toString());
+            res.append(CameraManager.getCam().getPosition().toString());
             //
             res.append("\nМоделей: ");
             int modelsNum = ModelsManager.getSize();
             res.append(modelsNum);
-            int visible = 0;
-            for (Solid3D model : ModelsManager.getModels()) {
-                if (model.getState() == Solid3D.States.VISIBLE)
-                    visible++;
-            }
             //
             res.append("  Видимых: ");
-            res.append(visible);
+            res.append(ModelsManager.getVisibleNum());
             //
             res.append("\nПолигонов: ");
             res.append(RenderManager.getSize());
             //
             res.append("\nИсточников света (активных): ");
-            int lights = 0;
-            for (Light light : LightManager.getLights().values()) {
-                if (light.getState() == Light.States.ON)
-                    lights++;
-            }
-            res.append(lights);
+            res.append(LightManager.getActiveLightsNum());
         } catch(Exception ex) {}
         return res.toString();
     }

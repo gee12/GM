@@ -23,17 +23,12 @@ public class ClipRectangle2D {
     public final static int CODE_NW = 0x0009;
     public final static int CODE_SW = 0x0005;
         
-    private final int xMin, xMax, yMin, yMax;
-    private final int width, height;
+    private int xMin, xMax, yMin, yMax;
+    private int width, height;
 
  
     public ClipRectangle2D(int xmin, int ymin, int xmax, int ymax) {
-	this.xMin = xmin;
-	this.yMin = ymin;
-	this.xMax = xmax;
-	this.yMax = ymax;
-        this.width = xmax - xmin;
-        this.height = ymax - ymin;
+	reset(xmin, ymin, xmax, ymax);
     }
     
 
@@ -336,6 +331,25 @@ public class ClipRectangle2D {
 	}
 	return i;
     }    
+    
+    /////////////////////////////////////////////////////////
+    // set
+    public void reset(int xmin, int ymin, int xmax, int ymax) {
+	this.xMin = xmin;
+	this.yMin = ymin;
+	this.xMax = xmax;
+	this.yMax = ymax;
+        this.width = xmax - xmin;
+        this.height = ymax - ymin;
+    }
+    
+    public void reset(int width, int height) {
+	this.xMax = xMin + width;
+	this.yMax = yMin + height;
+        this.width = width;
+        this.height = height;
+    }
+    
     /////////////////////////////////////////////////////////
     // get
     public Point2D getA() {

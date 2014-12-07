@@ -14,14 +14,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
-import java.awt.font.LineBreakMeasurer;
-import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 
 /**
  *
@@ -34,32 +29,44 @@ public class DrawManager {
         FAST,
         FASTEST
     }
+    final static int TRI_TYPE_NONE = 0;
+    final static int TRI_TYPE_FLAT_TOP = 1;
+    final static int TRI_TYPE_FLAT_BOTTOM = 2;
+    final static int TRI_TYPE_FLAT_MASK = 3;
+    final static int TRI_TYPE_GENERAL = 4;
+    final static int INTERP_LHS = 0;
+    final static int INTERP_RHS = 1;
+    final static int FIXP16_SHIFT = 16;
+    final static int FIXP16_ROUND_UP = 0x00008000;
+
+    public static final int CLIP_BORDER = 10;
     public static final Color POLY_NORMAL_COLOR = Color.RED;
     public static final Color VERT_NORMAL_COLOR = Color.GREEN;
     
     public static final Color EDGES_COLOR = Color.WHITE;
 
-    private Graphics graphic;
-    private Graphics2D imageGraphic;
-    private int width, height;
-    private ClipRectangle2D clip;
-    private RasterizerModes rasterMode;
-    private BufferedImage image;
-    private WritableRaster raster;
-    private Color curColor;
-    private Color backColor;
+    protected Graphics graphic;
+    protected static Graphics2D imageGraphic;
+    protected static int width, height;
+    protected static ClipRectangle2D clip;
+    protected RasterizerModes rasterMode;
+    protected static BufferedImage image;
+//    private WritableRaster raster;
+    protected Color curColor;
+    protected Color backColor;
     
     //////////////////////////////////////////////////
     public DrawManager(int width, int height) {
         this.width = width;
 	this.height = height;
         
-        setClipBox(new ClipRectangle2D(10,10,width-10,height-10));
+        setClipBox(new ClipRectangle2D(CLIP_BORDER,CLIP_BORDER,
+                width-CLIP_BORDER,height-CLIP_BORDER));
 
         rasterMode = RasterizerModes.ACCURATE;
-        image = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
-        imageGraphic = image.createGraphics();
-        raster = image.getRaster();
+        createImage(width, height);
+        
+//        raster = image.getRaster();
         curColor = Color.BLACK;
         final int TONE = 10;
         backColor = new Color(TONE,TONE,TONE);
@@ -70,10 +77,6 @@ public class DrawManager {
             Solid2D crosshair) {
         // background
         drawBackground();
-//        fillRectangle(new Rectangle(0,0,
-//                width,height/2), Color.DARK_GRAY);
-//        fillRectangle(new Rectangle(0,height/2,
-//                width,height/2), Color.DARK_GRAY);
         // polygons
 	switch (viewType) {
 	    case Main.RADIO_FACES:
@@ -545,18 +548,7 @@ public class DrawManager {
             || colors[1] == null || colors[2] == null) {
             return;
         }
-        final int TRI_TYPE_NONE = 0;
-        final int TRI_TYPE_FLAT_TOP = 1;
-        final int TRI_TYPE_FLAT_BOTTOM = 2;
-        final int TRI_TYPE_FLAT_MASK = 3;
-        final int TRI_TYPE_GENERAL = 4;
-        
-        final int INTERP_LHS = 0;
-        final int INTERP_RHS  = 1;
-        
-        final int FIXP16_SHIFT = 16;
-        final int FIXP16_ROUND_UP = 0x00008000;
-        
+
         int v0 = 0,
                 v1 = 1,
                 v2 = 2,
@@ -1328,17 +1320,6 @@ public class DrawManager {
         if (verts == null || texture == null || texturePoints == null) {
             return;
         }
-        final int TRI_TYPE_NONE = 0;
-        final int TRI_TYPE_FLAT_TOP = 1;
-        final int TRI_TYPE_FLAT_BOTTOM = 2;
-        final int TRI_TYPE_FLAT_MASK = 3;
-        final int TRI_TYPE_GENERAL = 4;
-        
-        final int INTERP_LHS = 0;
-        final int INTERP_RHS  = 1;
-        
-        final int FIXP16_SHIFT = 16;
-        final int FIXP16_ROUND_UP = 0x00008000;
 
         int v0 = 0,
                 v1 = 1,
@@ -1599,9 +1580,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, col);
+                        drawTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1641,9 +1620,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, col);
+                        drawTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1864,9 +1841,7 @@ public class DrawManager {
                     ///////////////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, col);
+                        drawTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -1947,9 +1922,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color col = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, col);
+                        drawTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2017,17 +1990,6 @@ public class DrawManager {
         if (verts == null || texture == null || texturePoints == null || lightCol == null) {
             return;
         }
-        final int TRI_TYPE_NONE = 0;
-        final int TRI_TYPE_FLAT_TOP = 1;
-        final int TRI_TYPE_FLAT_BOTTOM = 2;
-        final int TRI_TYPE_FLAT_MASK = 3;
-        final int TRI_TYPE_GENERAL = 4;
-        
-        final int INTERP_LHS = 0;
-        final int INTERP_RHS  = 1;
-        
-        final int FIXP16_SHIFT = 16;
-        final int FIXP16_ROUND_UP = 0x00008000;
 
         int v0 = 0,
                 v1 = 1,
@@ -2296,9 +2258,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
+                        drawLightTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture, lightCol);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2338,9 +2298,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN FLAT TOP/BOTTOM TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
+                        drawLightTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture, lightCol);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2561,9 +2519,7 @@ public class DrawManager {
                     ///////////////////////////////////////////////////////////////////////
                     // DRAW CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
+                        drawLightTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture, lightCol);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2644,9 +2600,7 @@ public class DrawManager {
                     ////////////////////////////////////////////////////////////
                     // DRAW NON-CLIPPED LINE IN GENERAL TRIANGLE
                     for (xi = xStart; xi <= xEnd; xi++) {
-                        Color textel = new Color(texture.getRGB(ui >> FIXP16_SHIFT, 
-                                vi >> FIXP16_SHIFT));
-                        drawNoClipPoint(xi, yi, LightManager.toLight(lightCol, textel));
+                        drawLightTextel(xi, yi, ui >> FIXP16_SHIFT, vi >> FIXP16_SHIFT, texture, lightCol);
                         // interpolate u,v
                         ui += du;
                         vi += dv;
@@ -2704,6 +2658,16 @@ public class DrawManager {
                 }
             }
         }
+    }
+    
+    public void drawTextel(int x, int y, int u, int v, BufferedImage texture) {
+        Color textel = new Color(texture.getRGB(u, v));
+        drawNoClipPoint(x, y, textel);
+    }    
+    
+    public void drawLightTextel(int x, int y, int u, int v, BufferedImage texture, Color light) {
+        Color textel = new Color(texture.getRGB(u, v));
+        drawNoClipPoint(x, y, LightManager.light(textel, light));
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2911,13 +2875,23 @@ public class DrawManager {
 	this.graphic = g;
     }
     
-    public void setDimension(int width, int height) {
-        this.width = width;
-	this.height = height;
+    public static void setDimension(int w, int h) {
+        // update image and clip dimension
+        if (width != w || height != h) {
+            createImage(width, height);
+            clip.reset(width-2*CLIP_BORDER, height-2*CLIP_BORDER);
+        }
+        width = w;
+	height = h;
     }
     
-    public void setClipBox(ClipRectangle2D clipBox) {
-        this.clip = clipBox;
+    public static void createImage(int width, int height) {
+        image = new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
+        imageGraphic = image.createGraphics();
+    }
+    
+    public static void setClipBox(ClipRectangle2D clipBox) {
+        clip = clipBox;
     }
     
     public void setColor(Color col) {

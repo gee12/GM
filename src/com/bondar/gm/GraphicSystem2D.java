@@ -58,7 +58,6 @@ public class GraphicSystem2D {
 	this.g = g;
 	this.width = g.getClipBounds().width;
 	this.height = g.getClipBounds().height;
-	zBuffer = new ZBuffer(width, height);
 
 	drawBackground(Color.WHITE);
     }
@@ -327,139 +326,14 @@ public class GraphicSystem2D {
 		    line(poly.getVertexPosition(0), poly.getVertexPosition(1));
 		    break;
 		default:
-		    drawBufferedPolygon(poly);
+//		    drawBufferedPolygon(poly);
 		    break;
 	    }
 	}
     }
 
-    /////////////////////////////////////////////////////
-    // Отрисовка треугольника (полинейно)
-    private void drawBufferedPolygon(Polygon3DVerts poly) {
-	if (poly == null) return;
-	Point3D a = convPToScreen(poly.getVertexPosition(0));
-	Point3D b = convPToScreen(poly.getVertexPosition(1));
-	Point3D c = convPToScreen(poly.getVertexPosition(2));
-	int sy, x1, x2;
-	boolean flag = true;
-	// здесь сортируем вершины (A,B,C)
-	while (flag) {
-	    flag = false;
-	    if (b.getY() < a.getY()) {
-		Point3D temp = b;
-		b = a;
-		a = temp;
-		flag = true;
-	    }
-	    if (c.getY() < b.getY()) {
-		Point3D temp = c;
-		c = b;
-		b = temp;
-		flag = true;
-	    }
-	}
-	// закраска треугольника
-	for (sy = (int) (a.getY()); sy < c.getY(); sy++) {
-	    x1 = (int) (a.getX()) + (sy - (int) (a.getY())) * ((int) (c.getX())
-		    - (int) (a.getX())) / ((int) (c.getY()) - (int) (a.getY()));
-	    if (sy < b.getY()) {
-		x2 = (int) (a.getX()) + (sy - (int) (a.getY())) * ((int) (b.getX())
-			- (int) (a.getX())) / ((int) (b.getY()) - (int) (a.getY()));
-	    } else {
-		if (c.getY() == b.getY()) {
-		    x2 = (int) (b.getX());
-		} else {
-		    x2 = (int) (b.getX()) + (sy - (int) (b.getY())) * ((int) (c.getX())
-			    - (int) (b.getX())) / ((int) (c.getY()) - (int) (b.getY()));
-		}
-	    }
-	    if (x1 > x2) {
-		int temp = x1;
-		x1 = x2;
-		x2 = temp;
-	    }
-	    Point3DOdn p1 = new Point3DOdn(x1, sy, 0);
-	    Point3DOdn p2 = new Point3DOdn(x2, sy, 0);
-	    drawBufferedLine(poly, p1, p2);
-	}
-    }
 
-    /////////////////////////////////////////////////////
-    // Алгритм Брезинхема
-    // (поточечная отрисовка линии треугольника с использованием Z-буффера)
-    private void drawBufferedLine(Polygon3DVerts poly, Point3DOdn p1, Point3DOdn p2) {
-	float d, d1, d2;
-	int dx = (int) (Math.abs(p2.getX() - p1.getX()));
-	int dy = (int) (Math.abs(p2.getY() - p1.getY()));
-	int sx = p2.getX() >= p1.getX() ? 1 : -1;
-	int sy = p2.getY() >= p1.getY() ? 1 : -1;
-	if (dy <= dx) // проверка угла наклона линии
-	{
-	    d = (dy >> 1) - dx; // деление на два для определения углового коэффициента
-	    d1 = dy >> 1;
-	    d2 = (dy - dx) >> 1;
-
-	    int xPix = (int) p1.getX();
-	    int yPix = (int) (height - p1.getY());
-	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = poly.zByXY(xPix, yPix);
-		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    drawScreenPoint(xPix, yPix, poly.getColor()); //вывод первой точки на экране
-		    zBuffer.setBufferAt(xPix, yPix, z_b);
-		}
-	    }
-	    for (int x = (int)(p1.getX()) + sx, y = (int)(p1.getY()), i = 1; i <= dx; i++, x += sx) // цикл вывода линии на экран
-	    {
-		if (d > 0) // Если d < 0 значение y не меняется по сравнению с предыдущей точкой, иначе y увеличивается
-		{
-		    d += d2;
-		    y += sy;
-		} else {
-		    d += d1;
-		}
-		yPix = (int) (height - y);
-
-		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = poly.zByXY(xPix, yPix);
-		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			drawScreenPoint(x, yPix, poly.getColor());
-			zBuffer.setBufferAt(x, yPix, z_b);
-		    }
-		}
-	    }
-	} else {
-	    d = (dx >> 1) - dy;
-	    d1 = dx >> 1;
-	    d2 = (dx - dy) >> 1;
-
-	    int xPix = (int) p1.getX();
-	    int yPix = (int) (height - p1.getY());
-	    if (xPix >= 0 && yPix >= 0 && xPix < width && yPix < height) {
-		double z_b = poly.zByXY(xPix, yPix);
-		if (z_b < zBuffer.getBufferAt(xPix,yPix)) {
-		    drawScreenPoint(xPix, yPix, poly.getColor());
-		    zBuffer.setBufferAt(xPix, yPix, z_b);
-		}
-	    }
-	    for (int x = (int) (p1.getX()), y = (int) (p1.getY()) + sy, i = 1; i <= dy; i++, y += sy) {
-		if (d > 0) {
-		    d += d2;
-		    x += sx;
-		} else {
-		    d += d1;
-		}
-		yPix = (int) (height - y);
-
-		if ((x >= 0) && (yPix >= 0) && (x < width) && (yPix < height)) {
-		    double z_b = poly.zByXY(x, yPix);
-		    if (z_b < zBuffer.getBufferAt(x,yPix)) {
-			drawScreenPoint(x, yPix, poly.getColor());
-			zBuffer.setBufferAt(x, yPix, z_b);
-		    }
-		}
-	    }
-	}
-    }
+	
     public void drawScreenPoint(double x, double y, Color col) {
 	g.setColor(col);
 	g.drawLine((int)(x + 0.5), (int)(y + 0.5),

@@ -6,7 +6,6 @@ import com.bondar.gm.TransferManager;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
-import java.util.Arrays;
 
 /**
  *
@@ -197,9 +196,9 @@ public class Solid3D {
 	    return true;
 	}
 	// by y
-	zTest = HALF_SCREEN_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / cam.getViewDist();
-	if (((spherePos.getY() - maxRadius) > zTest)  || // up side
-	    ((spherePos.getY() + maxRadius) < -zTest) ) { // down side, note sign change
+	zTest = HALF_SCREEN_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / (cam.getViewDist() * cam.getAspectRatio());
+	if (((spherePos.getY() - maxRadius) > zTest)  || // down side
+	    ((spherePos.getY() + maxRadius) < -zTest) ) { // up side, note sign change
 	    return true;
 	}
 	return false;

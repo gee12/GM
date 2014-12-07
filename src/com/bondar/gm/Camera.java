@@ -42,8 +42,8 @@ public abstract class Camera {
 	// usually 2x2 for normalized projection or 
 	// the exact same size as the viewport (screen window)
 	viewPlane = new Dimension();
-	viewPlane.setSize(2., 2. / aspectRatio);
 	aspectRatio = viewPort.getWidth() / viewPort.getHeight();
+	viewPlane.setSize(2., 2. / aspectRatio);
 	viewDist = dist;
 	//viewDist = 0.5 * viewPlane.getWidth() * Math.tan(Math.toRadians(fov / 2.));
 	clipBox = new ClipBox3D();
@@ -106,6 +106,12 @@ public abstract class Camera {
     // set
     public void setBuildMode(int mode) {
 	this.buildMode = mode;
+    }
+    
+    public void setViewPort(Dimension vp) {
+        this.viewPort = vp;
+        aspectRatio = viewPort.getWidth() / viewPort.getHeight();
+	viewPlane.setSize(2., 2. / aspectRatio);
     }
 
     // get

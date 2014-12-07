@@ -16,6 +16,7 @@ public class LightManager {
     private static final String LIGHTS_EXTENSION = ".gml";
 
     private static HashMap<Integer, Light> lights = new HashMap<>();
+    private static int activeLights;
 
     ////////////////////////////////////////////////////////
     public static void load() {
@@ -24,6 +25,13 @@ public class LightManager {
 	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
+        // 
+        activeLights = 0;
+        for (Light light : lights.values()) {
+            if (light.getState() == Light.States.ON) {
+                activeLights++;
+            }
+        }
     }
     
     ////////////////////////////////////////////////////////
@@ -242,7 +250,7 @@ public class LightManager {
     }
     
         
-    public static Color toLight(Color src, Color light) {
+    public static Color light(Color src, Color light) {
         if (src == null || light == null) return null;
         
         int r = ((light.getRed() * src.getRed()) >> 8);
@@ -258,5 +266,9 @@ public class LightManager {
     
     public static int getSize() {
         return lights.size();
+    }
+    
+    public static int getActiveLightsNum() {
+        return activeLights;
     }
 }

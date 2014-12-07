@@ -18,6 +18,7 @@ public class ModelsManager {
     private static final double ROTATE_ANGLE = ANGLE_UP/100;
    
     private static List<Solid3D> models;
+    private static int visible = 0;
     
     /////////////////////////////////////////////////////////
     // load models from .gmx file
@@ -53,9 +54,13 @@ public class ModelsManager {
     /////////////////////////////////////////////////////////
     //
     public static void updateAndAnimate(Camera camera, boolean isAnimate, boolean isDefineBackfaces) {
+        visible = 0;
 	for (Solid3D model : models) {
             if (isAnimate) animateModel(model);
 	    updateModel(model, camera, isDefineBackfaces);
+            //
+            if (model.getState() == Solid3D.States.VISIBLE)
+                visible++;
 	}
     }
     
@@ -135,5 +140,9 @@ public class ModelsManager {
     
     public static int getSize() {
         return models.size();
+    }
+    
+    public static int getVisibleNum() {
+        return visible;
     }
 }

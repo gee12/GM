@@ -1,7 +1,5 @@
 package com.bondar.panels;
 
-import com.bondar.gm.GraphicSystem2D;
-import com.bondar.geom.Point2D;
 import com.bondar.gm.DrawManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,8 +14,9 @@ import javax.swing.WindowConstants;
  */
 public abstract class Application extends JFrame {
 
-    private final OptionsPanel optionsPanel;
-    private final DrawablePanel drawablePanel;
+    protected final OptionsPanel optionsPanel;
+    protected final DrawablePanel drawablePanel;
+    protected int drawPanelWidth, drawPanelHeight;
     
     public Application(int width, int height) {
 	setLocationByPlatform(true);
@@ -25,6 +24,8 @@ public abstract class Application extends JFrame {
 	setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
 
 	drawablePanel = new DrawablePanel(this, width, height);
+        drawPanelWidth = width;
+        drawPanelHeight = height;
 	add(drawablePanel);
 	optionsPanel = new OptionsPanel();
 	add(optionsPanel);
@@ -65,6 +66,11 @@ public abstract class Application extends JFrame {
     // set
     protected void setVisibleOptionsPanel(boolean visible) {
         optionsPanel.setVisible(visible);
+    }
+    
+    protected void setDrawPanelDimension(int width, int height) {
+        drawPanelWidth = width;
+        drawPanelHeight = height;
     }
     
     /*protected void setClipWindow(double xmin, double ymin, double xmax, double ymax) {
@@ -108,7 +114,15 @@ public abstract class Application extends JFrame {
     protected boolean isSelectedCheckBox(String text) {
 	return optionsPanel.isSelectedCheckBox(text);
     }
-
+    
+    protected int getDrawPanelWidth() {
+        return drawPanelWidth;
+    }
+    
+    protected int getDrawPanelHeight() {
+        return drawPanelHeight;
+    }
+    
     //
     protected abstract void load();
     protected abstract void init();
