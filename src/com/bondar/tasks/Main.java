@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Вариант 8
  *
  * @author bondar
  */
@@ -204,8 +203,8 @@ public class Main extends Application implements OptionsPanelListener {
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_EULER, this);
 	//addRadio(GROUP_TITLE_CAMERA, RADIO_CAMERA_UVN, this);
 
-	addRadio(GROUP_TITLE_DEPTH, RADIO_PAINTER, this);
 	addRadio(GROUP_TITLE_DEPTH, RADIO_Z_BUFFER, this);
+	addRadio(GROUP_TITLE_DEPTH, RADIO_PAINTER, this);
 
 	addRadio(GROUP_TITLE_VIEW, RADIO_FACES, this);
 	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES, this);
@@ -259,7 +258,8 @@ public class Main extends Application implements OptionsPanelListener {
         ModelsManager.updateAndAnimate(CameraManager.getCam(), isAnimate, isDefineBackfaces);
 	// 2 - work with render array (visible polygons)
 	RenderManager.buildRenderArray(ModelsManager.getModels());
-        RenderManager.update(CameraManager.getCam(), 
+        RenderManager.update(CameraManager.getCam(),
+                getSelectedRadioText(GROUP_TITLE_DEPTH),
                 getSelectedRadioText(GROUP_TITLE_SHADE),
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT));
@@ -579,6 +579,7 @@ public class Main extends Application implements OptionsPanelListener {
         g.drawScene(RenderManager.getRenderArray(), 
                 getSelectedRadioText(GROUP_TITLE_VIEW),
                 getSelectedRadioText(GROUP_TITLE_SHADE),
+                getSelectedRadioText(GROUP_TITLE_DEPTH),
                 isSelectedCheckBox(CHECKBOX_TEXTURE),
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT),

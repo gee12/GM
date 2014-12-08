@@ -57,11 +57,13 @@ public class RenderManager {
     }
     
     /////////////////////////////////////////////////////////
-    public static void update(Camera cam, String shadingType, boolean isNormalsPoly, boolean isNormalsVert) {
+    public static void update(Camera cam, String depthType, String shadingType, boolean isNormalsPoly, boolean isNormalsVert) {
 	
         onShading(shadingType);
-        
-	sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
+        //
+        if (depthType.equals(Main.RADIO_PAINTER)) {
+            sortByZ(RenderManager.SortByZTypes.AVERAGE_Z);
+        }
         transToPerspectAndScreen(cam);
         
         // transfer nolmals for drawing

@@ -44,7 +44,7 @@ public class GraphicSystem2D {
     private double xc, yc, Xc, Yc;
     private double f;
     private double c1, c2;
-    private ZBuffer zBuffer;
+    private ZBufferDrawManager zBuffer;
 
     public GraphicSystem2D() {
 	old = new Point2D();
