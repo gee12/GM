@@ -38,7 +38,9 @@ public class Point3DOdn extends Point3D {
 	double w = getW();
 	double invW = (w >= Mathem.EPSILON_E5) ? (1 / w) : (1 / Mathem.EPSILON_E5);
 	for (int i = 0; i < 4; i++) {
+            // save z coordinate
             if (i == 2) continue;
+            // div
 	    vector.setAt(0, i, vector.getAt(0, i) * invW);
 	}
 	return this;

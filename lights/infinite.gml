@@ -2,10 +2,10 @@
 name: Infinite
 id: 1
 type: Infinite
-state: Off
+state: On
 
 c_ambient: 000000
-c_diffuse: 999999
+c_diffuse: 0000ff
 c_specular: 000000
 
 dir: 0 0 -1

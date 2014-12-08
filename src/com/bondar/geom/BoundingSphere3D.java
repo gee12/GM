@@ -31,8 +31,8 @@ public class BoundingSphere3D {
 	double px = cp.getX(), py = cp.getY(), pz = cp.getZ();
         
 	return ((px >= center.getX() - sRadius) && (px <= center.getX() + sRadius)
-		&& (py >= center.getX() - sRadius) && (py <= center.getX() + sRadius)
-		&& (pz >= center.getX() - sRadius) && (pz <= center.getX() + sRadius));
+		&& (py >= center.getY() - sRadius) && (py <= center.getY() + sRadius)
+		&& (pz >= center.getZ() - sRadius) && (pz <= center.getZ() + sRadius));
     }
     
     /////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ public class BoundingSphere3D {
 	double px = cp.getX(), py = cp.getY();
         
 	return ((px >= center.getX() - sRadius) && (px <= center.getX() + sRadius)
-		&& (py >= center.getX() - sRadius) && (py <= center.getX() + sRadius));
+		&& (py >= center.getY() - sRadius) && (py <= center.getY() + sRadius));
     }  
     
     public double getMaxRadius() {

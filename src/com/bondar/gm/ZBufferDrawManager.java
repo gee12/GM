@@ -3054,6 +3054,5 @@ public class ZBufferDrawManager extends DrawManager {
             }
         }
     }
-
     
 }

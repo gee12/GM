@@ -2,7 +2,12 @@ package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
+import com.bondar.tasks.Main;
 import static com.bondar.tasks.Main.ANGLE_UP;
+import static com.bondar.tasks.Main.GROUP_TITLE_OPERATIONS;
+import static com.bondar.tasks.Main.RADIO_ROTATE;
+import static com.bondar.tasks.Main.RADIO_SCALE;
+import static com.bondar.tasks.Main.RADIO_TRANSFER;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -100,6 +105,31 @@ public class ModelsManager {
         }*/
     }
     
+    /////////////////////////////////////////////////////////
+    public static void onOperation(List<Solid3D> models, double angle, Matrix.AXIS axis,
+	    double dx, double dy, double dz, double scale, String operationType) {
+	// if selected all models
+	if (models.contains(MouseManager.allModel)) {
+	    models.clear();
+	    //models.addAll(Types.toList(ModelsManager.getModels()));
+            for (Solid3D model : ModelsManager.getModels()) {
+                if (model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+                models.add(model);
+            }
+	}
+	// select operation
+	switch (operationType) {
+	    case RADIO_ROTATE:
+		ModelsManager.onRotate(models, angle, axis);
+		break;
+	    case RADIO_TRANSFER:
+		ModelsManager.onTransfer(models, dx, dy, dz);
+		break;
+	    case RADIO_SCALE:
+		ModelsManager.onScale(models, scale);
+		break;
+	}
+    }    
     
     public static void onRotate(List<Solid3D> models, double angle, Matrix.AXIS axis) {
 	for (Solid3D model : models) {

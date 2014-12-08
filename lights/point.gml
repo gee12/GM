@@ -5,7 +5,7 @@ type: Point
 state: On
 
 c_ambient: 000000
-c_diffuse: ff0000
+c_diffuse: 00ff00
 c_specular: 000000
 
 dir: 0 0 -1
