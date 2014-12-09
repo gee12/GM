@@ -72,7 +72,7 @@ public class LightManager {
                 case INFINITE:
                     if (poly.getSize() < 3) return null;
                     
-                    dp = Vector3D.dot(n, light.getDirection());
+                    dp = Vector3D.dot(n, light.getTransDirection());
                     if (dp > 0) {
                         // WTF? Why need *128, and then /128. What the metter?
                         double i = /*128 **/ dp / nLength;
@@ -83,7 +83,7 @@ public class LightManager {
                     break;
 
                 case POINT:
-                    Vector3D l = new Vector3D(poly.getVertexPosition(0), light.getPos());
+                    Vector3D l = new Vector3D(poly.getVertexPosition(0), light.getTransPos());
                     double dist = l.length();
                     dp = Vector3D.dot(n, l);
                     if (dp > 0) {
@@ -165,7 +165,7 @@ public class LightManager {
 
                 case INFINITE:
                     // vertex 0
-                    double dp = Vector3D.dot(n0, light.getDirection());
+                    double dp = Vector3D.dot(n0, light.getTransDirection());
                     if (dp > 0) {
                         double i = /*128 **/ dp;
                         rSum0 += ((light.getC_diffuse().getRed() * rBase * i) / (256 /** 128*/));
@@ -173,7 +173,7 @@ public class LightManager {
                         bSum0 += ((light.getC_diffuse().getBlue() * bBase * i) / (256 /** 128*/));
                     }
                     // vertex 1
-                    dp = Vector3D.dot(n1, light.getDirection());
+                    dp = Vector3D.dot(n1, light.getTransDirection());
                     if (dp > 0) {
                         double i = /*128 **/ dp;
                         rSum1 += ((light.getC_diffuse().getRed() * rBase * i) / (256 /** 128*/));
@@ -181,7 +181,7 @@ public class LightManager {
                         bSum1 += ((light.getC_diffuse().getBlue() * bBase * i) / (256 /** 128*/));
                     }
                     // vertex 2
-                    dp = Vector3D.dot(n2, light.getDirection());
+                    dp = Vector3D.dot(n2, light.getTransDirection());
                     if (dp > 0) {
                         double i = /*128 **/ dp;
                         rSum2 += ((light.getC_diffuse().getRed() * rBase * i) / (256 /** 128*/));
@@ -191,7 +191,7 @@ public class LightManager {
                     break;
 
                 case POINT:
-                    Vector3D l = new Vector3D(poly.getVertexPosition(0), light.getPos());
+                    Vector3D l = new Vector3D(poly.getVertexPosition(0), light.getTransPos());
                     double dist = l.length();
                     double atten = (light.getKc() + light.getKl() * dist + light.getKq() * dist * dist);
                     // vertex 0
@@ -249,6 +249,12 @@ public class LightManager {
         return poly;
     }
     
+    public static void transLights(Camera cam) {
+        for (Light light : lights.values()) {
+            light.setTransPos(TransferManager.transToCamera(light.getPos(), cam));
+            light.setTransDir(TransferManager.transToCamera(light.getDirection(), cam).toVector3D());
+        }
+    }
         
     public static Color light(Color src, Color light) {
         if (src == null || light == null) return null;

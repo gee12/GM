@@ -65,6 +65,7 @@ public class RenderManager {
         // cull polygons
         onCulling(cam);
         // shade
+        LightManager.transLights(cam);
         onShading(shadingType);
         //
         if (depthType.equals(Main.RADIO_PAINTER)) {

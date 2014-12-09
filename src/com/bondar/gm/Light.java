@@ -74,8 +74,8 @@ public class Light {
     private Color c_diffuse;   // diffuse light intensity
     private Color c_specular;  // specular light intensity
 
-    private Point3D  pos;       // position of light
-    private Vector3D dir;       // direction of light
+    private Point3D  pos, transPos;       // position of light
+    private Vector3D dir, transDir;       // direction of light
     private float kc, kl, kq;   // attenuation factors
     private float spot_inner;   // inner angle for spot light
     private float spot_outer;   // outer angle for spot light
@@ -108,6 +108,13 @@ public class Light {
     
     /////////////////////////////////////////////////////////
     // set
+    public void setTransPos(Point3D pos) {
+        this.transPos = pos;
+    }
+    
+    public void setTransDir(Vector3D dir) {
+        this.transDir = dir;
+    }
         
     /////////////////////////////////////////////////////////
     // get
@@ -131,8 +138,16 @@ public class Light {
 	return pos;
     }
 
+    public Point3D getTransPos() {
+	return transPos;
+    }
+
     public Vector3D getDirection() {
 	return dir;
+    }
+
+    public Vector3D getTransDirection() {
+	return transDir;
     }
 
     public Color getC_ambient() {

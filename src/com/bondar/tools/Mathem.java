@@ -28,7 +28,11 @@ public class Mathem {
     public static double abs(double value) {
         return ((value >= 0) ? value : -value);
     }
-    
+
+    public static float abs(float value) {
+        return ((value >= 0) ? value : -value);
+    }
+        
     public static int abs(int value) {
         return ((value >= 0) ? value : -value);
     }
@@ -75,5 +79,39 @@ public class Mathem {
     /////////////////////////////////////////////////////
     public static int toInt(double x) {
         return (int)(x + 0.5);
+    }
+    
+    /////////////////////////////////////////////////////
+    // Compute the distance from the origin to x,y,z
+    public static float fastDistance3D(float fx, float fy, float fz) {
+        // make sure values are all positive
+        int x = (int)abs(fx) * 1024;
+        int y = (int)abs(fy) * 1024;
+        int z = (int)abs(fz) * 1024;
+        // sort values
+        if (y < x) x = returnFirst(y, y = x);
+        if (z < y) x = returnFirst(z, z = x);
+        if (y < x) x = returnFirst(y, y = x);
+
+        int dist = (z + 11 * (y >> 5) + (x >> 2) );
+
+        // compute distance with 8% error
+        return (float)(dist >> 10);
+    }
+    
+    public static double fastDistance3D(double fx, double fy, double fz) {
+        // make sure values are all positive
+        int x = (int)abs(fx) * 1024;
+        int y = (int)abs(fy) * 1024;
+        int z = (int)abs(fz) * 1024;
+        // sort values
+        if (y < x) x = returnFirst(y, y = x);
+        if (z < y) x = returnFirst(z, z = x);
+        if (y < x) x = returnFirst(y, y = x);
+
+        int dist = (z + 11 * (y >> 5) + (x >> 2) );
+
+        // compute distance with 8% error
+        return (double)(dist >> 10);
     }
 }

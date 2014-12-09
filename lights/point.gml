@@ -8,7 +8,7 @@ c_ambient: 000000
 c_diffuse: 00ff00
 c_specular: 000000
 
-dir: 0 0 -1
+pos: 0 0 0
 
 kc: 0
 kl: 0.01

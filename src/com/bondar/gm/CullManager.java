@@ -1,8 +1,6 @@
 package com.bondar.gm;
 
-import com.bondar.geom.BoundingSphere3D;
 import com.bondar.geom.Point3D;
-import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid3D;
 
@@ -91,7 +89,7 @@ public class CullManager {
         return false;
     }
     
-    public static void cullAndClip(Polygon3DVerts poly, Camera cam) {
-        
-    }
+//    public static void cullAndClip(Polygon3DVerts poly, Camera cam) {
+//        
+//    }
 }

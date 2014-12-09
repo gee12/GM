@@ -70,4 +70,8 @@ public class Vector3D extends Point3DOdn {
     public double length() {
 	return Math.sqrt(getX() * getX() + getY() * getY() + getZ() * getZ());
     }
+    
+    public double fastLength() {
+        return Mathem.fastDistance3D(getX(), getY(), getZ());
+    }
 }
