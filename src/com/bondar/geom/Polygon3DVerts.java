@@ -1,6 +1,7 @@
 package com.bondar.geom;
 
 import com.bondar.gm.Camera;
+import com.bondar.gm.CullManager;
 import java.awt.Color;
 
 /**
@@ -23,13 +24,12 @@ public class Polygon3DVerts extends Polygon3D {
     }
     
     /////////////////////////////////////////////////////////
-    public boolean isBackFace(Camera cam) {
-	if (cam == null) return true;
+    public boolean isBackFace(Point3D camPos) {
+	if (camPos == null) return true;
 	if (isSetAttribute(Polygon3D.ATTR_2_SIDES)
 		|| type == Types.LINE
 		|| type == Types.POINT) return false;
-        Point3D p = cam.getPosition();
-	return !isPointInHalfspace(p);
+	return !isPointInHalfspace(camPos);
     }
     
     public boolean isPointInHalfspace(Point3D p) {
@@ -87,10 +87,14 @@ public class Polygon3DVerts extends Polygon3D {
         }
     }
     
-    public void setIsBackFace(Camera cam) {
-	if (isBackFace(cam))
+    public void setIsBackFace(Point3D camPos) {
+	if (isBackFace(camPos))
 	    state = States.BACKFACE;
-	else state = States.VISIBLE;
+    }
+    
+    public void setIsCulled(Camera cam) {
+        if (CullManager.isCulled(this, cam))
+            state = States.CULLED;
     }
         
     /////////////////////////////////////////////////////////

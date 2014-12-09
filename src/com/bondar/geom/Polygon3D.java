@@ -1,5 +1,7 @@
 package com.bondar.geom;
 
+import com.bondar.gm.Camera;
+import com.bondar.gm.CullManager;
 import java.awt.Color;
 
 /**
@@ -10,7 +12,8 @@ public abstract class Polygon3D {
 
     public static enum States {
 	VISIBLE,
-	BACKFACE
+	BACKFACE,
+        CULLED
     }
     public static enum Types {
 	POLYGON,
@@ -94,7 +97,11 @@ public abstract class Polygon3D {
     
     public final void unsetAttribute(int attr) {
 	attributes &= ~attr;
-    }     
+    }
+    
+    public void setState(States state) {
+        this.state = state;
+    }
 
     public void setColor(Color col) {
 	this.colors[0] = col;
@@ -110,10 +117,6 @@ public abstract class Polygon3D {
     
     public void setColor(int r, int g, int b, int i) {
 	this.colors[i] = new Color(r, g, b);
-    }
-    
-    public void setState(States state) {
-        this.state = state;
     }
     
     public void setNormal(Vector3D n) {

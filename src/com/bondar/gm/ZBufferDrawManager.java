@@ -1,17 +1,14 @@
 package com.bondar.gm;
 
 import com.bondar.geom.Point2D;
-import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DInt;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid2D;
 import com.bondar.geom.Vertex3D;
-import static com.bondar.gm.DrawManager.image;
 import com.bondar.tasks.Main;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 /**
  *
@@ -22,14 +19,11 @@ public class ZBufferDrawManager extends DrawManager {
     public static final float SCR_VALUE = Float.MAX_VALUE;
     
     private float[][] buffer;
-//    private int width;
-//    private int height;
     private boolean isZBuffer;
 
     public ZBufferDrawManager(int width, int height) {
         super(width, height);
         this.buffer = new float[width][height];
-//        reset(width, height);
     }
     
     public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, 
@@ -46,13 +40,10 @@ public class ZBufferDrawManager extends DrawManager {
     
 //    public void reset(int width, int height) {
 //        this.buffer = new float[width][height];
-//        this.width = width;
-//        this.height = height;
 //    }
     
     public void clear() {
         for (int i = 0; i < buffer.length; i++) {
-//            Arrays.fill(buffer[i], SCR_VALUE);
             for (int j = 0; j < buffer[0].length; j++) {
                 buffer[i][j] = SCR_VALUE;
             }

@@ -58,7 +58,13 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     public static void update(Camera cam, String depthType, String shadingType, boolean isNormalsPoly, boolean isNormalsVert) {
-	
+	// NEED TO OPTIMATE !
+        // cull, shade & transfer in one for()
+        
+        
+        // cull polygons
+        onCulling(cam);
+        // shade
         onShading(shadingType);
         //
         if (depthType.equals(Main.RADIO_PAINTER)) {
@@ -72,7 +78,6 @@ public class RenderManager {
         if (isNormalsPoly) {
             for (Polygon3DVerts poly : renderArray) {
                 if (poly.getSize() < 3) continue;
-//                Point3D n = poly.getNormal();
                 Point3D n = poly.getNormal();
                 // !!! transfer to camera for the SECOND TIME !
 //                n = TransferManager.transToCamera(n, cam);
@@ -82,7 +87,6 @@ public class RenderManager {
 //                n = TransferManager.transPerspectToScreen(n, cam);
                 Vector3D v =  n.toVector3D();
 //                v = v.normalize();
-//                poly.setNormal(n.toVector3D().normalize());
                 poly.setNormal(v);
             }
         }
@@ -100,6 +104,13 @@ public class RenderManager {
             }
         }
         
+    }
+    
+    /////////////////////////////////////////////////////////
+    private static void onCulling(Camera cam) {
+        for (Polygon3DVerts poly : renderArray) {
+            poly.setIsCulled(cam);
+        }
     }
      
     /////////////////////////////////////////////////////////

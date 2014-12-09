@@ -76,7 +76,8 @@ public class Polygon3DInds extends Polygon3D {
     /////////////////////////////////////////////////////////
     // set
     public void setIsBackFace(Point3D[] points, Point3D camPos) {
-	state = (isBackFace(points, camPos)) ? States.BACKFACE : States.VISIBLE;
+	if (isBackFace(points, camPos))
+	    state = States.BACKFACE;
     }
     
     /////////////////////////////////////////////////////////

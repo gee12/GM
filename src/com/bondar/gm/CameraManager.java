@@ -31,7 +31,8 @@ public class CameraManager {
         Point3DOdn pos = new Point3DOdn(0,0,-15);
 	Vector3D dir = new Vector3D(0.5,0.78,0);//-0.78,0.78,0);
 	Point3D target = new Point3D(0,0,10);
-	double near = 3, far = 1000, dist = 3, fov = 90;
+        // dist < 1 - big perspective
+	double near = 3, far = 1000, dist = 1, fov = 90;
 	Dimension vp = new Dimension(width, height);
 	cameraEuler = new CameraEuler(0, pos, dir, near, far, dist, fov, vp, CameraEuler.CAM_ROT_SEQ_ZYX);
 	cameraUVN = new CameraUVN(0, pos, dir, near, far, dist, fov, vp, target, CameraUVN.UVN_MODE_SIMPLE);

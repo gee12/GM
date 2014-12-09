@@ -211,7 +211,8 @@ public class Main extends Application implements OptionsPanelListener {
         addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
         addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_GOURAD, this);
         addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
-//        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
+        //addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
+        
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);
 	addCheckBox(CHECKBOX_TEXTURE, true, this);

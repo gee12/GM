@@ -72,7 +72,7 @@ public class ModelsManager {
     /////////////////////////////////////////////////////////
     private static void updateModel(Solid3D model, Camera cam, boolean isDefineBackfaces) {
 	if (model == null) return;
-
+        
 	// culling solid if need
 	if (!model.isSetAttribute(Solid3D.ATTR_NO_CULL))
 	    model.setIsCulled(cam);

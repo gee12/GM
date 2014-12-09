@@ -1,8 +1,8 @@
 package com.bondar.geom;
 
 import com.bondar.gm.Camera;
+import com.bondar.gm.CullManager;
 import com.bondar.gm.Matrix;
-import com.bondar.gm.TransferManager;
 import static com.bondar.gm.Matrix.AXIS.X;
 import static com.bondar.gm.Matrix.AXIS.Y;
 import static com.bondar.gm.Matrix.AXIS.Z;
@@ -12,10 +12,7 @@ import static com.bondar.gm.Matrix.AXIS.Z;
  * @author truebondar
  */
 public class Solid3D {
-    
-    final double HALF_SCREEN_X = 0.5;
-    final double HALF_SCREEN_Y = 0.5;
-    
+
     public static enum States {
 	VISIBLE,
 	CULLED
@@ -175,34 +172,6 @@ public class Solid3D {
     public void updateScale(double sx, double sy, double sz) {
 	scale.add(new Point3D(sx, sy, sz));
     }
-
-    
-    /////////////////////////////////////////////////////////
-    // Cull solid, if it's fully out of clip bounds.
-    public boolean isCulled(Camera cam) {
-	if (cam == null) return false;
-        // transfer object position (from world to camera coord's)
-	Point3D spherePos = TransferManager.transToCamera(pos, cam);
-        double maxRadius = bounds.getMaxRadius();
-	// by z
-	if (((spherePos.getZ() - maxRadius) > cam.getClipBox().getFarClipZ()) ||    // far side
-	    ((spherePos.getZ() + maxRadius) < cam.getClipBox().getNearClipZ())) {   // near side
-	    return true;
-	}
-	// by x
-	double zTest = HALF_SCREEN_X * cam.getViewPlane().getWidth() * spherePos.getZ() / cam.getViewDist();
-	if (((spherePos.getX() - maxRadius) > zTest)  || // right side
-	    ((spherePos.getX() + maxRadius) < -zTest) ) { // left side, note sign change
-	    return true;
-	}
-	// by y
-	zTest = HALF_SCREEN_Y * cam.getViewPlane().getHeight()* spherePos.getZ() / (cam.getViewDist() * cam.getAspectRatio());
-	if (((spherePos.getY() - maxRadius) > zTest)  || // down side
-	    ((spherePos.getY() + maxRadius) < -zTest) ) { // up side, note sign change
-	    return true;
-	}
-	return false;
-    }
     
     /////////////////////////////////////////////////////////
     // Define backfaces triangles.
@@ -230,7 +199,7 @@ public class Solid3D {
     }   
     
     public void setIsCulled(Camera cam) {
-	if (isCulled(cam))
+	if (CullManager.isCulled(this, cam))
 	    state = States.CULLED;
 	else state = States.VISIBLE;
     }
@@ -284,10 +253,12 @@ public class Solid3D {
 	    //poly.setVertexesPosition(points);
             poly.resetNormal(points);
             //poly.resetAverageZ(points);
+            poly.setState(Polygon3D.States.VISIBLE);
+            
             if (isNeedDefineBackfaces && poly.getSize() >= 3)
                 poly.setIsBackFace(points, camPos);
             // restore backfaces if don't need to rejection
-            else poly.setState(Polygon3D.States.VISIBLE);
+//            else poly.setState(Polygon3D.States.VISIBLE);
             
 
             // compute vertexes normal
