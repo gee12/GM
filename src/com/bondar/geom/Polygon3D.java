@@ -26,8 +26,10 @@ public abstract class Polygon3D {
     public static final int ATTR_2_SIDES = 2;
     public static final int ATTR_TRANSPARENT = 4;
     public static final int ATTR_TEXTURED = 16;
-    
-    public static final Color SRC_COLOR = Color.WHITE;
+    public static final int ATTR_SHADE_CONST = 32;
+    public static final int ATTR_SHADE_FLAT = 64;
+    public static final int ATTR_SHADE_GOURAD = 128;
+    public static final int ATTR_SHADE_FONG = 256;
     
     protected States state;
     protected Types type;
@@ -50,23 +52,21 @@ public abstract class Polygon3D {
         this.transp = transp;
 	this.attributes = attr;
         this.colors = new Color[size];
-        colors[0] = src;
-//        colors[1] = src;
-//        colors[2] = src;
+        this.colors[0] = src;
 	this.state = States.VISIBLE;
         this.type = type(size);
         this.normal = new Vector3D();
     }
     
     /////////////////////////////////////////////////////////
-    public Polygon3D(int size, float transp, int attr, int textId, Point2D[] textPoints) {
+    public Polygon3D(int size, float transp, int attr, Color src, int textId, Point2D[] textPoints) {
 	this.size = size;
         this.transp = transp;
 	this.attributes = attr;
         this.textureId = textId;
         this.texturePoints = textPoints;
         this.colors = new Color[size];
-        colors[0] = SRC_COLOR;
+        colors[0] = src;
 	this.state = States.VISIBLE;
         this.type = type(size);
         this.normal = new Vector3D();

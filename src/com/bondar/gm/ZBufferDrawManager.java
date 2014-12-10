@@ -720,14 +720,6 @@ public class ZBufferDrawManager extends DrawManager {
                 dzdyr,
                 zr;
 
-        int x0, y0, tu0, tv0, tw0, tz0,
-                x1, y1, tu1, tv1, tw1, tz1,
-                x2, y2, tu2, tv2, tw2, tz2;
-
-        int rBase0, gBase0, bBase0,
-                rBase1, gBase1, bBase1,
-                rBase2, gBase2, bBase2;
-        
         Point3DInt[] ints = {
             new Point3DInt(verts[v0].getPosition()),
             new Point3DInt(verts[v1].getPosition()),
@@ -766,10 +758,6 @@ public class ZBufferDrawManager extends DrawManager {
         
         // if same
         if (ints[v0].getY() == ints[v1].getY()) {
-//            if (ints[v0].getY() == ints[v2].getY()) {
-//                // draw line ?!
-//                return;
-//            }
             type = TRI_TYPE_FLAT_TOP;
             if (ints[v1].getX() < ints[v0].getX()) {
                 v0 = Mathem.returnFirst(v1, v1 = v0);
@@ -785,40 +773,40 @@ public class ZBufferDrawManager extends DrawManager {
         }
 
         // extract colors
-        rBase0 = colors[v0].getRed();
-        gBase0 = colors[v0].getGreen();
-        bBase0 = colors[v0].getBlue();
+        int rBase0 = colors[v0].getRed();
+        int gBase0 = colors[v0].getGreen();
+        int bBase0 = colors[v0].getBlue();
 
-        rBase1 = colors[v1].getRed();
-        gBase1 = colors[v1].getGreen();
-        bBase1 = colors[v1].getBlue();
+        int rBase1 = colors[v1].getRed();
+        int gBase1 = colors[v1].getGreen();
+        int bBase1 = colors[v1].getBlue();
 
-        rBase2 = colors[v2].getRed();
-        gBase2 = colors[v2].getGreen();
-        bBase2 = colors[v2].getBlue();
+        int rBase2 = colors[v2].getRed();
+        int gBase2 = colors[v2].getGreen();
+        int bBase2 = colors[v2].getBlue();
 
         // extract vertices
         // 0
-        x0 = ints[v0].getX();
-        y0 = ints[v0].getY();
-        tu0 = rBase0;
-        tv0 = gBase0;
-        tw0 = bBase0;
-        tz0 = ints[v0].getZ();
+        int x0 = ints[v0].getX();
+        int y0 = ints[v0].getY();
+        int tu0 = rBase0;
+        int tv0 = gBase0;
+        int tw0 = bBase0;
+        int tz0 = ints[v0].getZ();
         // 1
-        x1 = ints[v1].getX();
-        y1 = ints[v1].getY();
-        tu1 = rBase1;
-        tv1 = gBase1;
-        tw1 = bBase1;
-        tz1 = ints[v1].getZ();
+        int x1 = ints[v1].getX();
+        int y1 = ints[v1].getY();
+        int tu1 = rBase1;
+        int tv1 = gBase1;
+        int tw1 = bBase1;
+        int tz1 = ints[v1].getZ();
         // 2
-        x2 = ints[v2].getX();
-        y2 = ints[v2].getY();
-        tu2 = rBase2;
-        tv2 = gBase2;
-        tw2 = bBase2;
-        tz2 = ints[v2].getZ();
+        int x2 = ints[v2].getX();
+        int y2 = ints[v2].getY();
+        int tu2 = rBase2;
+        int tv2 = gBase2;
+        int tw2 = bBase2;
+        int tz2 = ints[v2].getZ();
 
         // degenerate triangle
         if (((x0 == x1) && (x1 == x2)) || ((y0 ==  y1) && (y1 == y2))) {

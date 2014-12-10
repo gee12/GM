@@ -246,26 +246,32 @@ public class FileLoader {
 			for (int i = 1; i < indexesNum + 1; i++) {
 			    indexes[i-1] = Integer.parseInt(polyStr[i]);
 			}
-			// transparency
+                        // color
+                        Color color = Color.LIGHT_GRAY;
+                        if (polyStrSize > indexesNum + 1) {
+                            color = new Color(Integer.parseInt(polyStr[indexesNum + 1], 16));
+                        }
+                        // transparency
 			float transparency = 0;
-			if (polyStrSize > indexesNum + 1) {
-			    transparency = Float.parseFloat(polyStr[indexesNum + 1]);
+			if (polyStrSize > indexesNum + 2) {
+			    transparency = Float.parseFloat(polyStr[indexesNum + 2]);
 			}
 			// attributes
 			int polyAttribs = 0;
-			if (polyStrSize > indexesNum + 2) {
-			    polyAttribs = Integer.parseInt(polyStr[indexesNum + 2]);
+			if (polyStrSize > indexesNum + 3) {
+			    polyAttribs = Integer.parseInt(polyStr[indexesNum + 3]);
 			}
+                        // if texture is set
                         if (Polygon3D.isSetAttribute(polyAttribs, Polygon3D.ATTR_TEXTURED)) {
                             // texture id
                             int textureId = 0;
-                            if (polyStrSize > indexesNum + 3) {
-                                textureId = Integer.parseInt(polyStr[indexesNum + 3]);
+                            if (polyStrSize > indexesNum + 4) {
+                                textureId = Integer.parseInt(polyStr[indexesNum + 4]);
                             }
                             // texture points
                             Point2D[] texturePoints = new Point2D[indexesNum];
-                            if (polyStrSize > indexesNum + 4) {
-                                String[] pointsStr = polyStr[indexesNum + 4].split(TEXTURE_POINTS_SEPARATOR);
+                            if (polyStrSize > indexesNum + 5) {
+                                String[] pointsStr = polyStr[indexesNum + 5].split(TEXTURE_POINTS_SEPARATOR);
                                 if (pointsStr.length < indexesNum*2) {
                                     throw new RuntimeException(buildErrorText(
                                         "Wrong texture points format",fileName, fileLineNum + lineNum));
@@ -276,14 +282,11 @@ public class FileLoader {
                                     texturePoints[i/2] = new Point2D(u, v);
                                 }
                             }
-                            polies[lineNum] = new Polygon3DInds(indexes, transparency, polyAttribs, textureId, texturePoints);
-                        } else {
-                            // fill color
-                            Color fillColor = Color.LIGHT_GRAY;
-                            if (polyStrSize > indexesNum + 3) {
-                                fillColor = new Color(Integer.parseInt(polyStr[indexesNum + 3], 16));
-                            }
-                            polies[lineNum] = new Polygon3DInds(indexes, transparency, polyAttribs, fillColor);
+                            polies[lineNum] = new Polygon3DInds(indexes, transparency, polyAttribs, color, textureId, texturePoints);
+                        } 
+                        // if texture not set
+                        else {
+                            polies[lineNum] = new Polygon3DInds(indexes, transparency, polyAttribs, color);
                         }
 			lineNum++;
 		    }

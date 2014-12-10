@@ -17,8 +17,8 @@ public class Polygon3DInds extends Polygon3D {
 	this.indexes = inds;
     }
     
-    public Polygon3DInds(int[] inds, float transp, int attr, int textId, Point2D[] textPoints) {
-        super(inds.length, transp, attr, textId, textPoints);
+    public Polygon3DInds(int[] inds, float transp, int attr, Color srcColor, int textId, Point2D[] textPoints) {
+        super(inds.length, transp, attr, srcColor, textId, textPoints);
         this.indexes = inds;
     }
 
@@ -123,7 +123,7 @@ public class Polygon3DInds extends Polygon3D {
     
     public Polygon3DInds getCopy() {
         if (isSetAttribute(ATTR_TEXTURED))
-            return new Polygon3DInds(indexes, transp, attributes, textureId, texturePoints);
+            return new Polygon3DInds(indexes, transp, attributes, colors[0], textureId, texturePoints);
         else return new Polygon3DInds(indexes, transp, attributes, colors[0]);
     }
     
@@ -131,7 +131,7 @@ public class Polygon3DInds extends Polygon3D {
     public Polygon3DVerts toPolygon3DVerts(Vertex3D[] verts) {
         Polygon3DVerts res;
         if (isSetAttribute(ATTR_TEXTURED))
-            res = new Polygon3DVerts(getVertexes(verts), transp, attributes, textureId, texturePoints);
+            res = new Polygon3DVerts(getVertexes(verts), transp, attributes, colors[0], textureId, texturePoints);
         else res = new Polygon3DVerts(getVertexes(verts), transp, attributes, colors[0]);
         res.normal = normal;
         res.averageZ = averageZ;

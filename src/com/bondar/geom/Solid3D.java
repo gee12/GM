@@ -25,7 +25,6 @@ public class Solid3D {
     private int attributes;
     private String name;
     private Point3D[] localVerts;
-    //private Point3D[] transVerts;
     private Vertex3D[] vertexes;
     private Polygon3DInds[] polygons;
     private BoundingSphere3D bounds;

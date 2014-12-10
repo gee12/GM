@@ -3,6 +3,7 @@ package com.bondar.gm;
 import com.bondar.geom.ClipRectangle2D;
 import com.bondar.geom.Point2D;
 import com.bondar.geom.Point3D;
+import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Solid2D;
 import com.bondar.geom.Vertex3D;
@@ -2702,7 +2703,27 @@ public abstract class DrawManager {
     }
         
     public void drawPolies(Polygon3DVerts[] polies, String shadeType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert) {
-	if (polies == null) return;
+	if (polies == null || shadeType == null) return;
+        
+        // if every polygon have individual shade type
+        if (shadeType.equals(Main.RADIO_SHADE_INDIVID)) {
+            for (Polygon3DVerts poly : polies) {
+                if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_GOURAD))
+                    drawPolygon3D(poly, Main.RADIO_SHADE_GOURAD, isTextured);
+                else if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_FLAT))
+                    drawPolygon3D(poly, Main.RADIO_SHADE_FLAT, isTextured);
+                else drawPolygon3D(poly, Main.RADIO_SHADE_CONST, isTextured);
+                //
+                if (isNormalsPoly) {
+                    drawPolygonNormal(poly);
+                }
+                if (isNormalsVert) {
+                    drawVertexNormals(poly);
+                }
+            }
+            return;
+        }
+        // if all polygons have same shade type
 	for (Polygon3DVerts poly : polies) {
 	    drawPolygon3D(poly, shadeType, isTextured);
             //
@@ -2723,6 +2744,7 @@ public abstract class DrawManager {
 	    case LINE:
 		drawLine(poly.getVertexPosition(0), poly.getVertexPosition(1), poly.getColor());
 		break;
+            // polygon
 	    default:
                 if (!isTextured) {
                     // not textured

@@ -117,17 +117,19 @@ public class RenderManager {
     /////////////////////////////////////////////////////////
     private static void onShading(String shadingType) {
         switch(shadingType) {
-            
-            case Main.RADIO_SHADE_CONST:
+            case Main.RADIO_SHADE_INDIVID:
+                LightManager.individualShade(renderArray);
                 break;
-            case Main.RADIO_SHADE_FLAT:
-                LightManager.flatShade(renderArray);
+            case Main.RADIO_SHADE_FONG:
+                
                 break;
             case Main.RADIO_SHADE_GOURAD:
                 LightManager.gouradShade(renderArray);
                 break;
-            case Main.RADIO_SHADE_FONG:
-                
+            case Main.RADIO_SHADE_FLAT:
+                LightManager.flatShade(renderArray);
+                break;
+            case Main.RADIO_SHADE_CONST:
                 break;
         }
     }

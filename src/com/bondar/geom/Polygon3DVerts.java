@@ -13,13 +13,13 @@ public class Polygon3DVerts extends Polygon3D {
     private Vertex3D[] vertexes;
     
     /////////////////////////////////////////////////////////
-    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, Color src) {
-        super(verts.length, transp, attr, src);
+    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, Color srcColor) {
+        super(verts.length, transp, attr, srcColor);
 	this.vertexes = verts;//Arrays.copyOf(verts, verts.length);
     }
     
-    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, int textId, Point2D[] textPoints) {
-        super(verts.length, transp, attr, textId, textPoints);
+    public Polygon3DVerts(Vertex3D[] verts, float transp, int attr, Color srcColor, int textId, Point2D[] textPoints) {
+        super(verts.length, transp, attr, srcColor, textId, textPoints);
         this.vertexes = verts;
     }
     
@@ -124,7 +124,7 @@ public class Polygon3DVerts extends Polygon3D {
     
     public Polygon3DVerts getCopy() {
         if (isSetAttribute(ATTR_TEXTURED))
-            return new Polygon3DVerts(vertexes, transp, attributes, textureId, texturePoints);
+            return new Polygon3DVerts(vertexes, transp, attributes, colors[0], textureId, texturePoints);
         else return new Polygon3DVerts(vertexes, transp, attributes, colors[0]);
     }
 }

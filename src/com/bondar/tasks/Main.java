@@ -52,11 +52,12 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String RADIO_EDGES = "Ребра";
     public static final String RADIO_FACES = "Грани";
     public static final String RADIO_EDGES_FACES = "Ребра и грани";
-    public static final String GROUP_TITLE_SHADE = "Затенение:";
-    public static final String RADIO_SHADE_CONST = "CONSTANT";
+    public static final String GROUP_TITLE_SHADE = "ЗАТЕНЕНИЕ:";
+    public static final String RADIO_SHADE_CONST = "Постоянное";
     public static final String RADIO_SHADE_FLAT = "Плоское";
     public static final String RADIO_SHADE_GOURAD = "Гуро";
     public static final String RADIO_SHADE_FONG = "Фонг";
+    public static final String RADIO_SHADE_INDIVID = "Индивидуальное";
 
     public static final String CHECKBOX_SHIFT_IF_INTERSECT = "Сдвигать при пересечении";
     public static final String CHECKBOX_BACKFACES_EJECTION = "Отброс невидимых полигонов";
@@ -208,10 +209,11 @@ public class Main extends Application implements OptionsPanelListener {
 	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES, this);
 	addRadio(GROUP_TITLE_VIEW, RADIO_EDGES_FACES, this);
         
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_GOURAD, this);
-        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_INDIVID, this);
         //addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FONG, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_GOURAD, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_FLAT, this);
+        addRadio(GROUP_TITLE_SHADE, RADIO_SHADE_CONST, this);
         
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);

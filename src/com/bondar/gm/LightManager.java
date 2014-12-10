@@ -35,12 +35,11 @@ public class LightManager {
     }
     
     ////////////////////////////////////////////////////////
-    public static Polygon3DVerts[] flatShade(Polygon3DVerts[] polies) {
-        if (polies == null) return null;
+    public static void flatShade(Polygon3DVerts[] polies) {
+        if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             flatShade(poly);
         }
-        return polies;
     }
     
     public static Polygon3D flatShade(Polygon3DVerts poly) {
@@ -114,12 +113,11 @@ public class LightManager {
     }
     
     ////////////////////////////////////////////////////////
-    public static Polygon3DVerts[] gouradShade(Polygon3DVerts[] polies) {
-        if (polies == null) return null;
+    public static void gouradShade(Polygon3DVerts[] polies) {
+        if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
         }
-        return polies;
     }
     
     public static Polygon3D gouradShade(Polygon3DVerts poly) {
@@ -249,6 +247,19 @@ public class LightManager {
         return poly;
     }
     
+    
+    ////////////////////////////////////////////////////////
+    public static void individualShade(Polygon3DVerts[] polies) {
+        if (polies == null) return;
+        for (Polygon3DVerts poly : polies) {
+            if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_GOURAD))
+                gouradShade(poly);
+            else if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_FLAT))
+                flatShade(poly);
+        }
+    }
+    
+    ////////////////////////////////////////////////////////
     public static void transLights(Camera cam) {
         for (Light light : lights.values()) {
             light.setTransPos(TransferManager.transToCamera(light.getPos(), cam));
@@ -256,6 +267,7 @@ public class LightManager {
         }
     }
         
+    ////////////////////////////////////////////////////////
     public static Color light(Color src, Color light) {
         if (src == null || light == null) return null;
         
@@ -266,6 +278,8 @@ public class LightManager {
         return new Color(r, g, b, src.getAlpha());
     }
     
+    ////////////////////////////////////////////////////////
+    // get
     public static HashMap<Integer, Light> getLights() {
         return lights;
     }
