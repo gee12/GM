@@ -95,6 +95,10 @@ public abstract class Polygon3D {
 	attributes |= attr;
     }
     
+    public final void setAttributes(int attr) {
+	attributes = attr;
+    }
+    
     public final void unsetAttribute(int attr) {
 	attributes &= ~attr;
     }
@@ -121,6 +125,10 @@ public abstract class Polygon3D {
     
     public void setNormal(Vector3D n) {
         this.normal = n;
+    }
+    
+    public void setTransparent(float transp) {
+        this.transp = transp;
     }
     
     /////////////////////////////////////////////////////////

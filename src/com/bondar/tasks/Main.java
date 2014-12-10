@@ -65,6 +65,7 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String CHECKBOX_NORMALS_VERT = "Нормали вершин";
     public static final String CHECKBOX_ANIMATE = "Анимировать";
     public static final String CHECKBOX_TEXTURE = "Отобразить текстуры";
+    public static final String CHECKBOX_SHADES = "Отобразить тени";
     
     public static final Color FONT_COLOR = Color.LIGHT_GRAY;
     public static final Font FONT = new Font("Tahoma", Font.PLAIN, 15);
@@ -218,6 +219,7 @@ public class Main extends Application implements OptionsPanelListener {
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);
 	addCheckBox(CHECKBOX_TEXTURE, true, this);
+	addCheckBox(CHECKBOX_SHADES, true, this);
 	addCheckBox(CHECKBOX_BACKFACES_EJECTION, true, this);
 	addCheckBox(CHECKBOX_NORMALS_POLY, false, this);
 	addCheckBox(CHECKBOX_NORMALS_VERT, false, this);
@@ -234,7 +236,7 @@ public class Main extends Application implements OptionsPanelListener {
 		addRadio(GROUP_TITLE_OBJECTS, model.getName(), this);
 	    }
 	}
-        ModelsManager.clone("Cube", 1000);
+        ModelsManager.clone("Cube", 100);
         RenderManager.load();
         TextureManager.load();
     }
@@ -251,11 +253,20 @@ public class Main extends Application implements OptionsPanelListener {
     protected void update() {
         boolean isAnimate = isSelectedCheckBox(CHECKBOX_ANIMATE);
         boolean isDefineBackfaces = isSelectedCheckBox(CHECKBOX_BACKFACES_EJECTION);
+        boolean isShades = isSelectedCheckBox(CHECKBOX_SHADES);
         
         // 1 - work with isolated objects
         ModelsManager.updateAndAnimate(CameraManager.getCam(), isAnimate, isDefineBackfaces);
 	// 2 - work with render array (visible polygons)
 	RenderManager.buildRenderArray(ModelsManager.getModels());
+        //
+        if (isShades) {
+            ShadesManager.buildShades(ModelsManager.getModels());
+            RenderManager.add(ShadesManager.getShades());
+        }
+        //
+        LightManager.transLights(CameraManager.getCam());
+        //
         RenderManager.update(CameraManager.getCam(),
                 getSelectedRadioText(GROUP_TITLE_DEPTH),
                 getSelectedRadioText(GROUP_TITLE_SHADE),
@@ -422,6 +433,9 @@ public class Main extends Application implements OptionsPanelListener {
             //
             res.append("  Видимых: ");
             res.append(ModelsManager.getVisibleNum());
+            //
+            res.append("\nТеней: ");
+            res.append(ShadesManager.getShadesNum());
             //
             res.append("\nПолигонов: ");
             res.append(RenderManager.getSize());

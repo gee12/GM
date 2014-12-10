@@ -18,6 +18,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.util.List;
 
 /**
  *
@@ -73,7 +74,7 @@ public abstract class DrawManager {
         backColor = new Color(TONE,TONE,TONE);
     }
     
-    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, 
+    public void drawScene(List<Polygon3DVerts> polies, String viewType, String shadeType, 
             String depthType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert,
             Solid2D crosshair) {
         // background
@@ -2696,37 +2697,18 @@ public abstract class DrawManager {
 	int ys[] = new int[size];
 	for (int i = 0; i < size; i++) {
 	    if (verts[i] == null) continue;
-	    xs[i] = (int)(verts[i].getPosition().getX() + 0.5);
-	    ys[i] = (int)(verts[i].getPosition().getY() + 0.5);
+	    xs[i] = Mathem.toInt(verts[i].getPosition().getX());
+	    ys[i] = Mathem.toInt(verts[i].getPosition().getY());
 	}
 	graphic.fillPolygon(xs, ys, size);
     }
         
-    public void drawPolies(Polygon3DVerts[] polies, String shadeType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert) {
-	if (polies == null || shadeType == null) return;
+    public void drawPolies(List<Polygon3DVerts> polies, String shadeType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert) {
+	if (polies == null) return;
         
-        // if every polygon have individual shade type
-        if (shadeType.equals(Main.RADIO_SHADE_INDIVID)) {
-            for (Polygon3DVerts poly : polies) {
-                if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_GOURAD))
-                    drawPolygon3D(poly, Main.RADIO_SHADE_GOURAD, isTextured);
-                else if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_FLAT))
-                    drawPolygon3D(poly, Main.RADIO_SHADE_FLAT, isTextured);
-                else drawPolygon3D(poly, Main.RADIO_SHADE_CONST, isTextured);
-                //
-                if (isNormalsPoly) {
-                    drawPolygonNormal(poly);
-                }
-                if (isNormalsVert) {
-                    drawVertexNormals(poly);
-                }
-            }
-            return;
-        }
-        // if all polygons have same shade type
 	for (Polygon3DVerts poly : polies) {
 	    drawPolygon3D(poly, shadeType, isTextured);
-            //
+            // normals
             if (isNormalsPoly) {
                 drawPolygonNormal(poly);
             }
@@ -2735,7 +2717,27 @@ public abstract class DrawManager {
             }
 	}
     }
-    
+   
+    public void drawBorderedPolies(List<Polygon3DVerts> polies, String shadeType,
+            boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert) {
+	if (polies == null) return;
+        
+	for (Polygon3DVerts poly : polies) {
+	    drawPolygon3D(poly, shadeType, isTextured);
+	    // edges
+            if (poly.getSize() >= 3) {
+                drawEdges(poly, EDGES_COLOR);
+            }
+            // normals
+            if (isNormalsPoly) {
+                drawPolygonNormal(poly);
+            }
+            if (isNormalsVert) {
+                drawVertexNormals(poly);
+            }
+	}
+    }
+   
     public void drawPolygon3D(Polygon3DVerts poly, String shadeType, boolean isTextured) {
 	switch(poly.getType()) {
 	    case POINT:
@@ -2746,7 +2748,16 @@ public abstract class DrawManager {
 		break;
             // polygon
 	    default:
-                if (!isTextured) {
+                // if every polygon have individual shade type
+                if (shadeType.equals(Main.RADIO_SHADE_INDIVID)) {
+                    if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_GOURAD))
+                        shadeType =  Main.RADIO_SHADE_GOURAD;
+                    else if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_FLAT))
+                        shadeType = Main.RADIO_SHADE_FLAT;
+                    else shadeType = Main.RADIO_SHADE_CONST;
+                }
+                
+                if (!isTextured || (isTextured && !poly.isSetAttribute(Polygon3D.ATTR_TEXTURED))) {
                     // not textured
                     switch(shadeType) {
                         case Main.RADIO_SHADE_CONST:
@@ -2775,7 +2786,6 @@ public abstract class DrawManager {
                             break;
                     }
                 }
-                
 		break;
 	}
     }
@@ -2783,7 +2793,7 @@ public abstract class DrawManager {
     
     //////////////////////////////////////////////////
     // Draw edges
-    public void drawEdges(Polygon3DVerts[] polies, boolean isNormalsPoly, boolean isNormalsVert) {
+    public void drawEdges(List<Polygon3DVerts> polies, boolean isNormalsPoly, boolean isNormalsVert) {
 	if (polies == null) return;
 	for (Polygon3DVerts poly : polies) {
 	    drawEdges(poly);
@@ -2817,27 +2827,6 @@ public abstract class DrawManager {
 	    drawLine(verts[i].getPosition(), verts[i+1].getPosition());
 	}
 	drawLine(verts[size-1].getPosition(), verts[0].getPosition());
-    }
-    
-    //////////////////////////////////////////////////        
-    // Draw polygons and edges
-    public void drawBorderedPolies(Polygon3DVerts[] polies, String shadeType,
-            boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert) {
-	if (polies == null) return;
-	for (Polygon3DVerts poly : polies) {
-	    // shading
-	    drawPolygon3D(poly, shadeType, isTextured);
-	    // edges
-            if (poly.getSize() >= 3) {
-                drawEdges(poly, EDGES_COLOR);
-            }
-            if (isNormalsPoly) {
-                drawPolygonNormal(poly);
-            }
-            if (isNormalsVert) {
-                drawVertexNormals(poly);
-            }
-	}
     }
     
     //////////////////////////////////////////////////

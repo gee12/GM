@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  *
@@ -26,7 +27,7 @@ public class RenderManager {
 	FAR_Z
     }
     
-    private static Polygon3DVerts[] renderArray = null;
+    private static List<Polygon3DVerts> renderArray = null;
     
     /////////////////////////////////////////////////////////
     public static void load() {
@@ -39,8 +40,13 @@ public class RenderManager {
 	renderArray = toRenderArray(models);
     }
     
-    public static Polygon3DVerts[] toRenderArray(List<Solid3D> models) {
+    public static void add(List<Solid3D> range) {
+        renderArray.addAll(toRenderArray(range));
+    }
+    
+    public static List<Polygon3DVerts> toRenderArray(List<Solid3D> models) {
 	if (models == null) return null;
+        
 	List<Polygon3DVerts> res = new ArrayList<>();
 	for (Solid3D model : models) {
             // check is culled
@@ -53,7 +59,8 @@ public class RenderManager {
 		res.add(poly.toPolygon3DVerts(model.getVertexes()));
 	    }
 	}
-	return Types.toArray(res, Polygon3DVerts.class);
+        return res;
+//	return Types.toArray(res, Polygon3DVerts.class);
     }
     
     /////////////////////////////////////////////////////////
@@ -65,7 +72,6 @@ public class RenderManager {
         // cull polygons
         onCulling(cam);
         // shade
-        LightManager.transLights(cam);
         onShading(shadingType);
         //
         if (depthType.equals(Main.RADIO_PAINTER)) {
@@ -112,6 +118,17 @@ public class RenderManager {
         for (Polygon3DVerts poly : renderArray) {
             poly.setIsCulled(cam);
         }
+        renderArray.removeIf(new NonVisiblePolygon());
+    }
+    
+    public static class NonVisiblePolygon implements Predicate {
+
+        @Override
+        public boolean test(Object t) {
+            Polygon3DVerts poly = (Polygon3DVerts)t;
+            return (poly.getState() != Polygon3D.States.VISIBLE);
+        }
+        
     }
      
     /////////////////////////////////////////////////////////
@@ -141,16 +158,19 @@ public class RenderManager {
 	sortByZ(renderArray, sortType);
     }
     
-    public static void sortByZ(Polygon3DVerts[] polies, SortByZTypes sortType) {
+    public static void sortByZ(List<Polygon3DVerts> polies, SortByZTypes sortType) {
 	switch (sortType) {
 	    case AVERAGE_Z:
-		Arrays.sort(polies, compAverageZ);
+                polies.sort(compAverageZ);
+//		Arrays.sort(polies, compAverageZ);
 		break;
 	    case NEAR_Z:
-		Arrays.sort(polies, compNearZ);
+                polies.sort(compNearZ);
+//		Arrays.sort(polies, compNearZ);
 		break;
 	    case FAR_Z:
-		Arrays.sort(polies, compFarZ);
+                polies.sort(compFarZ);
+//		Arrays.sort(polies, compFarZ);
 		break;
 	}
     }
@@ -163,13 +183,13 @@ public class RenderManager {
     
     /////////////////////////////////////////////////////////
     // set
-    public static void setRenderArray(Polygon3DVerts[] polies) {
+    public static void setRenderArray(List<Polygon3DVerts> polies) {
 	renderArray = polies;
     }
     
     /////////////////////////////////////////////////////////
     // get
-    public static Polygon3DVerts[] getRenderArray() {
+    public static List<Polygon3DVerts> getRenderArray() {
 	return renderArray;
     }
     
@@ -247,14 +267,14 @@ public class RenderManager {
     public Comparator<Integer> compInds = new Comparator<Integer>() {
 	@Override
 	public int compare(Integer i1, Integer i2) {
-            final double maxZ1 = renderArray[i1].averageZ();
-            final double maxZ2 = renderArray[i2].averageZ();
+            final double maxZ1 = renderArray.get(i1).averageZ();
+            final double maxZ2 = renderArray.get(i2).averageZ();
 	    return (maxZ1 < maxZ2) ? 1 :
 		    (maxZ1 > maxZ2) ? -1 : 0;
 	}
     };    
     
     public static int getSize() {
-        return renderArray.length;
+        return renderArray.size();
     }
 }

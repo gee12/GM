@@ -388,6 +388,10 @@ public class Solid3D {
     }
         
     public Solid3D getCopy() {
-	return new Solid3D(name, attributes, getPointsCopy(localVerts), getPolygonsCopy(polygons));
+	Solid3D res = new Solid3D(name, attributes, getPointsCopy(localVerts), polygons);
+	res.updateTransfers(pos.getX(), pos.getY(), pos.getZ());
+	res.updateAngles(dir.getX(), dir.getY(), dir.getZ());
+	res.updateScale(scale.getX(), scale.getY(), scale. getZ());
+        return res;
     }
 }

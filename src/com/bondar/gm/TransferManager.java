@@ -3,8 +3,10 @@ package com.bondar.gm;
 import com.bondar.geom.Solid3D;
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Point3DOdn;
+import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vertex3D;
+import java.util.List;
 
 /**
  *
@@ -40,6 +42,12 @@ public class TransferManager {
     }*/
     
     public static void transToPerspectAndScreen(Polygon3DVerts[] polies, Camera cam) {
+	if (polies == null) return;
+        for (Polygon3DVerts poly : polies) {
+            poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), cam));
+        }
+    }
+    public static void transToPerspectAndScreen(List<Polygon3DVerts> polies, Camera cam) {
 	if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             poly.setVertexes(transToPerspectAndScreen(poly.getVertexes(), cam));

@@ -9,6 +9,7 @@ import com.bondar.tasks.Main;
 import com.bondar.tools.Mathem;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  *
@@ -26,7 +27,7 @@ public class ZBufferDrawManager extends DrawManager {
         this.buffer = new float[width][height];
     }
     
-    public void drawScene(Polygon3DVerts[] polies, String viewType, String shadeType, 
+    public void drawScene(List<Polygon3DVerts> polies, String viewType, String shadeType, 
             String depthType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert,
             Solid2D crosshair) {
         isZBuffer = false;

@@ -44,7 +44,7 @@ public class ModelsManager {
 	    if (model.getName().equals(modelName)) {
 		for (int i = 0; i < num; i++) {
 		    Solid3D clone = new Solid3D(model);
-		    clone.updateTransfers(rand.nextInt(500)-250, rand.nextInt(200)-100, rand.nextInt(500)-250);
+		    clone.updateTransfers(rand.nextInt(500)-250, 0/*rand.nextInt(200)-100*/, rand.nextInt(500)-250);
 		    clone.updateAngles(Math.toRadians(rand.nextInt(360)), 
                             Math.toRadians(rand.nextInt(360)), 
                                     Math.toRadians(rand.nextInt(360)));
@@ -64,8 +64,10 @@ public class ModelsManager {
             if (isAnimate) animateModel(model);
 	    updateModel(model, camera, isDefineBackfaces);
             //
-            if (model.getState() == Solid3D.States.VISIBLE)
+            if (model.getState() == Solid3D.States.VISIBLE) {
                 visible++;
+                
+            }
 	}
     }
     
@@ -81,6 +83,7 @@ public class ModelsManager {
 
         // transfer local vertexes to world
 	Point3D[] transVerts = TransferManager.transToWorld(model);
+        
         // transferFull world vertexes to camera
         transVerts = TransferManager.transToCamera(transVerts, cam);
         
@@ -163,6 +166,7 @@ public class ModelsManager {
                 -Math.sin(ROTATE_ANGLE)*pos.getX() + Math.cos(ROTATE_ANGLE)*pos.getZ()));
     }
     
+    /////////////////////////////////////////////////////////
     // get
     public static List<Solid3D> getModels() {
 	return models;

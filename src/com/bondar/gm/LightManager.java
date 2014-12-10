@@ -4,7 +4,9 @@ import com.bondar.geom.Polygon3D;
 import com.bondar.geom.Polygon3DVerts;
 import com.bondar.geom.Vector3D;
 import java.awt.Color;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  *
@@ -35,7 +37,7 @@ public class LightManager {
     }
     
     ////////////////////////////////////////////////////////
-    public static void flatShade(Polygon3DVerts[] polies) {
+    public static void flatShade(List<Polygon3DVerts> polies) {
         if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             flatShade(poly);
@@ -113,7 +115,7 @@ public class LightManager {
     }
     
     ////////////////////////////////////////////////////////
-    public static void gouradShade(Polygon3DVerts[] polies) {
+    public static void gouradShade(List<Polygon3DVerts> polies) {
         if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             gouradShade(poly);
@@ -249,7 +251,7 @@ public class LightManager {
     
     
     ////////////////////////////////////////////////////////
-    public static void individualShade(Polygon3DVerts[] polies) {
+    public static void individualShade(List<Polygon3DVerts> polies) {
         if (polies == null) return;
         for (Polygon3DVerts poly : polies) {
             if (poly.isSetAttribute(Polygon3D.ATTR_SHADE_GOURAD))
@@ -280,8 +282,12 @@ public class LightManager {
     
     ////////////////////////////////////////////////////////
     // get
-    public static HashMap<Integer, Light> getLights() {
-        return lights;
+//    public static HashMap<Integer, Light> getLights() {
+//        return lights;
+//    }
+    
+    public static Collection <Light> getLights() {
+        return lights.values();
     }
     
     public static int getSize() {
