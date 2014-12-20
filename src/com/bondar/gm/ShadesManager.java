@@ -97,6 +97,7 @@ public class ShadesManager {
     }
     
     public static int getShadesNum() {
+        if (shades == null) return 0;
         return shades.size();
     }
     

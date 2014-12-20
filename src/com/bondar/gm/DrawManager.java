@@ -76,7 +76,7 @@ public abstract class DrawManager {
     
     public void drawScene(List<Polygon3DVerts> polies, String viewType, String shadeType, 
             String depthType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert,
-            Solid2D crosshair) {
+            boolean isGameViewModeEnabled, Solid2D crosshair) {
         // background
         drawBackground();
         // polygons
@@ -92,7 +92,7 @@ public abstract class DrawManager {
                 break;
         }
         //crosshair
-        if (crosshair != null) {
+        if (isGameViewModeEnabled && crosshair != null) {
             setColor(crosshair.getColor());
             Point2D[] points = crosshair.getPoints();
             drawLine(points[0], points[1]);

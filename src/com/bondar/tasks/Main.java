@@ -65,12 +65,16 @@ public class Main extends Application implements OptionsPanelListener {
     public static final String CHECKBOX_NORMALS_VERT = "Нормали вершин";
     public static final String CHECKBOX_ANIMATE = "Анимировать";
     public static final String CHECKBOX_TEXTURE = "Отобразить текстуры";
-    public static final String CHECKBOX_SHADES = "Отобразить тени";
+    public static final String CHECKBOX_SHADES = "Отобразить тени (beta)";
+    
+    public static final String SWITCH_VIEW_MODE_TEXT = "Переключить режим [TAB]";
+    public static final String KEYS_TEXT = "Вперед [W]\nНазад [S]\nВправо [A]\nВлево [D]\nВыше [SPACE]\nНиже [SHIFT]";
     
     public static final Color FONT_COLOR = Color.LIGHT_GRAY;
     public static final Font FONT = new Font("Tahoma", Font.PLAIN, 15);
 
     public static final Point2D ZERO_POINT = new Point2D();
+    public static Point2D WINDOW_CENTER;
     
     private final List<Solid3D> focusedModels = new ArrayList<>();
     public static boolean isGameViewModeEnabled;
@@ -100,6 +104,7 @@ public class Main extends Application implements OptionsPanelListener {
         super.setDrawPanelDimension(width, height);
 //        DrawManager.setDimension(getWidth(), getHeight());
         CameraManager.setViewPort(getWidth(), getHeight());
+        WINDOW_CENTER = new Point2D(getWidth()/2, getHeight()/2);
     }
     
     private void addListeners() {
@@ -139,7 +144,7 @@ public class Main extends Application implements OptionsPanelListener {
                     MouseManager.moveMouseToWindowCenter(getWindowCenterOnScreen());
                 }
                 else setCursor(Cursor.getPredefinedCursor(CursorManager.onCursorSwitch(getSelectedRadioText(GROUP_TITLE_OBJ_CHOISE),
-                        ModelsManager.getModels())));
+                        ModelsManager.getModels(), curPoint, WINDOW_CENTER)));
                 
 		oldPoint = curPoint;
 	    }
@@ -191,10 +196,10 @@ public class Main extends Application implements OptionsPanelListener {
     
     private void addControls() {
 	// radioButtons
- 	addRadio(GROUP_TITLE_OBJECTS, RADIO_ALL_MODELS, this);
-
+// 	addRadio(GROUP_TITLE_OBJECTS, RADIO_ALL_MODELS, this);
+//
 	addRadio(GROUP_TITLE_OBJ_CHOISE, RADIO_BY_MOUSE_PRESSED, this);
-	addRadio(GROUP_TITLE_OBJ_CHOISE, RADIO_BY_LIST_SELECTION, this);
+//	addRadio(GROUP_TITLE_OBJ_CHOISE, RADIO_BY_LIST_SELECTION, this);
 
 	addRadio(GROUP_TITLE_OPERATIONS, RADIO_ROTATE, this);
 	addRadio(GROUP_TITLE_OPERATIONS, RADIO_TRANSFER, this);
@@ -219,7 +224,7 @@ public class Main extends Application implements OptionsPanelListener {
 	// checkBox
 	//addCheckBox(CHECKBOX_SHIFT_IF_INTERSECT, false, this);
 	addCheckBox(CHECKBOX_TEXTURE, true, this);
-	addCheckBox(CHECKBOX_SHADES, true, this);
+	addCheckBox(CHECKBOX_SHADES, false, this);
 	addCheckBox(CHECKBOX_BACKFACES_EJECTION, true, this);
 	addCheckBox(CHECKBOX_NORMALS_POLY, false, this);
 	addCheckBox(CHECKBOX_NORMALS_VERT, false, this);
@@ -231,12 +236,12 @@ public class Main extends Application implements OptionsPanelListener {
     protected final void load() {
 	ModelsManager.load();
 	//
-	for (Solid3D model : ModelsManager.getModels()) {
-	    if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
-		addRadio(GROUP_TITLE_OBJECTS, model.getName(), this);
-	    }
-	}
-        ModelsManager.clone("Cube", 100);
+//	for (Solid3D model : ModelsManager.getModels()) {
+//	    if (!model.isSetAttribute(Solid3D.ATTR_FIXED)) {
+//		addRadio(GROUP_TITLE_OBJECTS, model.getName(), this);
+//	    }
+//	}
+        ModelsManager.clone("Cube", 1000);
         RenderManager.load();
         TextureManager.load();
     }
@@ -275,7 +280,7 @@ public class Main extends Application implements OptionsPanelListener {
 	// 3 - 
 //	onCollision();
         //
-        CursorManager.onHit(ModelsManager.getModels());
+        CursorManager.onCrossfairHit(ModelsManager.getModels());
     }
 
     /////////////////////////////////////////////////////////
@@ -417,8 +422,13 @@ public class Main extends Application implements OptionsPanelListener {
                 isSelectedCheckBox(CHECKBOX_TEXTURE),
                 isSelectedCheckBox(CHECKBOX_NORMALS_POLY),
                 isSelectedCheckBox(CHECKBOX_NORMALS_VERT),
+                isGameViewModeEnabled,
                 CursorManager.getCrosshair());
+        
         g.drawMultilineText(infoText(), FONT, FONT_COLOR, 10, 20);
+        if (isGameViewModeEnabled)
+            g.drawMultilineText(KEYS_TEXT, FONT, FONT_COLOR, 10, getHeight()/2-100);
+        g.drawText(SWITCH_VIEW_MODE_TEXT, FONT, FONT_COLOR, getWidth()/2-100, getHeight()-50);
     }
     
     private String infoText() {
@@ -442,7 +452,9 @@ public class Main extends Application implements OptionsPanelListener {
             //
             res.append("\nИсточников света (активных): ");
             res.append(LightManager.getActiveLightsNum());
-        } catch(Exception ex) {}
+        } catch(Exception ex) {
+            //
+        }
         return res.toString();
     }
     

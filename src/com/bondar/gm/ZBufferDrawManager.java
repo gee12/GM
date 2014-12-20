@@ -29,14 +29,15 @@ public class ZBufferDrawManager extends DrawManager {
     
     public void drawScene(List<Polygon3DVerts> polies, String viewType, String shadeType, 
             String depthType, boolean isTextured, boolean isNormalsPoly, boolean isNormalsVert,
-            Solid2D crosshair) {
+            boolean isGameViewModeEnabled, Solid2D crosshair) {
         isZBuffer = false;
         if (depthType.equals(Main.RADIO_Z_BUFFER)) {
             isZBuffer = true;
             // clear depth buffer
             clear();
         }
-        super.drawScene(polies, viewType, shadeType, depthType, isTextured, isNormalsPoly, isNormalsVert, crosshair);
+        super.drawScene(polies, viewType, shadeType, depthType, isTextured, isNormalsPoly, isNormalsVert, 
+                isGameViewModeEnabled, crosshair);
     }
     
 //    public void reset(int width, int height) {

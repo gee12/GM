@@ -41,35 +41,47 @@ public class CursorManager {
         
     }
     
-    public static void onHit(List<Solid3D> models) {
+    public static boolean onHit(List<Solid3D> models, Point2D point) {
 	for (Solid3D model : models) {
 	    if (model.getState() != Solid3D.States.VISIBLE
 		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
 	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(Main.ZERO_POINT, CameraManager.getCam())) {
-		setColor(CROSSHAIR_COLOR_ALLERT);
-		return;
+	    if (model.isCameraPointInto(point, CameraManager.getCam())) {
+		return true;
 	    }
         }
-        setColor(CROSSHAIR_COLOR_NORM);
+        return false;
+    }
+    
+    public static void onCrossfairHit(List<Solid3D> models) {
+        if (onHit(models, Main.ZERO_POINT))
+            setColor(CROSSHAIR_COLOR_ALLERT);
+        else setColor(CROSSHAIR_COLOR_NORM);
     }
     
     /////////////////////////////////////////////////////////
-    public static int onCursorSwitch(String objChoise, List<Solid3D> models) {
+    public static int onCursorSwitch(String objChoise, List<Solid3D> models, Point curPoint, Point2D centerPoint) {
         if (models == null) return Cursor.DEFAULT_CURSOR;
 	// set cursor type
 	if (objChoise.equals(RADIO_BY_LIST_SELECTION)) {
 	    return Cursor.MOVE_CURSOR;
 	}
-	for (Solid3D model : models) {
-	    if (model.getState() != Solid3D.States.VISIBLE
-		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
-	    // find object borders & check the cursor hit into borders
-	    if (model.isCameraPointInto(ZERO_POINT, CameraManager.getCam())) {
-		return Cursor.MOVE_CURSOR;
-	    }
-        }
+        
+        Point2D point = new Point2D(curPoint).sub(centerPoint);
+        
+        if (onHit(models, point))
+            return Cursor.MOVE_CURSOR;
+        
         return Cursor.DEFAULT_CURSOR;
+//	for (Solid3D model : models) {
+//	    if (model.getState() != Solid3D.States.VISIBLE
+//		    || model.isSetAttribute(Solid3D.ATTR_FIXED)) continue;
+//	    // find object borders & check the cursor hit into borders
+//	    if (model.isCameraPointInto(point, CameraManager.getCam())) {
+//		return Cursor.MOVE_CURSOR;
+//	    }
+//        }
+//        return Cursor.DEFAULT_CURSOR;
     }
     
     public static void setColor(Color col) {

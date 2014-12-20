@@ -2,9 +2,7 @@ package com.bondar.gm;
 
 import com.bondar.geom.Point3D;
 import com.bondar.geom.Solid3D;
-import com.bondar.tasks.Main;
 import static com.bondar.tasks.Main.ANGLE_UP;
-import static com.bondar.tasks.Main.GROUP_TITLE_OPERATIONS;
 import static com.bondar.tasks.Main.RADIO_ROTATE;
 import static com.bondar.tasks.Main.RADIO_SCALE;
 import static com.bondar.tasks.Main.RADIO_TRANSFER;
@@ -44,7 +42,7 @@ public class ModelsManager {
 	    if (model.getName().equals(modelName)) {
 		for (int i = 0; i < num; i++) {
 		    Solid3D clone = new Solid3D(model);
-		    clone.updateTransfers(rand.nextInt(500)-250, 0/*rand.nextInt(200)-100*/, rand.nextInt(500)-250);
+		    clone.updateTransfers(rand.nextInt(500)-250, rand.nextInt(200)-100, rand.nextInt(500)-250);
 		    clone.updateAngles(Math.toRadians(rand.nextInt(360)), 
                             Math.toRadians(rand.nextInt(360)), 
                                     Math.toRadians(rand.nextInt(360)));
